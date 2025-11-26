@@ -4,11 +4,8 @@ import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -21,13 +18,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "vehiculo")
-public class Vehiculo implements Serializable {
+@Table(name = "review_ruta")
+public class ReviewRuta implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -36,16 +32,9 @@ public class Vehiculo implements Serializable {
     private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_vehiculo_id")
+    @JoinColumn(name = "ruta_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private TipoVehiculo tipoVehiculo;
+    private Ruta ruta;
 
-    private String alias;
-
-    private String marca;
-
-    private String modelo;
-
-    @Column(name = "foto_vehiculo")
-    private String fotoVehiculo;
+    private Integer calificacion;
 }

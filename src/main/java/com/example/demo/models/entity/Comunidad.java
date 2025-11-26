@@ -25,8 +25,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "usuario")
-public class Usuario implements Serializable {
+@Table(name = "comunidad")
+public class Comunidad implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -34,35 +34,34 @@ public class Usuario implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username;
+    private String nombre;
 
-    private String email;
+    private String lema;
 
-    private String password;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "avatar_id")
-    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private Avatar avatar;
+    private String descripcion;
 
     private String ciudad;
 
-    private String provincia;
+    @Column(name = "logo_url")
+    private String logoUrl;
+
+    @Column(name = "foto_portada_url")
+    private String fotoPortadaUrl;
+
+    @Column(name = "tipo_privacidad")
+    private String tipoPrivacidad;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rol_id")
+    @JoinColumn(name = "creador_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private Rol rol;
+    private Usuario creador;
 
-    @Column(name = "nivel_experiencia")
-    private String nivelExperiencia;
-
-    @Column(name = "fecha_registro")
+    @Column(name = "fecha_creacion")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date fechaRegistro;
+    private Date fechaCreacion;
 
     @PrePersist
     public void prePersist() {
-        this.fechaRegistro = new Date();
+        this.fechaCreacion = new Date();
     }
 }

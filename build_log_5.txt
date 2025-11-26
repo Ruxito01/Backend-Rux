@@ -1,0 +1,30 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.example:Backend-Rux >-----------------------
+[INFO] Building Backend-Rux 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-clean-plugin/3.4.0/maven-clean-plugin-3.4.0.pom
+Progress (1): 771 B
+Progress (1): 1.7 kB
+Progress (1): 4.3 kB
+Progress (1): 5.5 kB
+                    
+Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-clean-plugin/3.4.0/maven-clean-plugin-3.4.0.pom (5.5 kB at 6.8 kB/s)
+[INFO] 
+[INFO] --- clean:3.4.0:clean (default-clean) @ Backend-Rux ---
+[INFO] Deleting C:\Users\diego\OneDrive\Documentos\GitHub\Backend-Rux\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Backend-Rux ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ Backend-Rux ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 108 source files with javac [debug parameters release 17] to target\classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.997 s
+[INFO] Finished at: 2025-11-26T15:44:58-05:00
+[INFO] ------------------------------------------------------------------------

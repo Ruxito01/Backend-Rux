@@ -21,8 +21,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "vehiculo")
-public class Vehiculo implements Serializable {
+@Table(name = "ruta")
+public class Ruta implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -31,21 +31,43 @@ public class Vehiculo implements Serializable {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "autor_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private Usuario usuario;
+    private Usuario autor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_vehiculo_id")
+    @JoinColumn(name = "comunidad_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private TipoVehiculo tipoVehiculo;
+    private Comunidad comunidad;
 
-    private String alias;
+    private String nombre;
 
-    private String marca;
+    private String descripcion;
 
-    private String modelo;
+    @Column(name = "distancia_km")
+    private Double distanciaKm;
 
-    @Column(name = "foto_vehiculo")
-    private String fotoVehiculo;
+    @Column(name = "tiempo_estimado_minutos")
+    private Integer tiempoEstimadoMinutos;
+
+    @Column(name = "dificultad_id")
+    private Integer dificultadId;
+
+    @Column(name = "es_publica")
+    private Boolean esPublica;
+
+    @Column(name = "geometria_ruta", columnDefinition = "TEXT")
+    private String geometriaRuta;
+
+    @Column(name = "lat_inicio")
+    private Double latInicio;
+
+    @Column(name = "lng_inicio")
+    private Double lngInicio;
+
+    @Column(name = "lat_fin")
+    private Double latFin;
+
+    @Column(name = "lng_fin")
+    private Double lngFin;
 }

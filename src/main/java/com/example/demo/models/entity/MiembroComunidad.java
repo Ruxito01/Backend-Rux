@@ -1,6 +1,7 @@
 package com.example.demo.models.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -12,7 +13,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,8 +25,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "vehiculo")
-public class Vehiculo implements Serializable {
+@Table(name = "miembro_comunidad")
+public class MiembroComunidad implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -31,21 +35,25 @@ public class Vehiculo implements Serializable {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comunidad_id")
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    private Comunidad comunidad;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private Usuario usuario;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_vehiculo_id")
-    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private TipoVehiculo tipoVehiculo;
+    private String rol;
 
-    private String alias;
+    private String estado;
 
-    private String marca;
+    @Column(name = "fecha_union")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date fechaUnion;
 
-    private String modelo;
-
-    @Column(name = "foto_vehiculo")
-    private String fotoVehiculo;
+    @PrePersist
+    public void prePersist() {
+        this.fechaUnion = new Date();
+    }
 }

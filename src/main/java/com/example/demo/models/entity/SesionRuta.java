@@ -1,6 +1,7 @@
 package com.example.demo.models.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -13,6 +14,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,8 +24,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "vehiculo")
-public class Vehiculo implements Serializable {
+@Table(name = "sesion_ruta")
+public class SesionRuta implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -36,16 +39,25 @@ public class Vehiculo implements Serializable {
     private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_vehiculo_id")
+    @JoinColumn(name = "ruta_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private TipoVehiculo tipoVehiculo;
+    private Ruta ruta;
 
-    private String alias;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehiculo_id")
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    private Vehiculo vehiculo;
 
-    private String marca;
+    private String estado;
 
-    private String modelo;
+    @Column(name = "check_in_inicio")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date checkInInicio;
 
-    @Column(name = "foto_vehiculo")
-    private String fotoVehiculo;
+    @Column(name = "check_in_fin")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date checkInFin;
+
+    @Column(name = "porcentaje_completado")
+    private Integer porcentajeCompletado;
 }

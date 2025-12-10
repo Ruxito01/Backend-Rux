@@ -1,7 +1,7 @@
 package com.example.demo.models.dao;
 
-import org.springframework.data.repository.CrudRepository;
 import com.example.demo.models.entity.Comunidad;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface IComunidadDao extends CrudRepository<Comunidad, Long> {
+public interface IComunidadDao extends JpaRepository<Comunidad, Long> {
 }

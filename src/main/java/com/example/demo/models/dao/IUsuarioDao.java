@@ -1,7 +1,9 @@
 package com.example.demo.models.dao;
 
-import org.springframework.data.repository.CrudRepository;
 import com.example.demo.models.entity.Usuario;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface IUsuarioDao extends CrudRepository<Usuario, Long> {
+@Repository
+public interface IUsuarioDao extends JpaRepository<Usuario, Long> {
 }

@@ -1,14 +1,11 @@
 package com.example.demo.models.service;
 
-import java.util.List;
 import com.example.demo.models.entity.Logro;
+import java.util.List;
 
 public interface ILogroService {
-    public List<Logro> findAll();
-
-    public Logro findById(Long id);
-
-    public Logro save(Logro logro);
-
-    public void delete(Long id);
+    List<Logro> findAll();
+    Logro findById(Long id);
+    Logro save(Logro entity);
+    void deleteById(Long id);
 }

@@ -1,14 +1,11 @@
 package com.example.demo.models.service;
 
-import java.util.List;
 import com.example.demo.models.entity.TipoVehiculo;
+import java.util.List;
 
 public interface ITipoVehiculoService {
-    public List<TipoVehiculo> findAll();
-
-    public TipoVehiculo findById(Long id);
-
-    public TipoVehiculo save(TipoVehiculo tipoVehiculo);
-
-    public void delete(Long id);
+    List<TipoVehiculo> findAll();
+    TipoVehiculo findById(Long id);
+    TipoVehiculo save(TipoVehiculo entity);
+    void deleteById(Long id);
 }

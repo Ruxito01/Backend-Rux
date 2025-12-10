@@ -1,73 +1,102 @@
 package com.example.demo.models.entity;
 
-import java.io.Serializable;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+/**
+ * Ruta planificada por un usuario.
+ * Define el recorrido, puntos de interés y paradas.
+ * Las rutas pueden ser públicas o privadas y se usan como base para crear
+ * Viajes.
+ */
 @Entity
-@Table(name = "ruta")
+@Table(name = "rutas")
+@Data
 public class Ruta implements Serializable {
-
-    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "autor_id")
-    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private Usuario autor;
+    @ManyToOne
+    @JoinColumn(name = "creador_id", nullable = false)
+    private Usuario creador;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "comunidad_id")
-    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-    private Comunidad comunidad;
-
+    @Column(nullable = false)
     private String nombre;
 
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(name = "distancia_km")
-    private Double distanciaKm;
+    /**
+     * Nivel de dificultad de la ruta.
+     * Valores: 'facil', 'medio', 'expertos'
+     */
+    @Column(name = "nivel_dificultad")
+    private String nivelDificultad;
 
-    @Column(name = "tiempo_estimado_minutos")
-    private Integer tiempoEstimadoMinutos;
+    // ==========================================
+    // DATOS TÉCNICOS ESTIMADOS
+    // ==========================================
 
-    @Column(name = "dificultad_id")
-    private Integer dificultadId;
+    /**
+     * Distancia total estimada de la ruta en kilómetros
+     */
+    @Column(name = "distancia_estimada_km", precision = 10, scale = 2)
+    private BigDecimal distanciaEstimadaKm;
 
-    @Column(name = "es_publica")
-    private Boolean esPublica;
+    /**
+     * Duración estimada total en minutos (incluyendo paradas)
+     */
+    @Column(name = "duracion_estimada_minutos")
+    private Integer duracionEstimadaMinutos;
 
-    @Column(name = "geometria_ruta", columnDefinition = "TEXT")
-    private String geometriaRuta;
+    // ==========================================
+    // VISUALIZACIÓN EN MAPA (GOOGLE MAPS)
+    // ==========================================
 
-    @Column(name = "lat_inicio")
-    private Double latInicio;
+    /**
+     * Polyline codificada de Google Maps.
+     * Representa la línea azul de la ruta sin guardar millones de puntos GPS.
+     * Se obtiene de la response de Google Directions API.
+     */
+    @Column(name = "polilinea_codificada", columnDefinition = "TEXT")
+    private String polilineaCodificada;
 
-    @Column(name = "lng_inicio")
-    private Double lngInicio;
+    /**
+     * Latitud del punto de inicio de la ruta
+     */
+    @Column(name = "latitud_inicio", precision = 10, scale = 7)
+    private BigDecimal latitudInicio;
 
-    @Column(name = "lat_fin")
-    private Double latFin;
+    /**
+     * Longitud del punto de inicio de la ruta
+     */
+    @Column(name = "longitud_inicio", precision = 10, scale = 7)
+    private BigDecimal longitudInicio;
 
-    @Column(name = "lng_fin")
-    private Double lngFin;
+    // ==========================================
+    // PRIVACIDAD Y ESTADO
+    // ==========================================
+
+    /**
+     * Nivel de privacidad de la ruta.
+     * Valores: 'publica', 'amigos', 'privada'
+     */
+    private String privacidad;
+
+    /**
+     * Estado de publicación de la ruta.
+     * Valores: 'borrador', 'publicada'
+     */
+    private String estado;
+
+    @Column(name = "fecha_creacion")
+    private LocalDateTime fechaCreacion = LocalDateTime.now();
+
+    private static final long serialVersionUID = 1L;
 }

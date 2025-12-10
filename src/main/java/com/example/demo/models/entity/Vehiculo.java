@@ -1,51 +1,59 @@
 package com.example.demo.models.entity;
 
+import jakarta.persistence.*;
+import lombok.Data;
+
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+/**
+ * Vehículo del garaje de un usuario.
+ * Representa motos, jeeps, quads, etc. que el usuario usa para sus viajes
+ * off-road.
+ */
 @Entity
-@Table(name = "vehiculo")
+@Table(name = "vehiculos")
+@Data
 public class Vehiculo implements Serializable {
-
-    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id")
-    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tipo_vehiculo_id")
-    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    @ManyToOne
+    @JoinColumn(name = "tipo_vehiculo_id", nullable = false)
     private TipoVehiculo tipoVehiculo;
 
+    /**
+     * Alias/apodo del vehículo.
+     * Ej: "La Bestia", "El Rayo", "Mi Enduro"
+     */
     private String alias;
 
+    /**
+     * Marca del vehículo. Ej: "Yamaha", "Jeep", "Honda"
+     */
     private String marca;
 
+    /**
+     * Modelo del vehículo. Ej: "WR450F", "Wrangler", "CRF450L"
+     */
     private String modelo;
 
-    @Column(name = "foto_vehiculo")
-    private String fotoVehiculo;
+    /**
+     * URL de la foto del vehículo
+     */
+    @Column(name = "url_foto")
+    private String urlFoto;
+
+    /**
+     * Indica si este es el vehículo principal/predeterminado del usuario
+     */
+    @Column(name = "es_principal")
+    private Boolean esPrincipal = false;
+
+    private static final long serialVersionUID = 1L;
 }

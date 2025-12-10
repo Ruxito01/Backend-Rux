@@ -1,67 +1,65 @@
 package com.example.demo.models.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.service.IUsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = { "http://localhost:4200" })
+import java.util.List;
+
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/usuario")
+@Tag(name = "Usuario", description = "API para gestión de Usuario")
 public class UsuarioController {
 
     @Autowired
     private IUsuarioService usuarioService;
 
-    @GetMapping("/usuarios")
-    public List<Usuario> index() {
+    @Operation(summary = "Obtener todos los usuarios")
+    @GetMapping
+    public List<Usuario> findAll() {
         return usuarioService.findAll();
     }
 
-    @GetMapping("/usuarios/{id}")
-    public Usuario show(@PathVariable Long id) {
-        return usuarioService.findById(id);
+    @Operation(summary = "Obtener usuario por ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> findById(@PathVariable Long id) {
+    	return usuarioService.findById(id)
+                .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+    
+    @Operation(summary = "Crea un nuevo usuario")
+    @PostMapping
+    public ResponseEntity<Usuario> save(@RequestBody Usuario usuario) {
+    	Usuario nuevoUsuario = usuarioService.save(usuario);
+        return new ResponseEntity<>(nuevoUsuario, HttpStatus.CREATED);
     }
 
-    @PostMapping("/usuarios")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Usuario create(@RequestBody Usuario usuario) {
-        return usuarioService.save(usuario);
+    @Operation(summary = "Actualiza la información de un usuario existente")
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> update(@PathVariable Long id, @RequestBody Usuario usuario) {
+        return usuarioService.findById(id).map(usuarioDB -> {
+        	usuarioDB.setNombre(usuario.getNombre());
+        	usuarioDB.setEmail(usuario.getEmail());
+            return new ResponseEntity<>(usuarioService.save(usuarioDB), HttpStatus.OK);
+        }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PutMapping("/usuarios/{id}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Usuario update(@RequestBody Usuario usuario, @PathVariable Long id) {
-        Usuario usuarioActual = usuarioService.findById(id);
-
-        usuarioActual.setUsername(usuario.getUsername());
-        usuarioActual.setEmail(usuario.getEmail());
-        usuarioActual.setPassword(usuario.getPassword());
-        usuarioActual.setAvatar(usuario.getAvatar());
-        usuarioActual.setCiudad(usuario.getCiudad());
-        usuarioActual.setProvincia(usuario.getProvincia());
-        usuarioActual.setRol(usuario.getRol());
-        usuarioActual.setNivelExperiencia(usuario.getNivelExperiencia());
-
-        return usuarioService.save(usuarioActual);
+    @Operation(summary = "Elimina un usuario por su ID")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (usuarioService.findById(id).isPresent()) {
+            usuarioService.deleteById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/usuarios/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        usuarioService.delete(id);
-    }
+    
 }

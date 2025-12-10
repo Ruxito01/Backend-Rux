@@ -1,14 +1,11 @@
 package com.example.demo.models.service;
 
-import java.util.List;
 import com.example.demo.models.entity.Ruta;
+import java.util.List;
 
 public interface IRutaService {
-    public List<Ruta> findAll();
-
-    public Ruta findById(Long id);
-
-    public Ruta save(Ruta ruta);
-
-    public void delete(Long id);
+    List<Ruta> findAll();
+    Ruta findById(Long id);
+    Ruta save(Ruta entity);
+    void deleteById(Long id);
 }

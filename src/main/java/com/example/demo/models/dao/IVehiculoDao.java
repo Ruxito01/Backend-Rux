@@ -1,7 +1,7 @@
 package com.example.demo.models.dao;
 
-import org.springframework.data.repository.CrudRepository;
 import com.example.demo.models.entity.Vehiculo;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface IVehiculoDao extends CrudRepository<Vehiculo, Long> {
+public interface IVehiculoDao extends JpaRepository<Vehiculo, Long> {
 }

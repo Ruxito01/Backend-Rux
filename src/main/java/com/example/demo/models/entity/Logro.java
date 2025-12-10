@@ -1,37 +1,49 @@
 package com.example.demo.models.entity;
 
-import java.io.Serializable;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Logros del sistema que los usuarios pueden desbloquear.
+ * Ej: "Primera Ruta", "100 km Recorridos", "Maestro Off-Road"
+ */
 @Entity
-@Table(name = "logro")
+@Table(name = "logros")
+@Data
 public class Logro implements Serializable {
-
-    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String nombre;
 
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(name = "icono_url")
-    private String iconoUrl;
+    /**
+     * URL del icono del logro
+     */
+    @Column(name = "url_icono")
+    private String urlIcono;
 
-    @Column(name = "condicion_sistema")
-    private String condicionSistema;
+    /**
+     * Criterio técnico para desbloquear (para lógica del sistema).
+     * Ej: "DISTANCIA_100KM", "RUTAS_COMPLETADAS_10", "PRIMER_VIAJE"
+     */
+    @Column(name = "criterio_desbloqueo")
+    private String criterioDesbloqueo;
+
+    // Relación muchos a muchos con Usuario
+    @ManyToMany(mappedBy = "logros", fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("logros")
+    private Set<Usuario> usuarios = new HashSet<>();
+
+    private static final long serialVersionUID = 1L;
 }

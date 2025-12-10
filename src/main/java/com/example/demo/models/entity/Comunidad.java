@@ -1,67 +1,57 @@
 package com.example.demo.models.entity;
 
-import java.io.Serializable;
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Comunidad de usuarios off-road.
+ * Grupos donde los usuarios comparten rutas y organizan viajes grupales.
+ */
 @Entity
-@Table(name = "comunidad")
+@Table(name = "comunidades")
+@Data
 public class Comunidad implements Serializable {
-
-    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nombre;
-
-    private String lema;
-
-    private String descripcion;
-
-    private String ciudad;
-
-    @Column(name = "logo_url")
-    private String logoUrl;
-
-    @Column(name = "foto_portada_url")
-    private String fotoPortadaUrl;
-
-    @Column(name = "tipo_privacidad")
-    private String tipoPrivacidad;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "creador_id")
-    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    @ManyToOne
+    @JoinColumn(name = "creador_id", nullable = false)
     private Usuario creador;
 
-    @Column(name = "fecha_creacion")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date fechaCreacion;
+    @Column(nullable = false)
+    private String nombre;
 
-    @PrePersist
-    public void prePersist() {
-        this.fechaCreacion = new Date();
-    }
+    @Column(columnDefinition = "TEXT")
+    private String descripcion;
+
+    /**
+     * Nivel de privacidad de la comunidad.
+     * Valores: 'publica', 'privada'
+     */
+    @Column(name = "nivel_privacidad")
+    private String nivelPrivacidad;
+
+    /**
+     * URL de la imagen/logo de la comunidad
+     */
+    @Column(name = "url_imagen")
+    private String urlImagen;
+
+    @Column(name = "fecha_creacion")
+    private LocalDateTime fechaCreacion = LocalDateTime.now();
+
+    // Relación muchos a muchos con Usuario (miembros de la comunidad)
+    @ManyToMany(mappedBy = "comunidades", fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("comunidades")
+    private Set<Usuario> miembros = new HashSet<>();
+
+    private static final long serialVersionUID = 1L;
 }

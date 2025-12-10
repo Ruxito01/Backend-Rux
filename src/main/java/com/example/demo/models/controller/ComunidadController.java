@@ -1,67 +1,83 @@
 package com.example.demo.models.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.service.IComunidadService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = { "http://localhost:4200" })
+import java.util.List;
+
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/comunidad")
+@Tag(name = "Comunidad", description = "API para gestión de Comunidad")
 public class ComunidadController {
 
     @Autowired
-    private IComunidadService comunidadService;
+    private IComunidadService service;
 
-    @GetMapping("/comunidades")
-    public List<Comunidad> index() {
-        return comunidadService.findAll();
+    @Operation(summary = "Obtener todas las comunidades", description = "Retorna una lista con todas las comunidades registradas")
+    @ApiResponse(responseCode = "200", description = "Lista de comunidades obtenida exitosamente")
+    @GetMapping
+    public ResponseEntity<List<Comunidad>> findAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
-    @GetMapping("/comunidades/{id}")
-    public Comunidad show(@PathVariable Long id) {
-        return comunidadService.findById(id);
+    @Operation(summary = "Obtener comunidad por ID", description = "Retorna una comunidad específica según su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Comunidad encontrada", content = @Content(schema = @Schema(implementation = Comunidad.class))),
+            @ApiResponse(responseCode = "404", description = "Comunidad no encontrada")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<Comunidad> findById(
+            @Parameter(description = "ID de la comunidad a buscar", required = true, example = "1") @PathVariable @NonNull Long id) {
+        Comunidad entity = service.findById(id);
+        return entity != null ? ResponseEntity.ok(entity) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/comunidades")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Comunidad create(@RequestBody Comunidad comunidad) {
-        return comunidadService.save(comunidad);
+    @Operation(summary = "Crear nueva comunidad", description = "Crea una nueva comunidad en el sistema")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Comunidad creada exitosamente", content = @Content(schema = @Schema(implementation = Comunidad.class)))
+    })
+    @PostMapping
+    public ResponseEntity<Comunidad> create(
+            @Parameter(description = "Datos de la comunidad a crear", required = true) @RequestBody @NonNull Comunidad entity) {
+        return ResponseEntity.ok(service.save(entity));
     }
 
-    @PutMapping("/comunidades/{id}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Comunidad update(@RequestBody Comunidad comunidad, @PathVariable Long id) {
-        Comunidad comunidadActual = comunidadService.findById(id);
-
-        comunidadActual.setNombre(comunidad.getNombre());
-        comunidadActual.setLema(comunidad.getLema());
-        comunidadActual.setDescripcion(comunidad.getDescripcion());
-        comunidadActual.setCiudad(comunidad.getCiudad());
-        comunidadActual.setLogoUrl(comunidad.getLogoUrl());
-        comunidadActual.setFotoPortadaUrl(comunidad.getFotoPortadaUrl());
-        comunidadActual.setTipoPrivacidad(comunidad.getTipoPrivacidad());
-        comunidadActual.setCreador(comunidad.getCreador());
-
-        return comunidadService.save(comunidadActual);
+    @Operation(summary = "Actualizar comunidad", description = "Actualiza los datos de una comunidad existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Comunidad actualizada exitosamente", content = @Content(schema = @Schema(implementation = Comunidad.class))),
+            @ApiResponse(responseCode = "404", description = "Comunidad no encontrada")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<Comunidad> update(
+            @Parameter(description = "ID de la comunidad a actualizar", required = true, example = "1") @PathVariable @NonNull Long id,
+            @Parameter(description = "Nuevos datos de la comunidad", required = true) @RequestBody @NonNull Comunidad entity) {
+        Comunidad existing = service.findById(id);
+        if (existing == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(service.save(entity));
     }
 
-    @DeleteMapping("/comunidades/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        comunidadService.delete(id);
+    @Operation(summary = "Eliminar comunidad", description = "Elimina una comunidad del sistema")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Comunidad eliminada exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Comunidad no encontrada")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "ID de la comunidad a eliminar", required = true, example = "1") @PathVariable @NonNull Long id) {
+        service.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 }

@@ -1,72 +1,83 @@
 package com.example.demo.models.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.demo.models.entity.Ruta;
 import com.example.demo.models.service.IRutaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = { "http://localhost:4200" })
+import java.util.List;
+
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/ruta")
+@Tag(name = "Ruta", description = "API para gestión de Ruta")
 public class RutaController {
 
     @Autowired
-    private IRutaService rutaService;
+    private IRutaService service;
 
-    @GetMapping("/rutas")
-    public List<Ruta> index() {
-        return rutaService.findAll();
+    @Operation(summary = "Obtener todas las rutas", description = "Retorna una lista con todas las rutas planificadas en el sistema")
+    @ApiResponse(responseCode = "200", description = "Lista de rutas obtenida exitosamente")
+    @GetMapping
+    public ResponseEntity<List<Ruta>> findAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
-    @GetMapping("/rutas/{id}")
-    public Ruta show(@PathVariable Long id) {
-        return rutaService.findById(id);
+    @Operation(summary = "Obtener ruta por ID", description = "Retorna una ruta específica según su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ruta encontrada", content = @Content(schema = @Schema(implementation = Ruta.class))),
+            @ApiResponse(responseCode = "404", description = "Ruta no encontrada")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<Ruta> findById(
+            @Parameter(description = "ID de la ruta a buscar", required = true, example = "1") @PathVariable @NonNull Long id) {
+        Ruta entity = service.findById(id);
+        return entity != null ? ResponseEntity.ok(entity) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/rutas")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Ruta create(@RequestBody Ruta ruta) {
-        return rutaService.save(ruta);
+    @Operation(summary = "Crear nueva ruta", description = "Crea una nueva ruta planificada en el sistema")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ruta creada exitosamente", content = @Content(schema = @Schema(implementation = Ruta.class)))
+    })
+    @PostMapping
+    public ResponseEntity<Ruta> create(
+            @Parameter(description = "Datos de la ruta a crear", required = true) @RequestBody @NonNull Ruta entity) {
+        return ResponseEntity.ok(service.save(entity));
     }
 
-    @PutMapping("/rutas/{id}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Ruta update(@RequestBody Ruta ruta, @PathVariable Long id) {
-        Ruta rutaActual = rutaService.findById(id);
-
-        rutaActual.setAutor(ruta.getAutor());
-        rutaActual.setComunidad(ruta.getComunidad());
-        rutaActual.setNombre(ruta.getNombre());
-        rutaActual.setDescripcion(ruta.getDescripcion());
-        rutaActual.setDistanciaKm(ruta.getDistanciaKm());
-        rutaActual.setTiempoEstimadoMinutos(ruta.getTiempoEstimadoMinutos());
-        rutaActual.setDificultadId(ruta.getDificultadId());
-        rutaActual.setEsPublica(ruta.getEsPublica());
-        rutaActual.setGeometriaRuta(ruta.getGeometriaRuta());
-        rutaActual.setLatInicio(ruta.getLatInicio());
-        rutaActual.setLngInicio(ruta.getLngInicio());
-        rutaActual.setLatFin(ruta.getLatFin());
-        rutaActual.setLngFin(ruta.getLngFin());
-
-        return rutaService.save(rutaActual);
+    @Operation(summary = "Actualizar ruta", description = "Actualiza los datos de una ruta existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ruta actualizada exitosamente", content = @Content(schema = @Schema(implementation = Ruta.class))),
+            @ApiResponse(responseCode = "404", description = "Ruta no encontrada")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<Ruta> update(
+            @Parameter(description = "ID de la ruta a actualizar", required = true, example = "1") @PathVariable @NonNull Long id,
+            @Parameter(description = "Nuevos datos de la ruta", required = true) @RequestBody @NonNull Ruta entity) {
+        Ruta existing = service.findById(id);
+        if (existing == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(service.save(entity));
     }
 
-    @DeleteMapping("/rutas/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        rutaService.delete(id);
+    @Operation(summary = "Eliminar ruta", description = "Elimina una ruta del sistema")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ruta eliminada exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Ruta no encontrada")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "ID de la ruta a eliminar", required = true, example = "1") @PathVariable @NonNull Long id) {
+        service.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 }

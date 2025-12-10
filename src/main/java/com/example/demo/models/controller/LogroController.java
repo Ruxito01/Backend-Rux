@@ -1,63 +1,83 @@
 package com.example.demo.models.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.demo.models.entity.Logro;
 import com.example.demo.models.service.ILogroService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = { "http://localhost:4200" })
+import java.util.List;
+
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/logro")
+@Tag(name = "Logro", description = "API para gestión de Logro")
 public class LogroController {
 
     @Autowired
-    private ILogroService logroService;
+    private ILogroService service;
 
-    @GetMapping("/logros")
-    public List<Logro> index() {
-        return logroService.findAll();
+    @Operation(summary = "Obtener todos los logros", description = "Retorna una lista con todos los logros disponibles en el sistema")
+    @ApiResponse(responseCode = "200", description = "Lista de logros obtenida exitosamente")
+    @GetMapping
+    public ResponseEntity<List<Logro>> findAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
-    @GetMapping("/logros/{id}")
-    public Logro show(@PathVariable Long id) {
-        return logroService.findById(id);
+    @Operation(summary = "Obtener logro por ID", description = "Retorna un logro específico según su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Logro encontrado", content = @Content(schema = @Schema(implementation = Logro.class))),
+            @ApiResponse(responseCode = "404", description = "Logro no encontrado")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<Logro> findById(
+            @Parameter(description = "ID del logro a buscar", required = true, example = "1") @PathVariable @NonNull Long id) {
+        Logro entity = service.findById(id);
+        return entity != null ? ResponseEntity.ok(entity) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/logros")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Logro create(@RequestBody Logro logro) {
-        return logroService.save(logro);
+    @Operation(summary = "Crear nuevo logro", description = "Crea un nuevo logro en el sistema")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Logro creado exitosamente", content = @Content(schema = @Schema(implementation = Logro.class)))
+    })
+    @PostMapping
+    public ResponseEntity<Logro> create(
+            @Parameter(description = "Datos del logro a crear", required = true) @RequestBody @NonNull Logro entity) {
+        return ResponseEntity.ok(service.save(entity));
     }
 
-    @PutMapping("/logros/{id}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Logro update(@RequestBody Logro logro, @PathVariable Long id) {
-        Logro logroActual = logroService.findById(id);
-
-        logroActual.setNombre(logro.getNombre());
-        logroActual.setDescripcion(logro.getDescripcion());
-        logroActual.setIconoUrl(logro.getIconoUrl());
-        logroActual.setCondicionSistema(logro.getCondicionSistema());
-
-        return logroService.save(logroActual);
+    @Operation(summary = "Actualizar logro", description = "Actualiza los datos de un logro existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Logro actualizado exitosamente", content = @Content(schema = @Schema(implementation = Logro.class))),
+            @ApiResponse(responseCode = "404", description = "Logro no encontrado")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<Logro> update(
+            @Parameter(description = "ID del logro a actualizar", required = true, example = "1") @PathVariable @NonNull Long id,
+            @Parameter(description = "Nuevos datos del logro", required = true) @RequestBody @NonNull Logro entity) {
+        Logro existing = service.findById(id);
+        if (existing == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(service.save(entity));
     }
 
-    @DeleteMapping("/logros/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        logroService.delete(id);
+    @Operation(summary = "Eliminar logro", description = "Elimina un logro del sistema")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Logro eliminado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Logro no encontrado")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "ID del logro a eliminar", required = true, example = "1") @PathVariable @NonNull Long id) {
+        service.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 }

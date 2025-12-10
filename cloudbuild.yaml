@@ -1,0 +1,33 @@
+steps:
+  # 1. Compilar el proyecto usando Maven (crea el .jar)
+  - name: 'maven:3.9-eclipse-temurin-17'
+    entrypoint: 'mvn'
+    args: ['clean', 'package', '-DskipTests']
+
+  # 2. Construir la imagen Docker usando el Dockerfile
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/backend-rux', '.']
+
+  # 3. Subir la imagen a Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/backend-rux']
+
+  # 4. Desplegar la nueva imagen en Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'backend-rux'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/backend-rux'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8090'
+
+images:
+  - 'gcr.io/$PROJECT_ID/backend-rux'

@@ -31,3 +31,6 @@ steps:
 
 images:
   - 'gcr.io/$PROJECT_ID/backend-rux'
+  
+options:
+    logging: CLOUD_LOGGING_ONLY

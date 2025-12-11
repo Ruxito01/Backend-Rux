@@ -60,19 +60,4 @@ public class UsuarioController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @Operation(summary = "Verifica si existe un email en el sistema")
-    @GetMapping("/existe/{email}")
-    public ResponseEntity<Boolean> verificarEmail(@PathVariable String email) {
-        boolean existe = usuarioService.existsByEmail(email);
-        return new ResponseEntity<>(existe, HttpStatus.OK);
-    }
-
-    @Operation(summary = "Actualiza parcialmente un usuario (PATCH) con contraseña encriptada")
-    @PatchMapping("/{id}")
-    public ResponseEntity<Usuario> updatePartial(@PathVariable Long id, @RequestBody Usuario usuario) {
-        return usuarioService.updatePartial(id, usuario)
-                .map(usuarioActualizado -> new ResponseEntity<>(usuarioActualizado, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
 }

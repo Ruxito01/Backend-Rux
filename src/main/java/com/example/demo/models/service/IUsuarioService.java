@@ -14,8 +14,4 @@ public interface IUsuarioService {
 
     void deleteById(Long id);
 
-    boolean existsByEmail(String email);
-
-    Optional<Usuario> updatePartial(Long id, Usuario usuarioParcial);
-
 }

@@ -40,6 +40,18 @@ public class UsuarioController {
                 .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
+    
+    @Operation(summary = "Login de usuario")
+    @PostMapping("/login")
+    public ResponseEntity<Usuario> login(@RequestBody Map<String, String> credentials) {
+        String email = credentials.get("email");
+        String contrasena = credentials.get("contrasena");
+        
+        return usuarioService.findByEmail(email)
+                .filter(usuario -> usuario.getContrasena().equals(contrasena))
+                .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.UNAUTHORIZED));
+    }
 
     @Operation(summary = "Crea un nuevo usuario")
     @PostMapping

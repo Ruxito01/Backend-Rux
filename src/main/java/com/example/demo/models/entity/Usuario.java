@@ -1,6 +1,6 @@
 package com.example.demo.models.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,7 +41,7 @@ public class Usuario implements Serializable {
     @Column(name = "foto")
     private String foto;
 
-    @JsonIgnore
+    
     @Column(name = "contrasena")
     private String contrasena;
 

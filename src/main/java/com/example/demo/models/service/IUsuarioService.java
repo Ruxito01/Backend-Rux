@@ -10,6 +10,8 @@ public interface IUsuarioService {
 
     Optional<Usuario> findById(Long id);
 
+    Optional<Usuario> findByEmail(String email);
+
     Usuario save(Usuario usuario);
 
     void deleteById(Long id);

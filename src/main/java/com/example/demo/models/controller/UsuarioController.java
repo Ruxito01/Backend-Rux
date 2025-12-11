@@ -1,6 +1,5 @@
 package com.example.demo.models.controller;
 
-
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,15 +28,15 @@ public class UsuarioController {
     @Operation(summary = "Obtener usuario por ID")
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> findById(@PathVariable Long id) {
-    	return usuarioService.findById(id)
+        return usuarioService.findById(id)
                 .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
-    
+
     @Operation(summary = "Crea un nuevo usuario")
     @PostMapping
     public ResponseEntity<Usuario> save(@RequestBody Usuario usuario) {
-    	Usuario nuevoUsuario = usuarioService.save(usuario);
+        Usuario nuevoUsuario = usuarioService.save(usuario);
         return new ResponseEntity<>(nuevoUsuario, HttpStatus.CREATED);
     }
 
@@ -45,8 +44,8 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> update(@PathVariable Long id, @RequestBody Usuario usuario) {
         return usuarioService.findById(id).map(usuarioDB -> {
-        	usuarioDB.setNombre(usuario.getNombre());
-        	usuarioDB.setEmail(usuario.getEmail());
+            usuarioDB.setNombre(usuario.getNombre());
+            usuarioDB.setEmail(usuario.getEmail());
             return new ResponseEntity<>(usuarioService.save(usuarioDB), HttpStatus.OK);
         }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -61,5 +60,19 @@ public class UsuarioController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    
+    @Operation(summary = "Verifica si existe un email en el sistema")
+    @GetMapping("/existe/{email}")
+    public ResponseEntity<Boolean> verificarEmail(@PathVariable String email) {
+        boolean existe = usuarioService.existsByEmail(email);
+        return new ResponseEntity<>(existe, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Actualiza parcialmente un usuario (PATCH) con contraseña encriptada")
+    @PatchMapping("/{id}")
+    public ResponseEntity<Usuario> updatePartial(@PathVariable Long id, @RequestBody Usuario usuario) {
+        return usuarioService.updatePartial(id, usuario)
+                .map(usuarioActualizado -> new ResponseEntity<>(usuarioActualizado, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
 }

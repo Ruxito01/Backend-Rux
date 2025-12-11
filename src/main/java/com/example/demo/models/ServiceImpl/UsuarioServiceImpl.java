@@ -3,7 +3,7 @@ package com.example.demo.models.ServiceImpl;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.models.dao.IUsuarioDao;
@@ -15,9 +15,6 @@ public class UsuarioServiceImpl implements IUsuarioService {
 
     @Autowired
     private IUsuarioDao usuarioDao;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
@@ -74,7 +71,7 @@ public class UsuarioServiceImpl implements IUsuarioService {
             }
             // Encriptar contraseña si se proporciona
             if (usuarioParcial.getContrasena() != null && !usuarioParcial.getContrasena().isEmpty()) {
-                String contrasenaEncriptada = passwordEncoder.encode(usuarioParcial.getContrasena());
+                String contrasenaEncriptada = BCrypt.hashpw(usuarioParcial.getContrasena(), BCrypt.gensalt());
                 usuarioDB.setContrasena(contrasenaEncriptada);
             }
 

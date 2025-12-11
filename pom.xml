@@ -90,10 +90,11 @@
             <optional>true</optional>
         </dependency>
         
-        <!-- Spring Security (para BCryptPasswordEncoder) -->
+        <!-- BCrypt standalone (sin Spring Security) -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
         </dependency>
 	</dependencies>
 

@@ -41,7 +41,6 @@ public class Usuario implements Serializable {
         @Column(name = "foto")
         private String foto;
 
-        @JsonIgnore
         @Column(name = "contrasena")
         private String contrasena;
 

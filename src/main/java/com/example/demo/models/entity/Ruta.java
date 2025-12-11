@@ -79,6 +79,18 @@ public class Ruta implements Serializable {
     @Column(name = "longitud_inicio", precision = 10, scale = 7)
     private BigDecimal longitudInicio;
 
+    /**
+     * Latitud del punto de fin de la ruta
+     */
+    @Column(name = "latitud_fin", precision = 10, scale = 7)
+    private BigDecimal latitudFin;
+
+    /**
+     * Longitud del punto de fin de la ruta
+     */
+    @Column(name = "longitud_fin", precision = 10, scale = 7)
+    private BigDecimal longitudFin;
+
     // ==========================================
     // PRIVACIDAD Y ESTADO
     // ==========================================

@@ -66,6 +66,7 @@ public class RutaController {
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
+        entity.setId(id);
         return ResponseEntity.ok(service.save(entity));
     }
 

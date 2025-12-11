@@ -53,7 +53,12 @@ public class UsuarioController {
     public ResponseEntity<Usuario> update(@PathVariable Long id, @RequestBody Usuario usuario) {
         return usuarioService.findById(id).map(usuarioDB -> {
             usuarioDB.setNombre(usuario.getNombre());
+            usuarioDB.setApellido(usuario.getApellido());
+            usuarioDB.setFechaNacimiento(usuario.getFechaNacimiento());
+            usuarioDB.setCelular(usuario.getCelular());
             usuarioDB.setEmail(usuario.getEmail());
+            usuarioDB.setContrasena(usuario.getContrasena());
+            usuarioDB.setFoto(usuario.getFoto());
             return new ResponseEntity<>(usuarioService.save(usuarioDB), HttpStatus.OK);
         }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

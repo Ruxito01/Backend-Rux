@@ -39,6 +39,13 @@ public class Ruta implements Serializable {
     @Column(name = "nivel_dificultad")
     private String nivelDificultad;
 
+    /**
+     * Tipo de vehículo adecuado para la ruta.
+     */
+    @ManyToOne
+    @JoinColumn(name = "tipo_vehiculo_id")
+    private TipoVehiculo tipoVehiculo;
+
     // ==========================================
     // DATOS TÉCNICOS ESTIMADOS
     // ==========================================

@@ -10,8 +10,8 @@ import java.io.Serializable;
 @Data
 public class TipoVehiculo implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	 
+    private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,5 +22,4 @@ public class TipoVehiculo implements Serializable {
     @Column(name = "foto")
     private byte foto;
 
-   
 }

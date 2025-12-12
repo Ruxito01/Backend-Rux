@@ -55,18 +55,6 @@ public class Ruta implements Serializable {
     @Column(name = "duracion_estimada_minutos")
     private Integer duracionEstimadaMinutos;
 
-    // ==========================================
-    // VISUALIZACIÓN EN MAPA (GOOGLE MAPS)
-    // ==========================================
-
-    /**
-     * Polyline codificada de Google Maps.
-     * Representa la línea azul de la ruta sin guardar millones de puntos GPS.
-     * Se obtiene de la response de Google Directions API.
-     */
-    @Column(name = "polilinea_codificada", columnDefinition = "TEXT")
-    private String polilineaCodificada;
-
     /**
      * Latitud del punto de inicio de la ruta
      */

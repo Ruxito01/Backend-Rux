@@ -43,7 +43,7 @@ public class Viaje implements Serializable {
      * Código único para unirse a la sala WebSocket del viaje.
      * Los participantes lo usan para conectarse en tiempo real.
      */
-    @Column(name = "codigo_invitacion", unique = true)
+    @Column(name = "codigo_invitacion", unique = true, updatable = false)
     private String codigoInvitacion;
 
     /**

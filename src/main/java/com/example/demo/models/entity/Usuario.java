@@ -47,6 +47,9 @@ public class Usuario implements Serializable {
         @Column(name = "contrasena")
         private String contrasena;
 
+        @Column(name = "genero")
+        private String genero; // Masculino, Femenino
+
         @Column(name = "fecha_creacion", nullable = false)
         private LocalDateTime fechaCreacion = LocalDateTime.now();
 

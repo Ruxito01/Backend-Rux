@@ -73,6 +73,7 @@ public class UsuarioController {
             usuarioDB.setEmail(usuario.getEmail());
             usuarioDB.setContrasena(usuario.getContrasena());
             usuarioDB.setFoto(usuario.getFoto());
+            usuarioDB.setGenero(usuario.getGenero());
             return new ResponseEntity<>(usuarioService.save(usuarioDB), HttpStatus.OK);
         }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

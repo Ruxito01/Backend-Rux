@@ -20,6 +20,6 @@ public class TipoVehiculo implements Serializable {
     private String nombre;
 
     @Column(name = "foto")
-    private byte foto;
+    private String foto;
 
 }

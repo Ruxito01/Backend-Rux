@@ -69,6 +69,7 @@ public class UsuarioController {
             usuarioDB.setApellido(usuario.getApellido());
             usuarioDB.setFechaNacimiento(usuario.getFechaNacimiento());
             usuarioDB.setCelular(usuario.getCelular());
+            usuarioDB.setCedula(usuario.getCedula());
             usuarioDB.setEmail(usuario.getEmail());
             usuarioDB.setContrasena(usuario.getContrasena());
             usuarioDB.setFoto(usuario.getFoto());

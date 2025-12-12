@@ -1,6 +1,5 @@
 package com.example.demo.models.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -82,5 +81,10 @@ public class Usuario implements Serializable {
         @JoinTable(name = "participantes_viaje", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "viaje_id"))
         @JsonIgnoreProperties("participantes")
         private Set<Viaje> viajes = new HashSet<>();
+
+        // Relación uno a muchos con Fotos del carrusel
+        @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+        @JsonIgnoreProperties("usuario")
+        private Set<FotoUsuario> fotosCarrusel = new HashSet<>();
 
 }

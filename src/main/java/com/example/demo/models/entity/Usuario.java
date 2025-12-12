@@ -1,6 +1,7 @@
 package com.example.demo.models.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.io.Serializable;
@@ -83,8 +84,12 @@ public class Usuario implements Serializable {
         private Set<Viaje> viajes = new HashSet<>();
 
         // Relación uno a muchos con Fotos del carrusel
+        // Se usa @JsonIgnore para excluir de la serialización JSON y evitar
+        // LazyInitializationException
+        // Las fotos se obtienen por separado mediante el endpoint
+        // /api/foto-usuario/usuario/{id}
         @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-        @JsonIgnoreProperties("usuario")
+        @JsonIgnore
         private Set<FotoUsuario> fotosCarrusel = new HashSet<>();
 
 }

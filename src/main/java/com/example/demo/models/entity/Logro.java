@@ -1,6 +1,5 @@
 package com.example.demo.models.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -42,7 +41,7 @@ public class Logro implements Serializable {
 
     // Relación muchos a muchos con Usuario
     @ManyToMany(mappedBy = "logros", fetch = FetchType.LAZY)
-    @JsonIgnoreProperties("logros")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Set<Usuario> usuarios = new HashSet<>();
 
     private static final long serialVersionUID = 1L;

@@ -88,4 +88,12 @@ public class UsuarioController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @Operation(summary = "Asignar un logro a un usuario")
+    @PostMapping("/{usuarioId}/logros/{logroId}")
+    public ResponseEntity<Usuario> asignarLogro(@PathVariable Long usuarioId, @PathVariable Long logroId) {
+        return usuarioService.asignarLogro(usuarioId, logroId)
+                .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
 }

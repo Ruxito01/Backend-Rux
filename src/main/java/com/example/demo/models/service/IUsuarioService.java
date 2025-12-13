@@ -16,4 +16,6 @@ public interface IUsuarioService {
 
     void deleteById(Long id);
 
+    Optional<Usuario> asignarLogro(Long usuarioId, Long logroId);
+
 }

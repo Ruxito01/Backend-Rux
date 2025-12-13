@@ -1,5 +1,6 @@
 package com.example.demo.models.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -55,9 +56,11 @@ public class Comunidad implements Serializable {
         private LocalDateTime fechaCreacion = LocalDateTime.now();
 
         // Relación muchos a muchos con Usuario (miembros de la comunidad)
+        // Se usa @JsonIgnore para excluir de la serialización JSON y evitar
+        // LazyInitializationException
+        // Los miembros se obtienen por separado mediante un endpoint específico
         @ManyToMany(mappedBy = "comunidades", fetch = FetchType.LAZY)
-        @JsonIgnoreProperties({ "comunidades", "viajes", "logros", "avatares", "fotosCarrusel", "contrasena",
-                        "hibernateLazyInitializer", "handler" })
+        @JsonIgnore
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         private Set<Usuario> miembros = new HashSet<>();

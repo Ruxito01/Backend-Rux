@@ -1,6 +1,7 @@
 package com.example.demo.models.controller;
 
 import com.example.demo.models.entity.Comunidad;
+import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.service.IComunidadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/comunidad")
@@ -31,6 +33,15 @@ public class ComunidadController {
         Comunidad comunidad = comunidadService.findById(id);
         return comunidad != null
                 ? new ResponseEntity<>(comunidad, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @Operation(summary = "Obtener miembros de una comunidad")
+    @GetMapping("/{id}/miembros")
+    public ResponseEntity<Set<Usuario>> getMiembros(@PathVariable Long id) {
+        Set<Usuario> miembros = comunidadService.getMiembrosByComunidadId(id);
+        return miembros != null
+                ? new ResponseEntity<>(miembros, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 

@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import com.example.demo.models.dto.ComunidadDTO;
 
 @RestController
 @RequestMapping("/api/comunidad")
@@ -27,46 +29,52 @@ public class ComunidadController {
     @Operation(summary = "Obtener todas las comunidades", description = "Retorna una lista con todas las comunidades registradas")
     @ApiResponse(responseCode = "200", description = "Lista de comunidades obtenida exitosamente")
     @GetMapping
-    public ResponseEntity<List<Comunidad>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<ComunidadDTO>> findAll() {
+        List<Comunidad> entidades = service.findAll();
+        List<ComunidadDTO> dtos = entidades.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     @Operation(summary = "Obtener comunidad por ID", description = "Retorna una comunidad específica según su ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Comunidad encontrada", content = @Content(schema = @Schema(implementation = Comunidad.class))),
+            @ApiResponse(responseCode = "200", description = "Comunidad encontrada", content = @Content(schema = @Schema(implementation = ComunidadDTO.class))),
             @ApiResponse(responseCode = "404", description = "Comunidad no encontrada")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Comunidad> findById(
+    public ResponseEntity<ComunidadDTO> findById(
             @Parameter(description = "ID de la comunidad a buscar", required = true, example = "1") @PathVariable @NonNull Long id) {
         Comunidad entity = service.findById(id);
-        return entity != null ? ResponseEntity.ok(entity) : ResponseEntity.notFound().build();
+        return entity != null ? ResponseEntity.ok(convertToDto(entity)) : ResponseEntity.notFound().build();
     }
 
     @Operation(summary = "Crear nueva comunidad", description = "Crea una nueva comunidad en el sistema")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Comunidad creada exitosamente", content = @Content(schema = @Schema(implementation = Comunidad.class)))
+            @ApiResponse(responseCode = "200", description = "Comunidad creada exitosamente", content = @Content(schema = @Schema(implementation = ComunidadDTO.class)))
     })
     @PostMapping
-    public ResponseEntity<Comunidad> create(
+    public ResponseEntity<ComunidadDTO> create(
             @Parameter(description = "Datos de la comunidad a crear", required = true) @RequestBody @NonNull Comunidad entity) {
-        return ResponseEntity.ok(service.save(entity));
+        Comunidad saved = service.save(entity);
+        return ResponseEntity.ok(convertToDto(saved));
     }
 
     @Operation(summary = "Actualizar comunidad", description = "Actualiza los datos de una comunidad existente")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Comunidad actualizada exitosamente", content = @Content(schema = @Schema(implementation = Comunidad.class))),
+            @ApiResponse(responseCode = "200", description = "Comunidad actualizada exitosamente", content = @Content(schema = @Schema(implementation = ComunidadDTO.class))),
             @ApiResponse(responseCode = "404", description = "Comunidad no encontrada")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Comunidad> update(
+    public ResponseEntity<ComunidadDTO> update(
             @Parameter(description = "ID de la comunidad a actualizar", required = true, example = "1") @PathVariable @NonNull Long id,
             @Parameter(description = "Nuevos datos de la comunidad", required = true) @RequestBody @NonNull Comunidad entity) {
         Comunidad existing = service.findById(id);
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(service.save(entity));
+        Comunidad saved = service.save(entity);
+        return ResponseEntity.ok(convertToDto(saved));
     }
 
     @Operation(summary = "Eliminar comunidad", description = "Elimina una comunidad del sistema")
@@ -79,5 +87,29 @@ public class ComunidadController {
             @Parameter(description = "ID de la comunidad a eliminar", required = true, example = "1") @PathVariable @NonNull Long id) {
         service.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    private ComunidadDTO convertToDto(Comunidad entity) {
+        ComunidadDTO dto = new ComunidadDTO();
+        dto.setId(entity.getId());
+        dto.setNombre(entity.getNombre());
+        dto.setDescripcion(entity.getDescripcion());
+        dto.setNivelPrivacidad(entity.getNivelPrivacidad());
+        dto.setUrlImagen(entity.getUrlImagen());
+        dto.setFechaCreacion(entity.getFechaCreacion());
+
+        if (entity.getCreador() != null) {
+            dto.setCreadorId(entity.getCreador().getId());
+        }
+
+        if (entity.getMiembros() != null) {
+            // Extraer solo IDs para evitar recursión
+            List<Long> memberIds = entity.getMiembros().stream()
+                    .map(com.example.demo.models.entity.Usuario::getId)
+                    .collect(Collectors.toList());
+            dto.setMiembrosIds(memberIds);
+        }
+
+        return dto;
     }
 }

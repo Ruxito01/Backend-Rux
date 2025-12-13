@@ -37,6 +37,7 @@ public class Viaje implements Serializable {
      */
     @ManyToOne
     @JoinColumn(name = "comunidad_id")
+    @JsonIgnoreProperties({ "miembros", "creador" })
     private Comunidad comunidad;
 
     /**

@@ -55,7 +55,7 @@ public class Comunidad implements Serializable {
         private LocalDateTime fechaCreacion = LocalDateTime.now();
 
         // Relación muchos a muchos con Usuario (miembros de la comunidad)
-        @ManyToMany(mappedBy = "comunidades", fetch = FetchType.EAGER)
+        @ManyToMany(mappedBy = "comunidades", fetch = FetchType.LAZY)
         @JsonIgnoreProperties({ "comunidades", "viajes", "logros", "avatares", "fotosCarrusel", "password",
                         "fechaRegistro",
                         "roles", "hibernateLazyInitializer", "handler" })

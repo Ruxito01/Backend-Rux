@@ -56,9 +56,8 @@ public class Comunidad implements Serializable {
 
         // Relación muchos a muchos con Usuario (miembros de la comunidad)
         @ManyToMany(mappedBy = "comunidades", fetch = FetchType.LAZY)
-        @JsonIgnoreProperties({ "comunidades", "viajes", "logros", "avatares", "fotosCarrusel", "password",
-                        "fechaRegistro",
-                        "roles", "hibernateLazyInitializer", "handler" })
+        @JsonIgnoreProperties({ "comunidades", "viajes", "logros", "avatares", "fotosCarrusel", "contrasena",
+                        "hibernateLazyInitializer", "handler" })
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         private Set<Usuario> miembros = new HashSet<>();

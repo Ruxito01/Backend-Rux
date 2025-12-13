@@ -24,7 +24,8 @@ public class Comunidad implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "creador_id", nullable = false)
-    @JsonIgnoreProperties({ "comunidades", "password", "fechaRegistro" })
+    @JsonIgnoreProperties({ "comunidades", "viajes", "logros", "avatares", "password", "fechaRegistro", "roles",
+            "hibernateLazyInitializer", "handler" })
     private Usuario creador;
 
     @Column(nullable = false)

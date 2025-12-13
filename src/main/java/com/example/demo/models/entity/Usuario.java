@@ -86,7 +86,7 @@ public class Usuario implements Serializable {
                         CascadeType.MERGE
         })
         @JoinTable(name = "miembros_comunidad", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "comunidad_id"))
-        @JsonIgnoreProperties("miembros")
+        @JsonIgnoreProperties({ "miembros", "creador" })
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         private Set<Comunidad> comunidades = new HashSet<>();

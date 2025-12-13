@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -63,6 +65,8 @@ public class Usuario implements Serializable {
         })
         @JoinTable(name = "logro_usuario", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "logro_id"))
         @JsonIgnoreProperties("usuarios")
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         private Set<Logro> logros = new HashSet<>();
 
         // Relación muchos a muchos con Avatares
@@ -72,6 +76,8 @@ public class Usuario implements Serializable {
         })
         @JoinTable(name = "usuario_avatar", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "avatar_id"))
         @JsonIgnoreProperties("usuarios")
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         private Set<CatalogoAvatar> avatares = new HashSet<>();
 
         // Relación muchos a muchos con Comunidades (como miembro)
@@ -81,6 +87,8 @@ public class Usuario implements Serializable {
         })
         @JoinTable(name = "miembros_comunidad", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "comunidad_id"))
         @JsonIgnoreProperties("miembros")
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         private Set<Comunidad> comunidades = new HashSet<>();
 
         // Relación muchos a muchos con Viajes (como participante)
@@ -90,6 +98,8 @@ public class Usuario implements Serializable {
         })
         @JoinTable(name = "participantes_viaje", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "viaje_id"))
         @JsonIgnoreProperties("participantes")
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         private Set<Viaje> viajes = new HashSet<>();
 
         // Relación uno a muchos con Fotos del carrusel

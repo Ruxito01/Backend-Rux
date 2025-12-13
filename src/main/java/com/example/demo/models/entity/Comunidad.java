@@ -3,6 +3,8 @@ package com.example.demo.models.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -26,6 +28,8 @@ public class Comunidad implements Serializable {
     @JoinColumn(name = "creador_id", nullable = false)
     @JsonIgnoreProperties({ "comunidades", "viajes", "logros", "avatares", "password", "fechaRegistro", "roles",
             "hibernateLazyInitializer", "handler" })
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Usuario creador;
 
     @Column(nullable = false)
@@ -54,6 +58,8 @@ public class Comunidad implements Serializable {
     @ManyToMany(mappedBy = "comunidades", fetch = FetchType.LAZY)
     @JsonIgnoreProperties({ "comunidades", "viajes", "logros", "avatares", "fotosCarrusel", "password", "fechaRegistro",
             "roles", "hibernateLazyInitializer", "handler" })
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Usuario> miembros = new HashSet<>();
 
     private static final long serialVersionUID = 1L;

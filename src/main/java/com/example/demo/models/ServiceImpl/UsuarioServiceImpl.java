@@ -2,11 +2,13 @@ package com.example.demo.models.ServiceImpl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.models.dao.IUsuarioDao;
 import com.example.demo.models.dao.ILogroDao;
+import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.entity.Logro;
 import com.example.demo.models.service.IUsuarioService;
@@ -63,5 +65,19 @@ public class UsuarioServiceImpl implements IUsuarioService {
             return Optional.of(usuarioDao.save(usuario));
         }
         return Optional.empty();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<Comunidad> getComunidadesByUsuarioId(Long usuarioId) {
+        Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            // Forzar la carga de comunidades dentro de la transacción
+            Set<Comunidad> comunidades = usuario.getComunidades();
+            comunidades.size(); // Inicializar la colección lazy
+            return comunidades;
+        }
+        return null;
     }
 }

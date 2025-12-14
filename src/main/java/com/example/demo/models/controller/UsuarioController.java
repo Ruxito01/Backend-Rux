@@ -1,5 +1,6 @@
 package com.example.demo.models.controller;
 
+import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/usuario")
@@ -40,6 +42,15 @@ public class UsuarioController {
         return usuarioService.findByEmail(email)
                 .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @Operation(summary = "Obtener las comunidades a las que pertenece un usuario")
+    @GetMapping("/{id}/comunidades")
+    public ResponseEntity<Set<Comunidad>> getComunidades(@PathVariable Long id) {
+        Set<Comunidad> comunidades = usuarioService.getComunidadesByUsuarioId(id);
+        return comunidades != null
+                ? new ResponseEntity<>(comunidades, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @Operation(summary = "Login de usuario")
@@ -95,5 +106,4 @@ public class UsuarioController {
                 .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
-
 }

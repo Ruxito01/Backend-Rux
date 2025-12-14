@@ -1,8 +1,10 @@
 package com.example.demo.models.service;
 
+import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Usuario;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface IUsuarioService {
 
@@ -18,4 +20,5 @@ public interface IUsuarioService {
 
     Optional<Usuario> asignarLogro(Long usuarioId, Long logroId);
 
+    Set<Comunidad> getComunidadesByUsuarioId(Long usuarioId);
 }

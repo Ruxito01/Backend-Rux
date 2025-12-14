@@ -50,10 +50,16 @@ public class Vehiculo implements Serializable {
     private String urlFoto;
 
     /**
-     * Indica si este es el vehículo principal/predeterminado del usuario
+     * Tipo de tracción del vehículo.
+     * Ej: "4x4", "4x2", "AWD", "2WD"
      */
-    @Column(name = "es_principal")
-    private Boolean esPrincipal = false;
+    private String traccion;
+
+    /**
+     * Año de fabricación del vehículo
+     */
+    @Column(name = "anio_fabricacion")
+    private Integer anioFabricacion;
 
     private static final long serialVersionUID = 1L;
 }

@@ -94,4 +94,20 @@ public class UsuarioServiceImpl implements IUsuarioService {
         }
         return null;
     }
+
+    @Override
+    @Transactional
+    public Optional<Usuario> actualizarAlias(Long usuarioId, String alias) {
+        Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            // Validar y truncar si excede 12 caracteres
+            if (alias != null && alias.length() > 12) {
+                alias = alias.substring(0, 12);
+            }
+            usuario.setAlias(alias);
+            return Optional.of(usuarioDao.save(usuario));
+        }
+        return Optional.empty();
+    }
 }

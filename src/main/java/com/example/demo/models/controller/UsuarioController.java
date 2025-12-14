@@ -86,6 +86,7 @@ public class UsuarioController {
             usuarioDB.setContrasena(usuario.getContrasena());
             usuarioDB.setFoto(usuario.getFoto());
             usuarioDB.setGenero(usuario.getGenero());
+            usuarioDB.setAlias(usuario.getAlias()); // Actualizar alias
             return new ResponseEntity<>(usuarioService.save(usuarioDB), HttpStatus.OK);
         }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -115,5 +116,16 @@ public class UsuarioController {
         return logros != null
                 ? new ResponseEntity<>(logros, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @Operation(summary = "Actualizar el alias de un usuario")
+    @PatchMapping("/{id}/alias")
+    public ResponseEntity<Usuario> actualizarAlias(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> body) {
+        String alias = body.get("alias");
+        return usuarioService.actualizarAlias(id, alias)
+                .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }

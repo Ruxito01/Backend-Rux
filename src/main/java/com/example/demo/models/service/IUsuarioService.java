@@ -25,4 +25,7 @@ public interface IUsuarioService {
 
     // Obtener los logros de un usuario (necesario porque logros tiene @JsonIgnore)
     Set<Logro> getLogrosByUsuarioId(Long usuarioId);
+
+    // Actualizar el alias del usuario
+    Optional<Usuario> actualizarAlias(Long usuarioId, String alias);
 }

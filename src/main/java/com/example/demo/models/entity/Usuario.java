@@ -55,6 +55,9 @@ public class Usuario implements Serializable {
         @Column(name = "rol")
         private String rol = "USER"; // USER o ADMIN
 
+        @Column(name = "alias", length = 12)
+        private String alias; // Apodo del usuario, máximo 12 caracteres
+
         @Column(name = "fecha_creacion", nullable = false)
         private LocalDateTime fechaCreacion = LocalDateTime.now();
 

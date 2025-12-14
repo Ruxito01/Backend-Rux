@@ -20,4 +20,12 @@ public interface IViajeService {
 
     // Obtener viajes donde el usuario es participante
     List<Viaje> findByParticipanteId(Long usuarioId);
+
+    /**
+     * Obtiene todos los viajes asociados a una ruta específica.
+     * 
+     * @param rutaId ID de la ruta
+     * @return Lista de viajes encontrados
+     */
+    List<Viaje> findByRutaId(Long rutaId);
 }

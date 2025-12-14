@@ -131,4 +131,10 @@ public class ViajeServiceImpl implements IViajeService {
     public List<Viaje> findByParticipanteId(Long usuarioId) {
         return dao.findByParticipantes_Id(usuarioId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Viaje> findByRutaId(Long rutaId) {
+        return dao.findByRutaId(rutaId);
+    }
 }

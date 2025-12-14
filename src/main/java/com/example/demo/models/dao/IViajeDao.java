@@ -32,4 +32,12 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
      * @return Lista de viajes encontrados
      */
     java.util.List<Viaje> findByParticipantes_Id(Long usuarioId);
+
+    /**
+     * Busca todos los viajes asociados a una ruta específica.
+     * 
+     * @param rutaId ID de la ruta
+     * @return Lista de viajes encontrados
+     */
+    java.util.List<Viaje> findByRutaId(Long rutaId);
 }

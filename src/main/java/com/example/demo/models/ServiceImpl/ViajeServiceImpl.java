@@ -43,7 +43,9 @@ public class ViajeServiceImpl implements IViajeService {
     public Viaje save(@NonNull Viaje entity) {
         // Generar código de invitación si no existe o está vacío, SOLO para nuevos
         // registros
-        if (entity.getId() == null
+        boolean esNuevo = entity.getId() == null;
+
+        if (esNuevo
                 && (entity.getCodigoInvitacion() == null || entity.getCodigoInvitacion().trim().isEmpty())) {
             String codigoGenerado;
             do {
@@ -53,7 +55,26 @@ public class ViajeServiceImpl implements IViajeService {
             entity.setCodigoInvitacion(codigoGenerado);
         }
 
-        return dao.save(entity);
+        Viaje viajeGuardado = dao.save(entity);
+
+        // Si es un viaje nuevo, agregar al organizador como participante
+        // automáticamente
+        if (esNuevo && viajeGuardado.getOrganizador() != null) {
+            Usuario organizador = usuarioDao.findById(viajeGuardado.getOrganizador().getId()).orElse(null);
+
+            if (organizador != null) {
+                // Agregar el viaje a los viajes del usuario (Lado propietario - @JoinTable)
+                organizador.getViajes().add(viajeGuardado);
+
+                // También agregamos al lado inverso por consistencia en memoria
+                viajeGuardado.getParticipantes().add(organizador);
+
+                // Guardamos el USUARIO para persistir la relación en la tabla intermedia
+                usuarioDao.save(organizador);
+            }
+        }
+
+        return viajeGuardado;
     }
 
     private String generateRandomCode() {

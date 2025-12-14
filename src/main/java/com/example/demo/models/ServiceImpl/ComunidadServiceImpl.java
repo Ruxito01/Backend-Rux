@@ -44,13 +44,9 @@ public class ComunidadServiceImpl implements IComunidadService {
     @Override
     @Transactional(readOnly = true)
     public Set<Usuario> getMiembrosByComunidadId(Long comunidadId) {
-        Comunidad comunidad = comunidadDao.findById(comunidadId).orElse(null);
-        if (comunidad != null) {
-            // Forzar la carga de miembros dentro de la transacción
-            Set<Usuario> miembros = comunidad.getMiembros();
-            miembros.size(); // Inicializar la colección lazy
-            return miembros;
-        }
-        return null;
+        // Usar la query con JOIN FETCH para cargar los miembros de forma eager
+        return comunidadDao.findByIdWithMiembros(comunidadId)
+                .map(Comunidad::getMiembros)
+                .orElse(null);
     }
 }

@@ -80,4 +80,18 @@ public class UsuarioServiceImpl implements IUsuarioService {
         }
         return null;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<Logro> getLogrosByUsuarioId(Long usuarioId) {
+        Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            // Forzar la carga de logros dentro de la transacción
+            Set<Logro> logros = usuario.getLogros();
+            logros.size(); // Inicializar la colección lazy
+            return logros;
+        }
+        return null;
+    }
 }

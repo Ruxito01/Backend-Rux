@@ -1,6 +1,7 @@
 package com.example.demo.models.controller;
 
 import com.example.demo.models.entity.Comunidad;
+import com.example.demo.models.entity.Logro;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -105,5 +106,14 @@ public class UsuarioController {
         return usuarioService.asignarLogro(usuarioId, logroId)
                 .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @Operation(summary = "Obtener los logros de un usuario")
+    @GetMapping("/{id}/logros")
+    public ResponseEntity<Set<Logro>> getLogros(@PathVariable Long id) {
+        Set<Logro> logros = usuarioService.getLogrosByUsuarioId(id);
+        return logros != null
+                ? new ResponseEntity<>(logros, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }

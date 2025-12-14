@@ -100,4 +100,10 @@ public class ViajeServiceImpl implements IViajeService {
 
         return true;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Viaje> findByParticipanteId(Long usuarioId) {
+        return dao.findByParticipantes_Id(usuarioId);
+    }
 }

@@ -22,4 +22,14 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
      * @return Optional del viaje encontrado
      */
     Optional<Viaje> findByCodigoInvitacion(String codigoInvitacion);
+
+    /**
+     * Busca todos los viajes donde un usuario específico es participante.
+     * Utiliza la convención de nombres de JPA para relaciones ManyToMany
+     * (participantes.id).
+     * 
+     * @param usuarioId ID del usuario participante
+     * @return Lista de viajes encontrados
+     */
+    java.util.List<Viaje> findByParticipantes_Id(Long usuarioId);
 }

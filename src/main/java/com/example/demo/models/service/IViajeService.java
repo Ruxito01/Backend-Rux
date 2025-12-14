@@ -17,4 +17,7 @@ public interface IViajeService {
 
     // Agregar participante a un viaje
     boolean agregarParticipante(Long viajeId, Long usuarioId);
+
+    // Obtener viajes donde el usuario es participante
+    List<Viaje> findByParticipanteId(Long usuarioId);
 }

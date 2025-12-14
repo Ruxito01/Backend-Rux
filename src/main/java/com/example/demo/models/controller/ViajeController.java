@@ -105,4 +105,14 @@ public class ViajeController {
         boolean agregado = service.agregarParticipante(viajeId, usuarioId);
         return agregado ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
+
+    @Operation(summary = "Obtener viajes de un participante", description = "Retorna todos los viajes donde el usuario es participante")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de viajes obtenida exitosamente")
+    })
+    @GetMapping("/participante/{usuarioId}")
+    public ResponseEntity<List<Viaje>> findByParticipanteId(
+            @Parameter(description = "ID del usuario participante", required = true, example = "1") @PathVariable @NonNull Long usuarioId) {
+        return ResponseEntity.ok(service.findByParticipanteId(usuarioId));
+    }
 }

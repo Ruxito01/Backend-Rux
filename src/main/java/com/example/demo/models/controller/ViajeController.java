@@ -80,4 +80,29 @@ public class ViajeController {
         service.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Buscar viaje por código de invitación", description = "Retorna un viaje según su código de invitación único")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Viaje encontrado", content = @Content(schema = @Schema(implementation = Viaje.class))),
+            @ApiResponse(responseCode = "404", description = "Viaje no encontrado con ese código")
+    })
+    @GetMapping("/codigo/{codigoInvitacion}")
+    public ResponseEntity<Viaje> findByCodigoInvitacion(
+            @Parameter(description = "Código de invitación del viaje", required = true, example = "ABC12345") @PathVariable @NonNull String codigoInvitacion) {
+        Viaje viaje = service.findByCodigoInvitacion(codigoInvitacion);
+        return viaje != null ? ResponseEntity.ok(viaje) : ResponseEntity.notFound().build();
+    }
+
+    @Operation(summary = "Agregar participante a viaje", description = "Agrega un usuario como participante de un viaje existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Participante agregado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Viaje o usuario no encontrado")
+    })
+    @PostMapping("/{viajeId}/participante/{usuarioId}")
+    public ResponseEntity<Void> agregarParticipante(
+            @Parameter(description = "ID del viaje", required = true, example = "1") @PathVariable @NonNull Long viajeId,
+            @Parameter(description = "ID del usuario a agregar", required = true, example = "1") @PathVariable @NonNull Long usuarioId) {
+        boolean agregado = service.agregarParticipante(viajeId, usuarioId);
+        return agregado ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
 }

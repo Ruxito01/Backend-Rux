@@ -1,6 +1,8 @@
 package com.example.demo.models.ServiceImpl;
 
+import com.example.demo.models.dao.IUsuarioDao;
 import com.example.demo.models.dao.IViajeDao;
+import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.entity.Viaje;
 import com.example.demo.models.service.IViajeService;
 import lombok.NonNull;
@@ -15,6 +17,9 @@ public class ViajeServiceImpl implements IViajeService {
 
     @Autowired
     private IViajeDao dao;
+
+    @Autowired
+    private IUsuarioDao usuarioDao;
 
     // Caracteres permitidos para el código (alfanumérico)
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -64,5 +69,35 @@ public class ViajeServiceImpl implements IViajeService {
     @Transactional
     public void deleteById(@NonNull Long id) {
         dao.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Viaje findByCodigoInvitacion(@NonNull String codigoInvitacion) {
+        return dao.findByCodigoInvitacion(codigoInvitacion).orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public boolean agregarParticipante(@NonNull Long viajeId, @NonNull Long usuarioId) {
+        // Buscar el viaje
+        Viaje viaje = dao.findById(viajeId).orElse(null);
+        if (viaje == null) {
+            return false;
+        }
+
+        // Buscar el usuario
+        Usuario usuario = usuarioDao.findById(usuarioId).orElse(null);
+        if (usuario == null) {
+            return false;
+        }
+
+        // Agregar el usuario a los participantes del viaje
+        viaje.getParticipantes().add(usuario);
+
+        // Guardar el viaje (esto actualizará la relación ManyToMany)
+        dao.save(viaje);
+
+        return true;
     }
 }

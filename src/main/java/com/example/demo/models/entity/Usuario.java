@@ -64,7 +64,9 @@ public class Usuario implements Serializable {
                         CascadeType.MERGE
         })
         @JoinTable(name = "logro_usuario", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "logro_id"))
-        @JsonIgnoreProperties("usuarios")
+        // Se usa @JsonIgnore para evitar LazyInitializationException
+        // Los logros se obtienen por endpoint: GET /api/usuario/{id}/logros
+        @JsonIgnore
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         private Set<Logro> logros = new HashSet<>();
@@ -75,7 +77,9 @@ public class Usuario implements Serializable {
                         CascadeType.MERGE
         })
         @JoinTable(name = "usuario_avatar", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "avatar_id"))
-        @JsonIgnoreProperties("usuarios")
+        // Se usa @JsonIgnore para evitar LazyInitializationException
+        // Los avatares se obtienen por endpoint separado
+        @JsonIgnore
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         private Set<CatalogoAvatar> avatares = new HashSet<>();
@@ -100,7 +104,9 @@ public class Usuario implements Serializable {
                         CascadeType.MERGE
         })
         @JoinTable(name = "participantes_viaje", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "viaje_id"))
-        @JsonIgnoreProperties("participantes")
+        // Se usa @JsonIgnore para evitar LazyInitializationException
+        // Los viajes se obtienen por endpoint separado
+        @JsonIgnore
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         private Set<Viaje> viajes = new HashSet<>();

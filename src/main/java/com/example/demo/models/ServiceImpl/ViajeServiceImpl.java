@@ -92,11 +92,15 @@ public class ViajeServiceImpl implements IViajeService {
             return false;
         }
 
-        // Agregar el usuario a los participantes del viaje
+        // Agregar el usuario a los participantes del viaje (Lado inverso, buena
+        // práctica mantener ambos)
         viaje.getParticipantes().add(usuario);
 
-        // Guardar el viaje (esto actualizará la relación ManyToMany)
-        dao.save(viaje);
+        // Agregar el viaje a los viajes del usuario (Lado propietario - @JoinTable)
+        usuario.getViajes().add(viaje);
+
+        // Guardar el usuario para persistir la relación
+        usuarioDao.save(usuario);
 
         return true;
     }

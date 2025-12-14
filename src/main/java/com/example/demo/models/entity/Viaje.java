@@ -95,6 +95,8 @@ public class Viaje implements Serializable {
     // Relación muchos a muchos con Usuario (participantes del viaje)
     @ManyToMany(mappedBy = "viajes", fetch = FetchType.LAZY)
     @JsonIgnoreProperties("viajes")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Set<Usuario> participantes = new HashSet<>();
 
     private static final long serialVersionUID = 1L;

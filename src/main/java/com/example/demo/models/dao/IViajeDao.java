@@ -40,4 +40,13 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
      * @return Lista de viajes encontrados
      */
     java.util.List<Viaje> findByRutaId(Long rutaId);
+
+    /**
+     * Busca viajes donde el usuario es participante y tienen un estado específico.
+     * 
+     * @param usuarioId ID del usuario
+     * @param estado    Estado del viaje (ej: "en_curso")
+     * @return Lista de viajes filtrados
+     */
+    java.util.List<Viaje> findByParticipantes_IdAndEstado(Long usuarioId, String estado);
 }

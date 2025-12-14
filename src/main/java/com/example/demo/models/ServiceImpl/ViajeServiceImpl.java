@@ -134,6 +134,15 @@ public class ViajeServiceImpl implements IViajeService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<Viaje> findByParticipanteId(Long usuarioId, String estado) {
+        if (estado != null && !estado.isEmpty()) {
+            return dao.findByParticipantes_IdAndEstado(usuarioId, estado);
+        }
+        return dao.findByParticipantes_Id(usuarioId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Viaje> findByRutaId(Long rutaId) {
         return dao.findByRutaId(rutaId);
     }

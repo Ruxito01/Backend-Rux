@@ -112,8 +112,9 @@ public class ViajeController {
         })
         @GetMapping("/participante/{usuarioId}")
         public ResponseEntity<List<Viaje>> findByParticipanteId(
-                        @Parameter(description = "ID del usuario participante", required = true, example = "1") @PathVariable @NonNull Long usuarioId) {
-                return ResponseEntity.ok(service.findByParticipanteId(usuarioId));
+                        @Parameter(description = "ID del usuario participante", required = true, example = "1") @PathVariable @NonNull Long usuarioId,
+                        @Parameter(description = "Estado del viaje (opcional)", required = false) @RequestParam(required = false) String estado) {
+                return ResponseEntity.ok(service.findByParticipanteId(usuarioId, estado));
         }
 
         @Operation(summary = "Obtener viajes por ruta", description = "Retorna todos los viajes asociados a una ruta específica")

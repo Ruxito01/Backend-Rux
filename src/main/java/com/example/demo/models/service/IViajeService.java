@@ -19,7 +19,11 @@ public interface IViajeService {
     boolean agregarParticipante(Long viajeId, Long usuarioId);
 
     // Obtener viajes donde el usuario es participante
+    // Obtener viajes donde el usuario es participante
     List<Viaje> findByParticipanteId(Long usuarioId);
+
+    // Obtener viajes donde el usuario es participante, filtrando por estado
+    List<Viaje> findByParticipanteId(Long usuarioId, String estado);
 
     /**
      * Obtiene todos los viajes asociados a una ruta específica.

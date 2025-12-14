@@ -118,6 +118,8 @@ public class Usuario implements Serializable {
         // /api/foto-usuario/usuario/{id}
         @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         @JsonIgnore
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         private Set<FotoUsuario> fotosCarrusel = new HashSet<>();
 
 }

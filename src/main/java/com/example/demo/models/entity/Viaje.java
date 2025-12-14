@@ -30,6 +30,8 @@ public class Viaje implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "organizador_id", nullable = false)
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Usuario organizador;
 
     /**

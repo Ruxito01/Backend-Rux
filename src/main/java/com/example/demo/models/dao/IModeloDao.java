@@ -1,0 +1,21 @@
+package com.example.demo.models.dao;
+
+import com.example.demo.models.entity.Modelo;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+/**
+ * DAO para la entidad Modelo
+ */
+public interface IModeloDao extends JpaRepository<Modelo, Long> {
+
+    /**
+     * Obtiene todos los modelos de una marca específica
+     */
+    List<Modelo> findByMarcaId(Long marcaId);
+
+    /**
+     * Busca modelos cuyo nombre contenga el texto dado
+     */
+    List<Modelo> findByNombreContainingIgnoreCase(String nombre);
+}

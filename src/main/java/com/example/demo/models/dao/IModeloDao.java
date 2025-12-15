@@ -11,8 +11,9 @@ public interface IModeloDao extends JpaRepository<Modelo, Long> {
 
     /**
      * Obtiene todos los modelos de una marca específica
+     * Usa marca.id para navegar la relación
      */
-    List<Modelo> findByMarcaId(Long marcaId);
+    List<Modelo> findByMarca_Id(Long marcaId);
 
     /**
      * Busca modelos cuyo nombre contenga el texto dado

@@ -33,7 +33,7 @@ public class ModeloServiceImpl implements IModeloService {
     @Override
     @Transactional(readOnly = true)
     public List<Modelo> findByMarcaId(Long marcaId) {
-        return modeloDao.findByMarcaId(marcaId);
+        return modeloDao.findByMarca_Id(marcaId);
     }
 
     @Override

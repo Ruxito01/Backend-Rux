@@ -117,6 +117,36 @@ public class ViajeController {
                 return ResponseEntity.ok(service.findByParticipanteId(usuarioId, estado));
         }
 
+        @Operation(summary = "Actualizar estado de viaje", description = "Actualiza únicamente el estado de un viaje (programado, en_curso, finalizado)")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Estado actualizado exitosamente", content = @Content(schema = @Schema(implementation = Viaje.class))),
+                        @ApiResponse(responseCode = "404", description = "Viaje no encontrado"),
+                        @ApiResponse(responseCode = "400", description = "Estado inválido")
+        })
+        @PutMapping("/{id}/estado")
+        public ResponseEntity<Viaje> updateEstado(
+                        @Parameter(description = "ID del viaje a actualizar", required = true, example = "1") @PathVariable @NonNull Long id,
+                        @Parameter(description = "Nuevo estado del viaje", required = true) @RequestBody @NonNull java.util.Map<String, String> estadoMap) {
+                Viaje existing = service.findById(id);
+                if (existing == null) {
+                        return ResponseEntity.notFound().build();
+                }
+
+                String nuevoEstado = estadoMap.get("estado");
+                if (nuevoEstado == null || nuevoEstado.trim().isEmpty()) {
+                        return ResponseEntity.badRequest().build();
+                }
+
+                // Validar que el estado sea válido
+                if (!nuevoEstado.equals("programado") && !nuevoEstado.equals("en_curso")
+                                && !nuevoEstado.equals("finalizado")) {
+                        return ResponseEntity.badRequest().build();
+                }
+
+                existing.setEstado(nuevoEstado);
+                return ResponseEntity.ok(service.save(existing));
+        }
+
         @Operation(summary = "Obtener viajes por ruta", description = "Retorna todos los viajes asociados a una ruta específica")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Lista de viajes obtenida exitosamente")

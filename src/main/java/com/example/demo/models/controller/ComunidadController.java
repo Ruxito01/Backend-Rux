@@ -79,6 +79,9 @@ public class ComunidadController {
             comunidad.setUrlImagen((String) payload.get("url_imagen"));
             comunidad.setCreador(creador);
 
+            // Agregar al creador como miembro automáticamente
+            comunidad.getMiembros().add(creador);
+
             Comunidad nuevaComunidad = comunidadService.save(comunidad);
             return new ResponseEntity<>(nuevaComunidad, HttpStatus.CREATED);
         } catch (Exception e) {

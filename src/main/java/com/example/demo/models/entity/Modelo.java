@@ -1,11 +1,13 @@
 package com.example.demo.models.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Modelo de vehículo asociado a una marca.
@@ -14,7 +16,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
  */
 @Entity
 @Table(name = "modelos")
-@Data
+@Getter
+@Setter
 public class Modelo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -39,17 +42,17 @@ public class Modelo implements Serializable {
     private Marca marca;
 
     /**
-     * Campo transient para obtener el ID de la marca en respuestas JSON
+     * Expone el ID de la marca en JSON
      */
-    @Transient
+    @JsonProperty("marcaId")
     public Long getMarcaId() {
         return marca != null ? marca.getId() : null;
     }
 
     /**
-     * Campo transient para obtener el nombre de la marca en respuestas JSON
+     * Expone el nombre de la marca en JSON
      */
-    @Transient
+    @JsonProperty("marcaNombre")
     public String getMarcaNombre() {
         return marca != null ? marca.getNombre() : null;
     }

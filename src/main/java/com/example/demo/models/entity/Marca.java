@@ -1,12 +1,13 @@
 package com.example.demo.models.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Catálogo de marcas de vehículos.
@@ -15,7 +16,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
  */
 @Entity
 @Table(name = "marcas")
-@Data
+@Getter
+@Setter
 public class Marca implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -38,9 +40,11 @@ public class Marca implements Serializable {
     private String urlLogo;
 
     /**
-     * Lista de modelos asociados a esta marca
+     * Lista de modelos asociados a esta marca.
+     * Se ignora en JSON para evitar recursión - usar endpoint
+     * /api/modelo/por-marca/{id}
      */
     @OneToMany(mappedBy = "marca", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Modelo> modelos;
 }

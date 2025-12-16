@@ -47,4 +47,23 @@ public interface IViajeService {
 
     // Actualizar estado de un participante en un viaje
     boolean updateEstadoParticipante(Long viajeId, Long usuarioId, String nuevoEstado);
+
+    /**
+     * Verifica si el usuario tiene conflicto de fechas con un viaje específico.
+     * Retorna la lista de viajes existentes que tienen solapamiento de fechas.
+     * 
+     * @param usuarioId ID del usuario
+     * @param viajeId   ID del viaje destino
+     * @return Lista de viajes en conflicto (vacía si no hay conflicto)
+     */
+    List<Viaje> verificarConflictoFechas(Long usuarioId, Long viajeId);
+
+    /**
+     * Busca viajes activos del usuario en una fecha específica (mismo día).
+     * 
+     * @param usuarioId ID del usuario
+     * @param fecha     Fecha a buscar
+     * @return Lista de viajes del usuario en ese día
+     */
+    List<Viaje> findViajesByUsuarioAndFecha(Long usuarioId, java.time.LocalDateTime fecha);
 }

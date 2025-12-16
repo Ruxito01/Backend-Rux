@@ -195,4 +195,33 @@ public class ViajeController {
                         @Parameter(description = "ID de la ruta", required = true, example = "1") @PathVariable @NonNull Long rutaId) {
                 return ResponseEntity.ok(service.findByRutaId(rutaId));
         }
+
+        @Operation(summary = "Verificar conflicto de fechas", description = "Verifica si el usuario ya participa en viajes con fechas que se solapan con el viaje destino")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Lista de viajes en conflicto (vacía si no hay)"),
+                        @ApiResponse(responseCode = "404", description = "Viaje no encontrado")
+        })
+        @GetMapping("/{viajeId}/conflicto-fechas/{usuarioId}")
+        public ResponseEntity<List<Viaje>> verificarConflictoFechas(
+                        @Parameter(description = "ID del viaje destino", required = true, example = "1") @PathVariable @NonNull Long viajeId,
+                        @Parameter(description = "ID del usuario", required = true, example = "1") @PathVariable @NonNull Long usuarioId) {
+                Viaje viaje = service.findById(viajeId);
+                if (viaje == null) {
+                        return ResponseEntity.notFound().build();
+                }
+                List<Viaje> conflictos = service.verificarConflictoFechas(usuarioId, viajeId);
+                return ResponseEntity.ok(conflictos);
+        }
+
+        @Operation(summary = "Obtener viajes por usuario y fecha", description = "Retorna los viajes activos del usuario en una fecha específica (mismo día)")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Lista de viajes del día")
+        })
+        @GetMapping("/usuario/{usuarioId}/fecha")
+        public ResponseEntity<List<Viaje>> getViajesByUsuarioAndFecha(
+                        @Parameter(description = "ID del usuario", required = true, example = "1") @PathVariable @NonNull Long usuarioId,
+                        @Parameter(description = "Fecha a buscar (ISO format)", required = true) @RequestParam @NonNull String fecha) {
+                java.time.LocalDateTime fechaDateTime = java.time.LocalDateTime.parse(fecha);
+                return ResponseEntity.ok(service.findViajesByUsuarioAndFecha(usuarioId, fechaDateTime));
+        }
 }

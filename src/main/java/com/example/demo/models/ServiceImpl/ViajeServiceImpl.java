@@ -227,4 +227,43 @@ public class ViajeServiceImpl implements IViajeService {
     public List<Viaje> findByRutaId(Long rutaId) {
         return dao.findByRutaId(rutaId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Viaje> verificarConflictoFechas(Long usuarioId, Long viajeId) {
+        // Buscar el viaje destino
+        Viaje viajeDestino = dao.findById(viajeId).orElse(null);
+        if (viajeDestino == null) {
+            return java.util.Collections.emptyList();
+        }
+
+        // Determinar fechas del viaje destino
+        java.time.LocalDateTime fechaInicio = viajeDestino.getFechaInicioReal() != null
+                ? viajeDestino.getFechaInicioReal()
+                : viajeDestino.getFechaProgramada();
+        java.time.LocalDateTime fechaFin = viajeDestino.getFechaFinReal() != null
+                ? viajeDestino.getFechaFinReal()
+                : (fechaInicio != null ? fechaInicio : viajeDestino.getFechaProgramada());
+
+        // Sin fecha, no hay conflicto verificable
+        if (fechaInicio == null) {
+            return java.util.Collections.emptyList();
+        }
+
+        // Buscar conflictos excluyendo el viaje al que se quiere unir
+        return dao.findViajesConConflictoFechas(usuarioId, fechaInicio, fechaFin)
+                .stream()
+                .filter(v -> !v.getId().equals(viajeId))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Viaje> findViajesByUsuarioAndFecha(Long usuarioId, java.time.LocalDateTime fecha) {
+        // Obtener inicio y fin del día
+        java.time.LocalDateTime fechaInicioDia = fecha.toLocalDate().atStartOfDay();
+        java.time.LocalDateTime fechaFinDia = fechaInicioDia.plusDays(1);
+
+        return dao.findViajesByUsuarioAndFecha(usuarioId, fechaInicioDia, fechaFinDia);
+    }
 }

@@ -63,9 +63,15 @@ public class ViajeServiceImpl implements IViajeService {
             Usuario organizador = usuarioDao.findById(viajeGuardado.getOrganizador().getId()).orElse(null);
 
             if (organizador != null) {
-                // Crear la relación con estado inicial REGISTRADO
+                // Determinar estado inicial basado en si el viaje es en curso
+                com.example.demo.models.entity.EstadoParticipante estadoInicial = "en_curso"
+                        .equalsIgnoreCase(viajeGuardado.getEstado())
+                                ? com.example.demo.models.entity.EstadoParticipante.ingresa
+                                : com.example.demo.models.entity.EstadoParticipante.registrado;
+
+                // Crear la relación con el estado determinado
                 com.example.demo.models.entity.ParticipanteViaje participante = new com.example.demo.models.entity.ParticipanteViaje(
-                        organizador, viajeGuardado, com.example.demo.models.entity.EstadoParticipante.registrado);
+                        organizador, viajeGuardado, estadoInicial);
 
                 // Agregar a las colecciones (ambos lados para consistencia en memoria y
                 // cascada)

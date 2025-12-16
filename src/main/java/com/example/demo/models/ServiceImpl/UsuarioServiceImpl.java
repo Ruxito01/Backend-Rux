@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.models.dao.IUsuarioDao;
 import com.example.demo.models.dao.ILogroDao;
+import com.example.demo.models.dao.IComunidadDao;
 import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.entity.Logro;
@@ -21,6 +22,9 @@ public class UsuarioServiceImpl implements IUsuarioService {
 
     @Autowired
     private ILogroDao logroDao;
+
+    @Autowired
+    private IComunidadDao comunidadDao;
 
     @Override
     @Transactional(readOnly = true)
@@ -73,9 +77,15 @@ public class UsuarioServiceImpl implements IUsuarioService {
         Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
-            // Forzar la carga de comunidades dentro de la transacción
+
+            // Obtener comunidades donde es miembro
             Set<Comunidad> comunidades = usuario.getComunidades();
             comunidades.size(); // Inicializar la colección lazy
+
+            // Agregar comunidades donde es creador (si no están ya en el set)
+            List<Comunidad> comunidadesCreadas = comunidadDao.findByCreador(usuario);
+            comunidades.addAll(comunidadesCreadas);
+
             return comunidades;
         }
         return null;

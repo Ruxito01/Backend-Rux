@@ -21,6 +21,9 @@ public class ViajeServiceImpl implements IViajeService {
     @Autowired
     private IUsuarioDao usuarioDao;
 
+    @Autowired
+    private com.example.demo.models.dao.IParticipanteViajeDao participanteViajeDao;
+
     // Caracteres permitidos para el código (alfanumérico)
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int CODE_LENGTH = 8; // Longitud solicitada: 8 caracteres
@@ -130,12 +133,12 @@ public class ViajeServiceImpl implements IViajeService {
             return false;
         }
 
-        // Verificar si ya es participante directamente en la base de datos
-        // sin acceder a colecciones lazy del usuario
-        boolean yaEsParticipante = viaje.getParticipantes().stream()
-                .anyMatch(p -> p.getUsuario().getId().equals(usuarioId));
+        // Verificar si ya es participante usando el DAO directamente
+        // sin acceder a colecciones lazy
+        com.example.demo.models.entity.ParticipanteViajeId id = new com.example.demo.models.entity.ParticipanteViajeId(
+                usuarioId, viajeId);
 
-        if (yaEsParticipante) {
+        if (participanteViajeDao.existsById(id)) {
             return true; // Ya estaba agregado
         }
 
@@ -143,12 +146,8 @@ public class ViajeServiceImpl implements IViajeService {
         com.example.demo.models.entity.ParticipanteViaje participante = new com.example.demo.models.entity.ParticipanteViaje(
                 usuario, viaje, com.example.demo.models.entity.EstadoParticipante.registrado);
 
-        // Agregar a las colecciones
-        usuario.getViajesParticipados().add(participante);
-        viaje.getParticipantes().add(participante);
-
-        // Guardar el usuario para persistir la relación por cascada
-        usuarioDao.save(usuario);
+        // Guardar directamente usando el DAO
+        participanteViajeDao.save(participante);
 
         return true;
     }

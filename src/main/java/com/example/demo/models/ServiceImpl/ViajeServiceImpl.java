@@ -130,10 +130,10 @@ public class ViajeServiceImpl implements IViajeService {
             return false;
         }
 
-        // Verificar si ya es participante para no duplicar (aunque la primary key
-        // compuesta protege)
-        boolean yaEsParticipante = usuario.getViajesParticipados().stream()
-                .anyMatch(p -> p.getViaje().getId().equals(viajeId));
+        // Verificar si ya es participante directamente en la base de datos
+        // sin acceder a colecciones lazy del usuario
+        boolean yaEsParticipante = viaje.getParticipantes().stream()
+                .anyMatch(p -> p.getUsuario().getId().equals(usuarioId));
 
         if (yaEsParticipante) {
             return true; // Ya estaba agregado

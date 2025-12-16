@@ -48,9 +48,14 @@ public class ViajeController {
                         @ApiResponse(responseCode = "200", description = "Viaje creado exitosamente", content = @Content(schema = @Schema(implementation = Viaje.class)))
         })
         @PostMapping
-        public ResponseEntity<Viaje> create(
+        public ResponseEntity<?> create(
                         @Parameter(description = "Datos del viaje a crear", required = true) @RequestBody @NonNull Viaje entity) {
-                return ResponseEntity.ok(service.save(entity));
+                try {
+                        return ResponseEntity.ok(service.save(entity));
+                } catch (Exception e) {
+                        e.printStackTrace();
+                        return ResponseEntity.status(500).body("Error creating via: " + e.getMessage());
+                }
         }
 
         @Operation(summary = "Actualizar viaje", description = "Actualiza los datos de un viaje existente")

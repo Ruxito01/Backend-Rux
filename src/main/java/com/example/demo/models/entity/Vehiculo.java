@@ -21,6 +21,7 @@ public class Vehiculo implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Usuario usuario;
 
     @ManyToOne

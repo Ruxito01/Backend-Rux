@@ -120,4 +120,11 @@ public class Usuario implements Serializable {
         @EqualsAndHashCode.Exclude
         private Set<FotoUsuario> fotosCarrusel = new HashSet<>();
 
+        // Relación uno a muchos con Vehiculos
+        // No usamos @JsonIgnore para que se envíen al frontend al cargar el usuario
+        @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
+        private Set<Vehiculo> vehiculos = new HashSet<>();
+
 }

@@ -144,7 +144,7 @@ public class ViajeController {
 
                 // Validar que el estado sea válido
                 if (!nuevoEstado.equals("programado") && !nuevoEstado.equals("en_curso")
-                                && !nuevoEstado.equals("finalizado")) {
+                                && !nuevoEstado.equals("finalizado") && !nuevoEstado.equals("cancelado")) {
                         return ResponseEntity.badRequest().build();
                 }
 

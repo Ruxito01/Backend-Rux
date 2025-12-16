@@ -172,6 +172,20 @@ public class ViajeController {
                 return updated ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
         }
 
+        @Operation(summary = "Obtener viaje activo del usuario", description = "Retorna el viaje donde el usuario es participante, el viaje está 'en_curso' y el participante tiene estado 'ingresa'")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Viaje activo encontrado", content = @Content(schema = @Schema(implementation = Viaje.class))),
+                        @ApiResponse(responseCode = "404", description = "No hay viaje activo que cumpla las condiciones")
+        })
+        @GetMapping("/activo/{usuarioId}")
+        public ResponseEntity<Viaje> getViajeActivo(
+                        @Parameter(description = "ID del usuario", required = true, example = "1") @PathVariable @NonNull Long usuarioId) {
+                // Buscar viaje en estado "en_curso" donde el participante tiene estado
+                // "ingresa"
+                Viaje viajeActivo = service.findActiveViajeByUsuarioAndEstados(usuarioId, "en_curso", "ingresa");
+                return viajeActivo != null ? ResponseEntity.ok(viajeActivo) : ResponseEntity.notFound().build();
+        }
+
         @Operation(summary = "Obtener viajes por ruta", description = "Retorna todos los viajes asociados a una ruta específica")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Lista de viajes obtenida exitosamente")

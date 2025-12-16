@@ -51,4 +51,24 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
      * @return Lista de viajes filtrados
      */
     java.util.List<Viaje> findByParticipantes_Usuario_IdAndEstado(Long usuarioId, String estado);
+
+    /**
+     * Busca un viaje donde el usuario es participante con estado de VIAJE
+     * específico
+     * Y el estado del PARTICIPANTE específico.
+     * Útil para verificar si un usuario tiene un viaje activo en el que ya ingresó.
+     * 
+     * @param usuarioId          ID del usuario
+     * @param estadoViaje        Estado del viaje (ej: "en_curso")
+     * @param estadoParticipante Estado del participante (ej: "ingresa")
+     * @return Viaje que cumple ambas condiciones, o null si no existe
+     */
+    @org.springframework.data.jpa.repository.Query("SELECT v FROM Viaje v JOIN v.participantes p " +
+            "WHERE p.usuario.id = :usuarioId " +
+            "AND v.estado = :estadoViaje " +
+            "AND p.estado = :estadoParticipante")
+    Viaje findActiveViajeByUsuarioAndEstados(
+            @org.springframework.data.repository.query.Param("usuarioId") Long usuarioId,
+            @org.springframework.data.repository.query.Param("estadoViaje") String estadoViaje,
+            @org.springframework.data.repository.query.Param("estadoParticipante") String estadoParticipante);
 }

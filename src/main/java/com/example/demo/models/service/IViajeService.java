@@ -33,6 +33,18 @@ public interface IViajeService {
      */
     List<Viaje> findByRutaId(Long rutaId);
 
+    /**
+     * Busca el viaje activo de un usuario con validación doble:
+     * - El viaje debe estar en un estado específico (ej: "en_curso")
+     * - El participante debe tener un estado específico (ej: "ingresa")
+     * 
+     * @param usuarioId          ID del usuario
+     * @param estadoViaje        Estado del viaje
+     * @param estadoParticipante Estado del participante
+     * @return Viaje que cumple ambas condiciones, o null
+     */
+    Viaje findActiveViajeByUsuarioAndEstados(Long usuarioId, String estadoViaje, String estadoParticipante);
+
     // Actualizar estado de un participante en un viaje
     boolean updateEstadoParticipante(Long viajeId, Long usuarioId, String nuevoEstado);
 }

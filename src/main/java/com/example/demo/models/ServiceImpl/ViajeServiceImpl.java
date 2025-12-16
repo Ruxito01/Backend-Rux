@@ -168,6 +168,12 @@ public class ViajeServiceImpl implements IViajeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Viaje findActiveViajeByUsuarioAndEstados(Long usuarioId, String estadoViaje, String estadoParticipante) {
+        return dao.findActiveViajeByUsuarioAndEstados(usuarioId, estadoViaje, estadoParticipante);
+    }
+
+    @Override
     @Transactional
     public boolean updateEstadoParticipante(Long viajeId, Long usuarioId, String nuevoEstado) {
         // Validar estado

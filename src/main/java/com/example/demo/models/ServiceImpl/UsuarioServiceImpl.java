@@ -120,4 +120,15 @@ public class UsuarioServiceImpl implements IUsuarioService {
         }
         return Optional.empty();
     }
+
+    @Override
+    @Transactional
+    public void actualizarUltimaActividad(Long usuarioId) {
+        Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            usuario.setUltimaActividad(java.time.LocalDateTime.now());
+            usuarioDao.save(usuario);
+        }
+    }
 }

@@ -128,4 +128,11 @@ public class UsuarioController {
                 .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
+
+    @Operation(summary = "Actualizar última actividad del usuario")
+    @PutMapping("/{id}/actividad")
+    public ResponseEntity<Void> actualizarActividad(@PathVariable Long id) {
+        usuarioService.actualizarUltimaActividad(id);
+        return ResponseEntity.ok().build();
+    }
 }

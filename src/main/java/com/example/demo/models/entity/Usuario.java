@@ -61,6 +61,9 @@ public class Usuario implements Serializable {
         @Column(name = "fecha_creacion", nullable = false)
         private LocalDateTime fechaCreacion = LocalDateTime.now();
 
+        @Column(name = "ultima_actividad")
+        private LocalDateTime ultimaActividad;
+
         // Relación muchos a muchos con Logros
         @ManyToMany(fetch = FetchType.LAZY, cascade = {
                         CascadeType.PERSIST,

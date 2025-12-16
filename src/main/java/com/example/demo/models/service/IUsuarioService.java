@@ -28,4 +28,7 @@ public interface IUsuarioService {
 
     // Actualizar el alias del usuario
     Optional<Usuario> actualizarAlias(Long usuarioId, String alias);
+
+    // Actualizar última actividad del usuario
+    void actualizarUltimaActividad(Long usuarioId);
 }

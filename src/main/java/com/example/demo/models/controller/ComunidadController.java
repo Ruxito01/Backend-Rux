@@ -107,6 +107,87 @@ public class ComunidadController {
         return new ResponseEntity<>(comunidadService.save(existing), HttpStatus.OK);
     }
 
+    @Operation(summary = "Buscar comunidades por nombre")
+    @GetMapping("/buscar")
+    public ResponseEntity<List<Comunidad>> buscarComunidades(
+            @RequestParam String query,
+            @RequestParam Long usuarioId) {
+        // Buscar todas las comunidades que coincidan con el query
+        List<Comunidad> todas = comunidadService.findAll();
+
+        // Filtrar por nombre que contenga el query
+        List<Comunidad> resultados = todas.stream()
+                .filter(c -> c.getNombre().toLowerCase().contains(query.toLowerCase()))
+                .toList();
+
+        // Excluir comunidades donde el usuario ya es miembro
+        Usuario usuario = usuarioService.findById(usuarioId).orElse(null);
+        if (usuario != null) {
+            Set<Long> comunidadesUsuario = usuario.getComunidades().stream()
+                    .map(Comunidad::getId)
+                    .collect(java.util.stream.Collectors.toSet());
+
+            resultados = resultados.stream()
+                    .filter(c -> !comunidadesUsuario.contains(c.getId()))
+                    .toList();
+        }
+
+        return new ResponseEntity<>(resultados, HttpStatus.OK);
+    }
+
+    @Operation(summary = "Unirse a una comunidad pública")
+    @PostMapping("/{id}/unirse")
+    public ResponseEntity<Map<String, String>> unirse(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        try {
+            Comunidad comunidad = comunidadService.findById(id);
+            if (comunidad == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Verificar que sea pública
+            if (!"publica".equals(comunidad.getNivelPrivacidad())) {
+                Map<String, String> error = Map.of(
+                        "error", "Solo se puede unir directamente a comunidades públicas");
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            }
+
+            // Obtener usuario
+            Object usuarioIdObj = payload.get("usuarioId");
+            Long usuarioId = usuarioIdObj instanceof Integer
+                    ? ((Integer) usuarioIdObj).longValue()
+                    : (Long) usuarioIdObj;
+
+            Usuario usuario = usuarioService.findById(usuarioId).orElse(null);
+            if (usuario == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Verificar que no sea ya miembro
+            if (comunidad.getMiembros().contains(usuario)) {
+                Map<String, String> error = Map.of(
+                        "error", "Ya eres miembro de esta comunidad");
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            }
+
+            // Agregar relación bidireccional
+            comunidad.getMiembros().add(usuario);
+            usuario.getComunidades().add(comunidad);
+
+            // Guardar
+            usuarioService.save(usuario);
+
+            Map<String, String> response = Map.of(
+                    "mensaje", "Te has unido exitosamente a " + comunidad.getNombre());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> error = Map.of("error", "Error al unirse a la comunidad");
+            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @Operation(summary = "Eliminar comunidad por ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

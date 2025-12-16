@@ -2,6 +2,8 @@ package com.example.demo.models.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.io.Serializable;
 
@@ -13,6 +15,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "vehiculos")
 @Data
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Vehiculo implements Serializable {
 
     @Id
@@ -21,7 +24,6 @@ public class Vehiculo implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
     private Usuario usuario;
 
     @ManyToOne

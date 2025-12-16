@@ -192,6 +192,21 @@ public class ViajeServiceImpl implements IViajeService {
         participante.setEstado(estadoEnum);
         usuarioDao.save(usuario); // Cascada guarda la actualización
 
+        // Verificar si TODOS los participantes han salido (cancela o finaliza)
+        // para finalizar el viaje automáticamente.
+        Viaje viaje = dao.findById(viajeId).orElse(null);
+        if (viaje != null && viaje.getParticipantes() != null) {
+            boolean todosFinalizados = viaje.getParticipantes().stream()
+                    .allMatch(p -> p.getEstado() == com.example.demo.models.entity.EstadoParticipante.cancela ||
+                            p.getEstado() == com.example.demo.models.entity.EstadoParticipante.finaliza);
+
+            if (todosFinalizados) {
+                viaje.setEstado("finalizado");
+                viaje.setFechaFinReal(java.time.LocalDateTime.now());
+                dao.save(viaje);
+            }
+        }
+
         return true;
     }
 

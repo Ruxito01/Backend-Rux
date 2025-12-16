@@ -1,47 +1,31 @@
 package com.example.demo.models.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * Entidad para tracking GPS en tiempo real
- * NOTA: Esta entidad NO se persiste en DB (para performance)
- * Solo se usa para enviar datos vía WebSocket
- * 
- * @Transient en todos los campos para evitar que JPA intente persistir
+ * POJO para tracking GPS en tiempo real
+ * NO es una entidad JPA - no se persiste en DB
+ * Solo se usa para transmitir datos vía WebSocket
  */
-@Entity
-@Table(name = "ubicacion_usuario")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "viajeId")
 public class UbicacionUsuario {
 
-    @Transient // NO persistir en DB
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "usuario_id")
-    private Usuario usuario;
+    // ID del usuario que envía la ubicación
+    private Long usuarioId;
 
-    @Transient // NO persistir en DB
-    @Column(name = "viaje_id")
+    // Nombre del usuario (para mostrar en el mapa)
+    private String nombreUsuario;
+
+    // ID del viaje al que pertenece esta ubicación
     private Long viajeId;
 
-    @Transient // NO persistir en DB
-    @Column(name = "latitud")
+    // Coordenadas GPS
     private Double latitud;
-
-    @Transient // NO persistir en DB
-    @Column(name = "longitud")
     private Double longitud;
 
-    @Transient // NO persistir en DB
-    @Column(name = "velocidad")
-    private Double velocidad;
-
-    @Transient // NO persistir en DB
-    @Column(name = "rumbo")
+    // Datos adicionales
+    private Double velocidad; // km/h
     private Double rumbo; // Dirección en grados (0-360)
 }

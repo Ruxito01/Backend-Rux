@@ -79,7 +79,8 @@ public class ViajeServiceImpl implements IViajeService {
                 viajeGuardado.getParticipantes().add(participante);
 
                 // Guardamos el USUARIO para persistir la relación por cascada
-                usuarioDao.save(organizador);
+                // usuarioDao.save(organizador); // COMENTADO: Redundante en transacción y causa
+                // NonUniqueObjectException
             }
         }
 

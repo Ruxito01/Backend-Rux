@@ -161,9 +161,7 @@ public class SolicitudComunidadController {
             Long respondidoPorId = null;
             if (payload != null && payload.get("respondidoPorId") != null) {
                 Object respondidoPorIdObj = payload.get("respondidoPorId");
-                respondidoPorId = respond
-
-idoPorIdObj instanceof Integer
+                respondidoPorId = respondidoPorIdObj instanceof Integer
                         ? ((Integer) respondidoPorIdObj).longValue()
                         : (Long) respondidoPorIdObj;
             }

@@ -101,18 +101,13 @@ public class Usuario implements Serializable {
         @EqualsAndHashCode.Exclude
         private Set<Comunidad> comunidades = new HashSet<>();
 
-        // Relación muchos a muchos con Viajes (como participante)
-        @ManyToMany(fetch = FetchType.LAZY, cascade = {
-                        CascadeType.PERSIST,
-                        CascadeType.MERGE
-        })
-        @JoinTable(name = "participantes_viaje", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "viaje_id"))
-        // Se usa @JsonIgnore para evitar LazyInitializationException
-        // Los viajes se obtienen por endpoint separado
+        // Relación uno a muchos con ParticipanteViaje
+        // Reemplaza la antigua relación ManyToMany
+        @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
         @JsonIgnore
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
-        private Set<Viaje> viajes = new HashSet<>();
+        private Set<ParticipanteViaje> viajesParticipados = new HashSet<>();
 
         // Relación uno a muchos con Fotos del carrusel
         // Se usa @JsonIgnore para excluir de la serialización JSON y evitar

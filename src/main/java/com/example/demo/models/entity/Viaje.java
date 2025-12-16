@@ -94,12 +94,12 @@ public class Viaje implements Serializable {
     @Column(name = "url_archivo_replay_json")
     private String urlArchivoReplayJson;
 
-    // Relación muchos a muchos con Usuario (participantes del viaje)
-    @ManyToMany(mappedBy = "viajes", fetch = FetchType.LAZY)
-    @JsonIgnoreProperties("viajes")
+    // Relación uno a muchos con ParticipanteViaje (participantes con estado)
+    @OneToMany(mappedBy = "viaje", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("viaje")
     @lombok.ToString.Exclude
     @lombok.EqualsAndHashCode.Exclude
-    private Set<Usuario> participantes = new HashSet<>();
+    private Set<ParticipanteViaje> participantes = new HashSet<>();
 
     private static final long serialVersionUID = 1L;
 }

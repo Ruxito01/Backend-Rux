@@ -25,13 +25,14 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
 
     /**
      * Busca todos los viajes donde un usuario específico es participante.
-     * Utiliza la convención de nombres de JPA para relaciones ManyToMany
-     * (participantes.id).
+     * Utiliza la convención de nombres de JPA para relaciones OneToMany ->
+     * ManyToOne
+     * (participantes.usuario.id).
      * 
      * @param usuarioId ID del usuario participante
      * @return Lista de viajes encontrados
      */
-    java.util.List<Viaje> findByParticipantes_Id(Long usuarioId);
+    java.util.List<Viaje> findByParticipantes_Usuario_Id(Long usuarioId);
 
     /**
      * Busca todos los viajes asociados a una ruta específica.
@@ -42,11 +43,12 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
     java.util.List<Viaje> findByRutaId(Long rutaId);
 
     /**
-     * Busca viajes donde el usuario es participante y tienen un estado específico.
+     * Busca viajes donde el usuario es participante y tienen un estado de VIAJE
+     * específico.
      * 
      * @param usuarioId ID del usuario
      * @param estado    Estado del viaje (ej: "en_curso")
      * @return Lista de viajes filtrados
      */
-    java.util.List<Viaje> findByParticipantes_IdAndEstado(Long usuarioId, String estado);
+    java.util.List<Viaje> findByParticipantes_Usuario_IdAndEstado(Long usuarioId, String estado);
 }

@@ -147,6 +147,26 @@ public class ViajeController {
                 return ResponseEntity.ok(service.save(existing));
         }
 
+        @Operation(summary = "Actualizar estado de participante", description = "Actualiza el estado de un participante en un viaje (registrado, ingresa, cancela, finaliza)")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Estado de participante actualizado exitosamente"),
+                        @ApiResponse(responseCode = "404", description = "Viaje o participante no encontrado"),
+                        @ApiResponse(responseCode = "400", description = "Estado inválido")
+        })
+        @PutMapping("/{viajeId}/participante/{usuarioId}/estado")
+        public ResponseEntity<Void> updateParticipanteEstado(
+                        @Parameter(description = "ID del viaje", required = true, example = "1") @PathVariable @NonNull Long viajeId,
+                        @Parameter(description = "ID del participante", required = true, example = "1") @PathVariable @NonNull Long usuarioId,
+                        @Parameter(description = "Nuevo estado (estado: ingresa)", required = true) @RequestBody @NonNull java.util.Map<String, String> estadoMap) {
+                String nuevoEstado = estadoMap.get("estado");
+                if (nuevoEstado == null) {
+                        return ResponseEntity.badRequest().build();
+                }
+
+                boolean updated = service.updateEstadoParticipante(viajeId, usuarioId, nuevoEstado);
+                return updated ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+        }
+
         @Operation(summary = "Obtener viajes por ruta", description = "Retorna todos los viajes asociados a una ruta específica")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Lista de viajes obtenida exitosamente")

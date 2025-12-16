@@ -32,4 +32,7 @@ public interface IViajeService {
      * @return Lista de viajes encontrados
      */
     List<Viaje> findByRutaId(Long rutaId);
+
+    // Actualizar estado de un participante en un viaje
+    boolean updateEstadoParticipante(Long viajeId, Long usuarioId, String nuevoEstado);
 }

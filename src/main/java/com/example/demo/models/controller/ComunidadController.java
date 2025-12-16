@@ -4,6 +4,8 @@ import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.service.IComunidadService;
 import com.example.demo.models.service.IUsuarioService;
+import com.example.demo.models.dao.IMiembroComunidadDao;
+import com.example.demo.models.entity.MiembroComunidad;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class ComunidadController {
     @Autowired
     private IUsuarioService usuarioService;
 
+    @Autowired
+    private IMiembroComunidadDao miembroComunidadDao;
+
     @Operation(summary = "Obtener todas las comunidades")
     @GetMapping
     public List<Comunidad> findAll() {
@@ -41,13 +46,39 @@ public class ComunidadController {
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @Operation(summary = "Obtener miembros de una comunidad")
+    @Operation(summary = "Obtener miembros de una comunidad con fecha de unión")
     @GetMapping("/{id}/miembros")
-    public ResponseEntity<Set<Usuario>> getMiembros(@PathVariable Long id) {
+    public ResponseEntity<List<Map<String, Object>>> getMiembros(@PathVariable Long id) {
         Set<Usuario> miembros = comunidadService.getMiembrosByComunidadId(id);
-        return miembros != null
-                ? new ResponseEntity<>(miembros, HttpStatus.OK)
-                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (miembros == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // Obtener relaciones con fechas de unión
+        List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id);
+
+        // Mapear usuarios con sus fechas de unión
+        List<Map<String, Object>> resultado = new java.util.ArrayList<>();
+        for (Usuario usuario : miembros) {
+            Map<String, Object> miembroData = new java.util.HashMap<>();
+            miembroData.put("id", usuario.getId());
+            miembroData.put("nombre", usuario.getNombre());
+            miembroData.put("apellido", usuario.getApellido());
+            miembroData.put("alias", usuario.getAlias());
+            miembroData.put("foto", usuario.getFoto());
+            miembroData.put("email", usuario.getEmail());
+            miembroData.put("ultimaActividad", usuario.getUltimaActividad());
+
+            // Buscar fecha de unión
+            relaciones.stream()
+                    .filter(r -> r.getUsuario().getId().equals(usuario.getId()))
+                    .findFirst()
+                    .ifPresent(r -> miembroData.put("fechaUnion", r.getFechaUnion()));
+
+            resultado.add(miembroData);
+        }
+
+        return new ResponseEntity<>(resultado, HttpStatus.OK);
     }
 
     @Operation(summary = "Crear nueva comunidad")
@@ -80,11 +111,18 @@ public class ComunidadController {
             comunidad.setCreador(creador);
 
             // Agregar al creador como miembro automáticamente
-            // Actualizar AMBOS lados de la relación ManyToMany
             comunidad.getMiembros().add(creador);
             creador.getComunidades().add(comunidad);
 
             Comunidad nuevaComunidad = comunidadService.save(comunidad);
+
+            // Guardar en tabla intermedia con fechaUnion
+            MiembroComunidad miembroComunidad = new MiembroComunidad();
+            miembroComunidad.setUsuario(creador);
+            miembroComunidad.setComunidad(nuevaComunidad);
+            miembroComunidad.setFechaUnion(java.time.LocalDateTime.now());
+            miembroComunidadDao.save(miembroComunidad);
+
             return new ResponseEntity<>(nuevaComunidad, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
@@ -177,6 +215,13 @@ public class ComunidadController {
 
             // Guardar
             usuarioService.save(usuario);
+
+            // Guardar en tabla intermedia con fechaUnion
+            MiembroComunidad miembroComunidad = new MiembroComunidad();
+            miembroComunidad.setUsuario(usuario);
+            miembroComunidad.setComunidad(comunidad);
+            miembroComunidad.setFechaUnion(java.time.LocalDateTime.now());
+            miembroComunidadDao.save(miembroComunidad);
 
             Map<String, String> response = Map.of(
                     "mensaje", "Te has unido exitosamente a " + comunidad.getNombre());

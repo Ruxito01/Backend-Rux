@@ -2,9 +2,11 @@ package com.example.demo.models.service;
 
 import com.example.demo.models.dao.ISolicitudComunidadDao;
 import com.example.demo.models.dao.IUsuarioDao;
+import com.example.demo.models.dao.IMiembroComunidadDao;
 import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.SolicitudComunidad;
 import com.example.demo.models.entity.Usuario;
+import com.example.demo.models.entity.MiembroComunidad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,9 @@ public class SolicitudComunidadServiceImpl implements ISolicitudComunidadService
 
     @Autowired
     private IUsuarioDao usuarioDao;
+
+    @Autowired
+    private IMiembroComunidadDao miembroComunidadDao;
 
     @Override
     @Transactional(readOnly = true)

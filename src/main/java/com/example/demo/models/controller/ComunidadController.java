@@ -80,7 +80,9 @@ public class ComunidadController {
             comunidad.setCreador(creador);
 
             // Agregar al creador como miembro automáticamente
+            // Actualizar AMBOS lados de la relación ManyToMany
             comunidad.getMiembros().add(creador);
+            creador.getComunidades().add(comunidad);
 
             Comunidad nuevaComunidad = comunidadService.save(comunidad);
             return new ResponseEntity<>(nuevaComunidad, HttpStatus.CREATED);

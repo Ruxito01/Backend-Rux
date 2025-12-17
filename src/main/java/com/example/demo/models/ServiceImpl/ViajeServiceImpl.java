@@ -58,11 +58,16 @@ public class ViajeServiceImpl implements IViajeService {
             entity.setCodigoInvitacion(codigoGenerado);
         }
 
-        // Si el estado del viaje es "cancelado", actualizar el estado de TODOS los
-        // participantes a "cancela"
-        if ("cancelado".equalsIgnoreCase(entity.getEstado()) && entity.getParticipantes() != null) {
-            entity.getParticipantes()
-                    .forEach(p -> p.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela));
+        // Si el viaje finaliza o se cancela, actualizar estado de participantes que
+        // nunca ingresaron
+        if (("cancelado".equalsIgnoreCase(entity.getEstado()) || "finalizado".equalsIgnoreCase(entity.getEstado()))
+                && entity.getParticipantes() != null) {
+            entity.getParticipantes().forEach(p -> {
+                // Solo cambiar a 'cancela' los que nunca ingresaron (estado = registrado)
+                if (p.getEstado() == com.example.demo.models.entity.EstadoParticipante.registrado) {
+                    p.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela);
+                }
+            });
         }
 
         Viaje viajeGuardado = dao.save(entity);
@@ -204,10 +209,24 @@ public class ViajeServiceImpl implements IViajeService {
         participante.setEstado(estadoEnum);
         usuarioDao.save(usuario); // Cascada guarda la actualización
 
-        // Verificar si TODOS los participantes han salido (cancela o finaliza)
-        // para finalizar el viaje automáticamente.
+        // Obtener el viaje para verificar estados
         Viaje viaje = dao.findById(viajeId).orElse(null);
         if (viaje != null && viaje.getParticipantes() != null) {
+
+            // Si el participante ingresa y es el primero en ingresar,
+            // guardar fecha_inicio_real y cambiar estado del viaje a en_curso
+            if (estadoEnum == com.example.demo.models.entity.EstadoParticipante.ingresa) {
+                boolean esPrimerIngreso = viaje.getFechaInicioReal() == null;
+
+                if (esPrimerIngreso) {
+                    viaje.setFechaInicioReal(java.time.LocalDateTime.now());
+                    viaje.setEstado("en_curso");
+                    dao.save(viaje);
+                }
+            }
+
+            // Verificar si TODOS los participantes han salido (cancela o finaliza)
+            // para finalizar el viaje automáticamente.
             boolean todosFinalizados = viaje.getParticipantes().stream()
                     .allMatch(p -> p.getEstado() == com.example.demo.models.entity.EstadoParticipante.cancela ||
                             p.getEstado() == com.example.demo.models.entity.EstadoParticipante.finaliza);

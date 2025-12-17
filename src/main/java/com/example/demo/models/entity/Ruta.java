@@ -6,6 +6,8 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Ruta planificada por un usuario.
@@ -40,11 +42,12 @@ public class Ruta implements Serializable {
     private String nivelDificultad;
 
     /**
-     * Tipo de vehículo adecuado para la ruta.
+     * Tipos de vehículo adecuados para la ruta.
+     * Permite múltiples tipos (ej: Enduro y Cross)
      */
-    @ManyToOne
-    @JoinColumn(name = "tipo_vehiculo_id")
-    private TipoVehiculo tipoVehiculo;
+    @ManyToMany
+    @JoinTable(name = "ruta_tipo_vehiculo", joinColumns = @JoinColumn(name = "ruta_id"), inverseJoinColumns = @JoinColumn(name = "tipo_vehiculo_id"))
+    private Set<TipoVehiculo> tiposVehiculo = new HashSet<>();
 
     // ==========================================
     // DATOS TÉCNICOS ESTIMADOS

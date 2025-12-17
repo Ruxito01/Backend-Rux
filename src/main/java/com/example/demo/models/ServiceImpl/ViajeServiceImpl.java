@@ -58,11 +58,16 @@ public class ViajeServiceImpl implements IViajeService {
             entity.setCodigoInvitacion(codigoGenerado);
         }
 
-        // Si el estado del viaje es "cancelado", actualizar el estado de TODOS los
-        // participantes a "cancela"
-        if ("cancelado".equalsIgnoreCase(entity.getEstado()) && entity.getParticipantes() != null) {
-            entity.getParticipantes()
-                    .forEach(p -> p.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela));
+        // Si el viaje finaliza o se cancela, actualizar estado de participantes que
+        // nunca ingresaron
+        if (("cancelado".equalsIgnoreCase(entity.getEstado()) || "finalizado".equalsIgnoreCase(entity.getEstado()))
+                && entity.getParticipantes() != null) {
+            entity.getParticipantes().forEach(p -> {
+                // Solo cambiar a 'cancela' los que nunca ingresaron (estado = registrado)
+                if (p.getEstado() == com.example.demo.models.entity.EstadoParticipante.registrado) {
+                    p.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela);
+                }
+            });
         }
 
         Viaje viajeGuardado = dao.save(entity);

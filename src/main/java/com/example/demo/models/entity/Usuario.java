@@ -64,6 +64,9 @@ public class Usuario implements Serializable {
         @Column(name = "ultima_actividad")
         private LocalDateTime ultimaActividad;
 
+        @Column(name = "fcm_token")
+        private String fcmToken; // Token de Firebase Cloud Messaging para notificaciones push
+
         // Relación muchos a muchos con Logros
         @ManyToMany(fetch = FetchType.LAZY, cascade = {
                         CascadeType.PERSIST,

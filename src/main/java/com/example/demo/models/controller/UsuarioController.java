@@ -135,4 +135,16 @@ public class UsuarioController {
         usuarioService.actualizarUltimaActividad(id);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Actualizar token FCM para notificaciones push")
+    @PatchMapping("/{id}/fcm-token")
+    public ResponseEntity<Usuario> actualizarFcmToken(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        String fcmToken = body.get("fcmToken");
+        return usuarioService.findById(id).map(usuario -> {
+            usuario.setFcmToken(fcmToken);
+            return new ResponseEntity<>(usuarioService.save(usuario), HttpStatus.OK);
+        }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
 }

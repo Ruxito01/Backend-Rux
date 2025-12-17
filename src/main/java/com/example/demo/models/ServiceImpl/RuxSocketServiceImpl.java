@@ -1,8 +1,12 @@
 package com.example.demo.models.ServiceImpl;
 
 import com.example.demo.models.dao.IMensajeComunidadDao;
+import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.MensajeComunidad;
 import com.example.demo.models.entity.UbicacionUsuario;
+import com.example.demo.models.entity.Usuario;
+import com.example.demo.models.service.FirebaseMessagingService;
+import com.example.demo.models.service.IComunidadService;
 import com.example.demo.models.service.IRuxSocketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -11,10 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Implementación del servicio WebSocket
  * Maneja la lógica de broadcasting para chat y GPS
+ * Ahora también envía push notifications a los miembros
  */
 @Service
 public class RuxSocketServiceImpl implements IRuxSocketService {
@@ -24,6 +31,12 @@ public class RuxSocketServiceImpl implements IRuxSocketService {
 
     @Autowired
     private IMensajeComunidadDao mensajeComunidadDao;
+
+    @Autowired
+    private IComunidadService comunidadService;
+
+    @Autowired
+    private FirebaseMessagingService firebaseMessagingService;
 
     @Override
     @Transactional
@@ -37,10 +50,53 @@ public class RuxSocketServiceImpl implements IRuxSocketService {
         MensajeComunidad mensajeGuardado = mensajeComunidadDao.save(mensaje);
 
         // 3. Hacer broadcast a todos los suscritos a esta comunidad
-        String destino = "/topic/comunidad/" + mensajeGuardado.getComunidad().getId();
+        Long comunidadId = mensajeGuardado.getComunidad().getId();
+        String destino = "/topic/comunidad/" + comunidadId;
         messagingTemplate.convertAndSend(destino, mensajeGuardado);
 
         System.out.println("💬 Mensaje enviado a " + destino);
+
+        // 4. Enviar push notifications a los miembros (en hilo separado para no
+        // bloquear)
+        new Thread(() -> enviarPushAMiembros(mensajeGuardado)).start();
+    }
+
+    /**
+     * Envía push notifications a todos los miembros de la comunidad
+     * excepto al que envió el mensaje
+     */
+    private void enviarPushAMiembros(MensajeComunidad mensaje) {
+        try {
+            Long comunidadId = mensaje.getComunidad().getId();
+            Long remitenteId = mensaje.getUsuario().getId();
+            String nombreRemitente = mensaje.getUsuario().getNombre();
+            String contenido = mensaje.getContenido();
+
+            // Obtener la comunidad con sus miembros
+            Comunidad comunidad = comunidadService.findById(comunidadId);
+            if (comunidad == null)
+                return;
+
+            Set<Usuario> miembros = comunidad.getMiembros();
+
+            // Filtrar tokens: solo miembros con token FCM que NO son el remitente
+            List<String> tokens = miembros.stream()
+                    .filter(u -> !u.getId().equals(remitenteId))
+                    .map(Usuario::getFcmToken)
+                    .filter(token -> token != null && !token.isEmpty())
+                    .collect(Collectors.toList());
+
+            if (!tokens.isEmpty()) {
+                String titulo = comunidad.getNombre();
+                String cuerpo = nombreRemitente + ": " +
+                        (contenido.length() > 50 ? contenido.substring(0, 47) + "..." : contenido);
+
+                System.out.println("📤 Enviando push a " + tokens.size() + " miembros de " + titulo);
+                firebaseMessagingService.enviarNotificacionMultiple(tokens, titulo, cuerpo, comunidadId);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error enviando push notifications: " + e.getMessage());
+        }
     }
 
     @Override

@@ -22,7 +22,7 @@ public class FirebaseConfig {
             if (FirebaseApp.getApps().isEmpty()) {
                 // Intentar cargar credenciales del archivo
                 InputStream serviceAccount = getClass().getClassLoader()
-                        .getResourceAsStream("firebase-service-account.json");
+                        .getResourceAsStream("rux-movil-firebase-adminsdk-fbsvc-98bafcab56.json");
 
                 if (serviceAccount != null) {
                     FirebaseOptions options = FirebaseOptions.builder()

@@ -49,8 +49,9 @@ public class ViajeSchedulerService {
                     .anyMatch(p -> p.getEstado() == com.example.demo.models.entity.EstadoParticipante.ingresa);
 
             if (!hayIngresado) {
-                // Cancelar el viaje
+                // Cancelar el viaje y guardar fecha fin
                 viaje.setEstado("cancelado");
+                viaje.setFechaFinReal(java.time.LocalDateTime.now());
                 viajeDao.save(viaje);
 
                 System.out.println("🚫 Viaje " + viaje.getId() + " cancelado automáticamente. " +

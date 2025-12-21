@@ -64,5 +64,18 @@ public class Vehiculo implements Serializable {
     @Column(name = "anio_fabricacion")
     private Integer anioFabricacion;
 
+    /**
+     * Estado del vehículo.
+     * Valores: "en_posesion", "eliminado"
+     */
+    private String estado;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.estado == null) {
+            this.estado = "en_posesion";
+        }
+    }
+
     private static final long serialVersionUID = 1L;
 }

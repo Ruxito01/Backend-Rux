@@ -80,4 +80,14 @@ public class VehiculoController {
         service.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Obtener vehículos por usuario", description = "Retorna una lista con todos los vehículos de un usuario específico")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de vehículos obtenida exitosamente")
+    })
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<Vehiculo>> findByUsuarioId(
+            @Parameter(description = "ID del usuario", required = true, example = "1") @PathVariable @NonNull Long usuarioId) {
+        return ResponseEntity.ok(service.findByUsuarioId(usuarioId));
+    }
 }

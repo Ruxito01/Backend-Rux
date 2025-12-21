@@ -38,4 +38,10 @@ public class VehiculoServiceImpl implements IVehiculoService {
     public void deleteById(Long id) {
         vehiculoDao.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Vehiculo> findByUsuarioId(Long usuarioId) {
+        return vehiculoDao.findByUsuarioId(usuarioId);
+    }
 }

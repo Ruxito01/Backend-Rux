@@ -54,8 +54,10 @@ public class ComunidadController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        // Obtener relaciones con fechas de unión
-        List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id);
+        // Obtener relaciones con fechas de unión - SOLO ACTIVOS
+        List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id).stream()
+                .filter(r -> "activo".equals(r.getEstado()))
+                .toList();
 
         // Mapear usuarios con sus fechas de unión
         List<Map<String, Object>> resultado = new java.util.ArrayList<>();
@@ -132,16 +134,39 @@ public class ComunidadController {
 
     @Operation(summary = "Actualizar comunidad existente")
     @PutMapping("/{id}")
-    public ResponseEntity<Comunidad> update(@PathVariable Long id, @RequestBody Comunidad comunidad) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         Comunidad existing = comunidadService.findById(id);
         if (existing == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        existing.setNombre(comunidad.getNombre());
-        existing.setDescripcion(comunidad.getDescripcion());
-        existing.setNivelPrivacidad(comunidad.getNivelPrivacidad());
-        existing.setUrlImagen(comunidad.getUrlImagen());
-        existing.setCreador(comunidad.getCreador());
+
+        // Validar que solo el creador puede actualizar
+        Object usuarioIdObj = payload.get("usuarioId");
+        if (usuarioIdObj != null) {
+            Long usuarioId = usuarioIdObj instanceof Integer
+                    ? ((Integer) usuarioIdObj).longValue()
+                    : (Long) usuarioIdObj;
+
+            if (!existing.getCreador().getId().equals(usuarioId)) {
+                Map<String, String> error = Map.of("error", "Solo el creador puede editar esta comunidad");
+                return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+            }
+        }
+
+        // Actualizar campos (NO permitir cambiar creador)
+        if (payload.get("nombre") != null) {
+            existing.setNombre((String) payload.get("nombre"));
+        }
+        if (payload.get("descripcion") != null) {
+            existing.setDescripcion((String) payload.get("descripcion"));
+        }
+        if (payload.get("nivel_privacidad") != null) {
+            existing.setNivelPrivacidad((String) payload.get("nivel_privacidad"));
+        }
+        if (payload.get("url_imagen") != null) {
+            existing.setUrlImagen((String) payload.get("url_imagen"));
+        }
+
         return new ResponseEntity<>(comunidadService.save(existing), HttpStatus.OK);
     }
 
@@ -229,6 +254,132 @@ public class ComunidadController {
         } catch (Exception e) {
             e.printStackTrace();
             Map<String, String> error = Map.of("error", "Error al unirse a la comunidad");
+            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Operation(summary = "Salir de una comunidad")
+    @PostMapping("/{id}/salir")
+    public ResponseEntity<Map<String, String>> salir(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        try {
+            Comunidad comunidad = comunidadService.findById(id);
+            if (comunidad == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Obtener usuario
+            Object usuarioIdObj = payload.get("usuarioId");
+            Long usuarioId = usuarioIdObj instanceof Integer
+                    ? ((Integer) usuarioIdObj).longValue()
+                    : (Long) usuarioIdObj;
+
+            // Validar que no sea el creador
+            if (comunidad.getCreador().getId().equals(usuarioId)) {
+                Map<String, String> error = Map.of(
+                        "error", "El creador no puede salir de su propia comunidad");
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            }
+
+            // Buscar la relación y cambiar estado a inactivo
+            List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id);
+            boolean found = false;
+
+            for (MiembroComunidad relacion : relaciones) {
+                if (relacion.getUsuario().getId().equals(usuarioId)) {
+                    relacion.setEstado("inactivo");
+                    miembroComunidadDao.save(relacion);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                Map<String, String> error = Map.of(
+                        "error", "No eres miembro de esta comunidad");
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            }
+
+            Map<String, String> response = Map.of(
+                    "mensaje", "Has salido de " + comunidad.getNombre());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> error = Map.of("error", "Error al salir de la comunidad");
+            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Operation(summary = "Reingresar a una comunidad")
+    @PostMapping("/{id}/reingresar")
+    public ResponseEntity<Map<String, String>> reingresar(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        try {
+            Comunidad comunidad = comunidadService.findById(id);
+            if (comunidad == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Obtener usuario
+            Object usuarioIdObj = payload.get("usuarioId");
+            Long usuarioId = usuarioIdObj instanceof Integer
+                    ? ((Integer) usuarioIdObj).longValue()
+                    : (Long) usuarioIdObj;
+
+            Usuario usuario = usuarioService.findById(usuarioId).orElse(null);
+            if (usuario == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Buscar si ya existe la relación
+            List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id);
+            MiembroComunidad relacionExistente = null;
+
+            for (MiembroComunidad relacion : relaciones) {
+                if (relacion.getUsuario().getId().equals(usuarioId)) {
+                    relacionExistente = relacion;
+                    break;
+                }
+            }
+
+            if (relacionExistente != null) {
+                // Ya existía, solo cambiar estado a activo
+                if ("activo".equals(relacionExistente.getEstado())) {
+                    Map<String, String> error = Map.of(
+                            "error", "Ya eres miembro activo de esta comunidad");
+                    return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+                }
+                relacionExistente.setEstado("activo");
+                miembroComunidadDao.save(relacionExistente);
+            } else {
+                // No existía, crear nueva relación (para comunidades públicas)
+                if (!"publica".equals(comunidad.getNivelPrivacidad())) {
+                    Map<String, String> error = Map.of(
+                            "error", "Solo puedes reingresar a comunidades públicas");
+                    return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+                }
+
+                // Crear nueva relación
+                comunidad.getMiembros().add(usuario);
+                usuario.getComunidades().add(comunidad);
+                usuarioService.save(usuario);
+
+                MiembroComunidad nuevaRelacion = new MiembroComunidad();
+                nuevaRelacion.setUsuario(usuario);
+                nuevaRelacion.setComunidad(comunidad);
+                nuevaRelacion.setFechaUnion(java.time.LocalDateTime.now());
+                nuevaRelacion.setEstado("activo");
+                miembroComunidadDao.save(nuevaRelacion);
+            }
+
+            Map<String, String> response = Map.of(
+                    "mensaje", "Te has reintegrado a " + comunidad.getNombre());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> error = Map.of("error", "Error al reingresar a la comunidad");
             return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

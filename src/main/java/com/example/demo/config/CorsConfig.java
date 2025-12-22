@@ -26,7 +26,8 @@ public class CorsConfig {
                         .allowedOrigins(
                                 "http://localhost:5173", // Frontend React local
                                 "https://react-r-31yvs8yxj-ruxs-projects-4a5cb3ee.vercel.app", // Vercel deployment
-                                "https://react-r-x.vercel.app" // Dominio personalizado de Vercel (si aplica)
+                                "https://react-r-x.vercel.app", // Dominio personalizado de Vercel
+                                "https://ruxapp.vercel.app" // Nuevo dominio de Vercel
                 )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                         .allowedHeaders("*")

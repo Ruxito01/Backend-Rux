@@ -46,7 +46,8 @@ public interface IViajeService {
     Viaje findActiveViajeByUsuarioAndEstados(Long usuarioId, String estadoViaje, String estadoParticipante);
 
     // Actualizar estado de un participante en un viaje
-    boolean updateEstadoParticipante(Long viajeId, Long usuarioId, String nuevoEstado);
+    boolean updateEstadoParticipante(Long viajeId, Long usuarioId, String nuevoEstado,
+            java.math.BigDecimal kmRecorridos);
 
     /**
      * Verifica si el usuario tiene conflicto de fechas con un viaje específico.

@@ -40,6 +40,10 @@ public class ParticipanteViaje implements Serializable {
     @Column(name = "estado", nullable = false)
     private EstadoParticipante estado;
 
+    // Km recorridos por el participante durante el viaje
+    @Column(name = "km_recorridos", precision = 10, scale = 2)
+    private java.math.BigDecimal kmRecorridos;
+
     // Constructor helper
     public ParticipanteViaje(Usuario usuario, Viaje viaje, EstadoParticipante estado) {
         this.usuario = usuario;

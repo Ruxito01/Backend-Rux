@@ -162,13 +162,24 @@ public class ViajeController {
         public ResponseEntity<Void> updateParticipanteEstado(
                         @Parameter(description = "ID del viaje", required = true, example = "1") @PathVariable @NonNull Long viajeId,
                         @Parameter(description = "ID del participante", required = true, example = "1") @PathVariable @NonNull Long usuarioId,
-                        @Parameter(description = "Nuevo estado (estado: ingresa)", required = true) @RequestBody @NonNull java.util.Map<String, String> estadoMap) {
+                        @Parameter(description = "Nuevo estado y km recorridos (estado: ingresa, kmRecorridos: 15.5)", required = true) @RequestBody @NonNull java.util.Map<String, String> estadoMap) {
                 String nuevoEstado = estadoMap.get("estado");
                 if (nuevoEstado == null) {
                         return ResponseEntity.badRequest().build();
                 }
 
-                boolean updated = service.updateEstadoParticipante(viajeId, usuarioId, nuevoEstado);
+                // Parsear km recorridos si viene en el body
+                java.math.BigDecimal kmRecorridos = null;
+                String kmRecorridosStr = estadoMap.get("kmRecorridos");
+                if (kmRecorridosStr != null && !kmRecorridosStr.isEmpty()) {
+                        try {
+                                kmRecorridos = new java.math.BigDecimal(kmRecorridosStr);
+                        } catch (NumberFormatException e) {
+                                // Ignorar si no es un número válido
+                        }
+                }
+
+                boolean updated = service.updateEstadoParticipante(viajeId, usuarioId, nuevoEstado, kmRecorridos);
                 return updated ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
         }
 

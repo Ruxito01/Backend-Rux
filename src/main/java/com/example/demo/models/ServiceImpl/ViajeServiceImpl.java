@@ -180,7 +180,8 @@ public class ViajeServiceImpl implements IViajeService {
 
     @Override
     @Transactional
-    public boolean updateEstadoParticipante(Long viajeId, Long usuarioId, String nuevoEstado) {
+    public boolean updateEstadoParticipante(Long viajeId, Long usuarioId, String nuevoEstado,
+            java.math.BigDecimal kmRecorridos) {
         // Validar estado
         com.example.demo.models.entity.EstadoParticipante estadoEnum;
         try {
@@ -207,6 +208,12 @@ public class ViajeServiceImpl implements IViajeService {
 
         // Actualizar estado
         participante.setEstado(estadoEnum);
+
+        // Guardar km recorridos si se proporciona
+        if (kmRecorridos != null) {
+            participante.setKmRecorridos(kmRecorridos);
+        }
+
         usuarioDao.save(usuario); // Cascada guarda la actualización
 
         // Obtener el viaje para verificar estados
@@ -234,6 +241,23 @@ public class ViajeServiceImpl implements IViajeService {
             if (todosFinalizados) {
                 viaje.setEstado("finalizado");
                 viaje.setFechaFinReal(java.time.LocalDateTime.now());
+
+                // Calcular promedio de km recorridos y guardarlo en distancia_total_real_km
+                java.math.BigDecimal totalKm = viaje.getParticipantes().stream()
+                        .filter(p -> p.getKmRecorridos() != null)
+                        .map(com.example.demo.models.entity.ParticipanteViaje::getKmRecorridos)
+                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                long count = viaje.getParticipantes().stream()
+                        .filter(p -> p.getKmRecorridos() != null)
+                        .count();
+                if (count > 0) {
+                    java.math.BigDecimal promedio = totalKm.divide(
+                            java.math.BigDecimal.valueOf(count),
+                            2,
+                            java.math.RoundingMode.HALF_UP);
+                    viaje.setDistanciaTotalRealKm(promedio);
+                }
+
                 dao.save(viaje);
             }
         }

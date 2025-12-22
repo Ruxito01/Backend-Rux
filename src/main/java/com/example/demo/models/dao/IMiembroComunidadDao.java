@@ -22,4 +22,10 @@ public interface IMiembroComunidadDao extends JpaRepository<MiembroComunidad, Lo
     MiembroComunidad findByUsuarioAndComunidad(
             @Param("usuarioId") Long usuarioId,
             @Param("comunidadId") Long comunidadId);
+
+    /**
+     * Busca todas las membresías de un usuario
+     */
+    @Query("SELECT m FROM MiembroComunidad m WHERE m.usuario.id = :usuarioId")
+    List<MiembroComunidad> findByUsuarioId(@Param("usuarioId") Long usuarioId);
 }

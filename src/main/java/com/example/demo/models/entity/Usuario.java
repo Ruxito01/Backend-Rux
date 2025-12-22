@@ -101,7 +101,7 @@ public class Usuario implements Serializable {
                         CascadeType.PERSIST,
                         CascadeType.MERGE
         })
-        @JoinTable(name = "miembros_comunidad", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "comunidad_id"))
+        @JoinTable(name = "miembro_comunidad", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "comunidad_id"))
         @JsonIgnore
         @ToString.Exclude
         @EqualsAndHashCode.Exclude

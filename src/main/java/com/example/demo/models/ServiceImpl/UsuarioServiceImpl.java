@@ -9,9 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.models.dao.IUsuarioDao;
 import com.example.demo.models.dao.ILogroDao;
 import com.example.demo.models.dao.IComunidadDao;
+import com.example.demo.models.dao.IMiembroComunidadDao;
 import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.entity.Logro;
+import com.example.demo.models.entity.MiembroComunidad;
 import com.example.demo.models.service.IUsuarioService;
 
 @Service
@@ -25,6 +27,9 @@ public class UsuarioServiceImpl implements IUsuarioService {
 
     @Autowired
     private IComunidadDao comunidadDao;
+
+    @Autowired
+    private IMiembroComunidadDao miembroComunidadDao;
 
     @Override
     @Transactional(readOnly = true)
@@ -77,12 +82,18 @@ public class UsuarioServiceImpl implements IUsuarioService {
         Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
+            Set<Comunidad> comunidades = new java.util.HashSet<>();
 
-            // Obtener comunidades donde es miembro
-            Set<Comunidad> comunidades = usuario.getComunidades();
-            comunidades.size(); // Inicializar la colección lazy
+            // Obtener comunidades donde es miembro ACTIVO usando MiembroComunidadDao
+            List<MiembroComunidad> membresias = miembroComunidadDao.findByUsuarioId(usuarioId);
+            for (MiembroComunidad membresia : membresias) {
+                // Solo incluir si el estado es "activo" o null (compatibilidad)
+                if (membresia.getEstado() == null || "activo".equals(membresia.getEstado())) {
+                    comunidades.add(membresia.getComunidad());
+                }
+            }
 
-            // Agregar comunidades donde es creador (si no están ya en el set)
+            // Agregar comunidades donde es creador (siempre, aunque haya salido)
             List<Comunidad> comunidadesCreadas = comunidadDao.findByCreador(usuario);
             comunidades.addAll(comunidadesCreadas);
 

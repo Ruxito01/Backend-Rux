@@ -77,16 +77,44 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<Usuario> update(@PathVariable Long id, @RequestBody Usuario usuario) {
         return usuarioService.findById(id).map(usuarioDB -> {
-            usuarioDB.setNombre(usuario.getNombre());
-            usuarioDB.setApellido(usuario.getApellido());
-            usuarioDB.setFechaNacimiento(usuario.getFechaNacimiento());
-            usuarioDB.setCelular(usuario.getCelular());
-            usuarioDB.setCedula(usuario.getCedula());
-            usuarioDB.setEmail(usuario.getEmail());
-            usuarioDB.setContrasena(usuario.getContrasena());
-            usuarioDB.setFoto(usuario.getFoto());
-            usuarioDB.setGenero(usuario.getGenero());
-            usuarioDB.setAlias(usuario.getAlias()); // Actualizar alias
+            // Solo actualizar campos que vienen con valor (no null)
+            // Esto evita borrar datos existentes cuando se hace update parcial
+            if (usuario.getNombre() != null) {
+                usuarioDB.setNombre(usuario.getNombre());
+            }
+            if (usuario.getApellido() != null) {
+                usuarioDB.setApellido(usuario.getApellido());
+            }
+            if (usuario.getFechaNacimiento() != null) {
+                usuarioDB.setFechaNacimiento(usuario.getFechaNacimiento());
+            }
+            if (usuario.getCelular() != null) {
+                usuarioDB.setCelular(usuario.getCelular());
+            }
+            if (usuario.getCedula() != null) {
+                usuarioDB.setCedula(usuario.getCedula());
+            }
+            if (usuario.getEmail() != null) {
+                usuarioDB.setEmail(usuario.getEmail());
+            }
+            if (usuario.getContrasena() != null) {
+                usuarioDB.setContrasena(usuario.getContrasena());
+            }
+            if (usuario.getFoto() != null) {
+                usuarioDB.setFoto(usuario.getFoto());
+            }
+            if (usuario.getGenero() != null) {
+                usuarioDB.setGenero(usuario.getGenero());
+            }
+            if (usuario.getAlias() != null) {
+                usuarioDB.setAlias(usuario.getAlias());
+            }
+            if (usuario.getRol() != null) {
+                usuarioDB.setRol(usuario.getRol());
+            }
+            if (usuario.getFcmToken() != null) {
+                usuarioDB.setFcmToken(usuario.getFcmToken());
+            }
             return new ResponseEntity<>(usuarioService.save(usuarioDB), HttpStatus.OK);
         }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

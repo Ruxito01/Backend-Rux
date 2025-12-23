@@ -54,9 +54,10 @@ public class ComunidadController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        // Obtener relaciones con fechas de unión - SOLO ACTIVOS
+        // Obtener relaciones con fechas de unión - SOLO ACTIVOS (incluyendo null para
+        // compatibilidad)
         List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id).stream()
-                .filter(r -> "activo".equals(r.getEstado()))
+                .filter(r -> r.getEstado() == null || "activo".equals(r.getEstado()))
                 .toList();
 
         // Mapear usuarios con sus fechas de unión
@@ -118,11 +119,12 @@ public class ComunidadController {
 
             Comunidad nuevaComunidad = comunidadService.save(comunidad);
 
-            // Guardar en tabla intermedia con fechaUnion
+            // Guardar en tabla intermedia con fechaUnion y estado activo
             MiembroComunidad miembroComunidad = new MiembroComunidad();
             miembroComunidad.setUsuario(creador);
             miembroComunidad.setComunidad(nuevaComunidad);
             miembroComunidad.setFechaUnion(java.time.LocalDateTime.now());
+            miembroComunidad.setEstado("activo");
             miembroComunidadDao.save(miembroComunidad);
 
             return new ResponseEntity<>(nuevaComunidad, HttpStatus.CREATED);
@@ -241,11 +243,12 @@ public class ComunidadController {
             // Guardar
             usuarioService.save(usuario);
 
-            // Guardar en tabla intermedia con fechaUnion
+            // Guardar en tabla intermedia con fechaUnion y estado activo
             MiembroComunidad miembroComunidad = new MiembroComunidad();
             miembroComunidad.setUsuario(usuario);
             miembroComunidad.setComunidad(comunidad);
             miembroComunidad.setFechaUnion(java.time.LocalDateTime.now());
+            miembroComunidad.setEstado("activo");
             miembroComunidadDao.save(miembroComunidad);
 
             Map<String, String> response = Map.of(

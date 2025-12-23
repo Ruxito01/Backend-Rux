@@ -91,6 +91,7 @@ public class ComunidadController {
             // Extraer creadorId del payload
             Object creadorIdObj = payload.get("creador_id");
             if (creadorIdObj == null) {
+                System.out.println("❌ Error: creador_id es null");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
@@ -99,9 +100,12 @@ public class ComunidadController {
                     ? ((Integer) creadorIdObj).longValue()
                     : (Long) creadorIdObj;
 
+            System.out.println("📝 Creando comunidad para usuario ID: " + creadorId);
+
             // Buscar el usuario creador
             Usuario creador = usuarioService.findById(creadorId).orElse(null);
             if (creador == null) {
+                System.out.println("❌ Error: Usuario no encontrado con ID: " + creadorId);
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
@@ -113,22 +117,23 @@ public class ComunidadController {
             comunidad.setUrlImagen((String) payload.get("url_imagen"));
             comunidad.setCreador(creador);
 
-            // Agregar al creador como miembro automáticamente
-            comunidad.getMiembros().add(creador);
-            creador.getComunidades().add(comunidad);
-
+            // NO agregar a la relación ManyToMany aquí para evitar duplicados
+            // Solo guardar la comunidad primero
             Comunidad nuevaComunidad = comunidadService.save(comunidad);
+            System.out.println("✅ Comunidad creada con ID: " + nuevaComunidad.getId());
 
-            // Guardar en tabla intermedia con fechaUnion y estado activo
+            // Guardar en tabla miembro_comunidad manualmente con estado activo
             MiembroComunidad miembroComunidad = new MiembroComunidad();
             miembroComunidad.setUsuario(creador);
             miembroComunidad.setComunidad(nuevaComunidad);
             miembroComunidad.setFechaUnion(java.time.LocalDateTime.now());
             miembroComunidad.setEstado("activo");
             miembroComunidadDao.save(miembroComunidad);
+            System.out.println("✅ Miembro agregado a comunidad");
 
             return new ResponseEntity<>(nuevaComunidad, HttpStatus.CREATED);
         } catch (Exception e) {
+            System.err.println("❌ Error creando comunidad: " + e.getMessage());
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -229,21 +234,19 @@ public class ComunidadController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
-            // Verificar que no sea ya miembro
-            if (comunidad.getMiembros().contains(usuario)) {
+            // Verificar que no sea ya miembro activo usando MiembroComunidadDao
+            List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id);
+            boolean yaEsMiembro = relaciones.stream()
+                    .anyMatch(r -> r.getUsuario().getId().equals(usuarioId)
+                            && (r.getEstado() == null || "activo".equals(r.getEstado())));
+
+            if (yaEsMiembro) {
                 Map<String, String> error = Map.of(
                         "error", "Ya eres miembro de esta comunidad");
                 return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
             }
 
-            // Agregar relación bidireccional
-            comunidad.getMiembros().add(usuario);
-            usuario.getComunidades().add(comunidad);
-
-            // Guardar
-            usuarioService.save(usuario);
-
-            // Guardar en tabla intermedia con fechaUnion y estado activo
+            // Guardar en tabla miembro_comunidad (no usar relación ManyToMany)
             MiembroComunidad miembroComunidad = new MiembroComunidad();
             miembroComunidad.setUsuario(usuario);
             miembroComunidad.setComunidad(comunidad);
@@ -364,11 +367,7 @@ public class ComunidadController {
                     return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
                 }
 
-                // Crear nueva relación
-                comunidad.getMiembros().add(usuario);
-                usuario.getComunidades().add(comunidad);
-                usuarioService.save(usuario);
-
+                // Crear nueva relación solo en miembro_comunidad
                 MiembroComunidad nuevaRelacion = new MiembroComunidad();
                 nuevaRelacion.setUsuario(usuario);
                 nuevaRelacion.setComunidad(comunidad);

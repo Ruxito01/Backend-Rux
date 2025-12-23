@@ -94,13 +94,10 @@ public class Usuario implements Serializable {
         private Set<CatalogoAvatar> avatares = new HashSet<>();
 
         // Relación muchos a muchos con Comunidades (como miembro)
-        // Se usa @JsonIgnore para evitar LazyInitializationException
-        // Las comunidades del usuario se obtienen por endpoint: GET
-        // /api/usuario/{id}/comunidades
-        @ManyToMany(fetch = FetchType.LAZY, cascade = {
-                        CascadeType.PERSIST,
-                        CascadeType.MERGE
-        })
+        // NOTA: La gestión de miembros se hace SOLO a través de MiembroComunidadDao
+        // NO usar cascade porque la tabla tiene columnas adicionales (id, fecha_union,
+        // estado)
+        @ManyToMany(fetch = FetchType.LAZY)
         @JoinTable(name = "miembro_comunidad", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "comunidad_id"))
         @JsonIgnore
         @ToString.Exclude

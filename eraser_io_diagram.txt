@@ -1,0 +1,313 @@
+// ============================================
+// DIAGRAMA ERASER.IO - BACKEND RÜX
+// Formato: Entity Relationship Diagram
+// ============================================
+
+// ============================================
+// TABLAS PRINCIPALES (CATÁLOGOS)
+// ============================================
+
+tipos_vehiculo [icon: truck] {
+  id bigint pk
+  nombre varchar(255) not null
+  foto varchar(255)
+}
+
+logros [icon: trophy] {
+  id bigint pk
+  nombre varchar(255) not null
+  descripcion text
+  url_icono varchar(255)
+  criterio_desbloqueo varchar(255)
+}
+
+catalogo_avatares [icon: user-circle] {
+  id bigint pk
+  nombre varchar(255) not null
+  descripcion varchar(255)
+  ruta_asset_flutter varchar(255)
+  es_premium boolean default false
+}
+
+marcas [icon: tag] {
+  id bigint pk
+  nombre varchar(255) not null unique
+  url_logo varchar(255)
+}
+
+modelos [icon: list] {
+  id bigint pk
+  nombre varchar(255) not null
+  marca_id bigint not null fk
+}
+
+// ============================================
+// TABLA CENTRAL: USUARIOS
+// ============================================
+
+usuarios [icon: users] {
+  id bigint pk
+  nombre varchar(255) not null
+  apellido varchar(255) not null
+  email varchar(255) not null unique
+  foto varchar(255)
+  contrasena varchar(255)
+  fecha_nacimiento date
+  celular varchar(50)
+  cedula varchar(50)
+  genero varchar(50)
+  rol varchar(50) default 'USER'
+  alias varchar(12)
+  fecha_creacion timestamp not null
+  ultima_actividad timestamp
+  fcm_token varchar(500)
+}
+
+// ============================================
+// TABLAS DEPENDIENTES DE USUARIOS
+// ============================================
+
+vehiculos [icon: car] {
+  id bigint pk
+  usuario_id bigint not null fk
+  tipo_vehiculo_id bigint not null fk
+  alias varchar(255)
+  marca varchar(255)
+  modelo varchar(255)
+  url_foto varchar(255)
+  traccion varchar(50)
+  anio_fabricacion integer
+  estado varchar(50) default 'en_posesion'
+}
+
+fotos_usuarios [icon: image] {
+  id bigint pk
+  usuario_id bigint fk
+  url_foto varchar(500) not null
+  fecha_subida timestamp default now()
+}
+
+comunidades [icon: users] {
+  id bigint pk
+  creador_id bigint not null fk
+  nombre varchar(255) not null
+  descripcion text
+  nivel_privacidad varchar(50)
+  url_imagen varchar(255)
+  fecha_creacion timestamp default now()
+}
+
+rutas [icon: map] {
+  id bigint pk
+  creador_id bigint not null fk
+  nombre varchar(255) not null
+  descripcion text
+  nivel_dificultad varchar(50)
+  distancia_estimada_km decimal(10,2)
+  duracion_estimada_minutos integer
+  latitud_inicio decimal(10,7)
+  longitud_inicio decimal(10,7)
+  latitud_fin decimal(10,7)
+  longitud_fin decimal(10,7)
+  privacidad varchar(50)
+  estado varchar(50)
+  fecha_creacion timestamp
+}
+
+// ============================================
+// TABLAS DE VIAJES
+// ============================================
+
+viajes [icon: navigation] {
+  id bigint pk
+  ruta_id bigint not null fk
+  organizador_id bigint not null fk
+  comunidad_id bigint fk
+  codigo_invitacion varchar(100) unique
+  estado varchar(50)
+  fecha_programada timestamp
+  fecha_inicio_real timestamp
+  fecha_fin_real timestamp
+  distancia_total_real_km decimal(10,2)
+  velocidad_promedio_grupo decimal(5,2)
+  tiempo_total_movimiento_minutos integer
+  url_archivo_replay_json varchar(500)
+}
+
+puntos_ruta [icon: map-pin] {
+  id bigint pk
+  ruta_id bigint not null fk
+  tipo_punto varchar(50) not null
+  nombre varchar(255)
+  descripcion text
+  latitud decimal(10,7) not null
+  longitud decimal(10,7) not null
+  orden_secuencia integer not null
+  tiempo_estancia_minutos integer default 0
+}
+
+fotos_viaje [icon: camera] {
+  id bigint pk
+  viaje_id bigint not null fk
+  usuario_id bigint not null fk
+  url_foto varchar(500) not null
+  latitud decimal(10,7)
+  longitud decimal(10,7)
+  fecha_toma timestamp
+}
+
+alertas_viaje [icon: alert-triangle] {
+  id bigint pk
+  viaje_id bigint not null fk
+  usuario_reporta_id bigint not null fk
+  tipo_alerta varchar(100) not null
+  mensaje text
+  latitud decimal(10,7) not null
+  longitud decimal(10,7) not null
+  esta_activa boolean default true
+  fecha_reporte timestamp
+  fecha_resolucion timestamp
+}
+
+// ============================================
+// TABLAS DE CHAT/MENSAJERÍA
+// ============================================
+
+mensajes_comunidad [icon: message-circle] {
+  id bigint pk
+  usuario_id bigint not null fk
+  comunidad_id bigint not null fk
+  contenido text
+  tipo varchar(20)
+  fecha_envio timestamp not null
+}
+
+solicitud_comunidad [icon: user-plus] {
+  id bigint pk
+  usuario_id bigint not null fk
+  comunidad_id bigint not null fk
+  estado varchar(50) default 'pendiente'
+  mensaje text
+  fecha_solicitud timestamp not null
+  fecha_respuesta timestamp
+  respondido_por bigint fk
+}
+
+// ============================================
+// TABLAS INTERMEDIAS (MANY-TO-MANY)
+// ============================================
+
+miembro_comunidad [icon: link] {
+  id bigint pk
+  usuario_id bigint not null fk
+  comunidad_id bigint not null fk
+  fecha_union timestamp not null
+  estado varchar(20) default 'activo'
+}
+
+logro_usuario [icon: award] {
+  usuario_id bigint pk fk
+  logro_id bigint pk fk
+}
+
+usuario_avatar [icon: smile] {
+  usuario_id bigint pk fk
+  avatar_id bigint pk fk
+}
+
+ruta_tipo_vehiculo [icon: settings] {
+  ruta_id bigint pk fk
+  tipo_vehiculo_id bigint pk fk
+}
+
+participantes_viaje [icon: users] {
+  usuario_id bigint pk fk
+  viaje_id bigint pk fk
+  estado varchar(50) not null
+  km_recorridos decimal(10,2)
+}
+
+// ============================================
+// RELACIONES
+// ============================================
+
+// Modelos -> Marcas (N:1)
+modelos.marca_id > marcas.id
+
+// Vehículos -> Usuarios (N:1)
+vehiculos.usuario_id > usuarios.id
+
+// Vehículos -> Tipos de Vehículo (N:1)
+vehiculos.tipo_vehiculo_id > tipos_vehiculo.id
+
+// Fotos de Usuario -> Usuarios (N:1)
+fotos_usuarios.usuario_id > usuarios.id
+
+// Comunidades -> Usuarios (Creador) (N:1)
+comunidades.creador_id > usuarios.id
+
+// Rutas -> Usuarios (Creador) (N:1)
+rutas.creador_id > usuarios.id
+
+// Viajes -> Rutas (N:1)
+viajes.ruta_id > rutas.id
+
+// Viajes -> Usuarios (Organizador) (N:1)
+viajes.organizador_id > usuarios.id
+
+// Viajes -> Comunidades (N:1, opcional)
+viajes.comunidad_id > comunidades.id
+
+// Puntos de Ruta -> Rutas (N:1)
+puntos_ruta.ruta_id > rutas.id
+
+// Fotos de Viaje -> Viajes (N:1)
+fotos_viaje.viaje_id > viajes.id
+
+// Fotos de Viaje -> Usuarios (N:1)
+fotos_viaje.usuario_id > usuarios.id
+
+// Alertas de Viaje -> Viajes (N:1)
+alertas_viaje.viaje_id > viajes.id
+
+// Alertas de Viaje -> Usuarios (N:1)
+alertas_viaje.usuario_reporta_id > usuarios.id
+
+// Mensajes Comunidad -> Usuarios (N:1)
+mensajes_comunidad.usuario_id > usuarios.id
+
+// Mensajes Comunidad -> Comunidades (N:1)
+mensajes_comunidad.comunidad_id > comunidades.id
+
+// Solicitud Comunidad -> Usuarios (N:1)
+solicitud_comunidad.usuario_id > usuarios.id
+
+// Solicitud Comunidad -> Comunidades (N:1)
+solicitud_comunidad.comunidad_id > comunidades.id
+
+// Solicitud Comunidad -> Usuarios (Respondido por) (N:1)
+solicitud_comunidad.respondido_por > usuarios.id
+
+// ============================================
+// RELACIONES MANY-TO-MANY
+// ============================================
+
+// Usuarios <-> Comunidades (a través de miembro_comunidad)
+miembro_comunidad.usuario_id > usuarios.id
+miembro_comunidad.comunidad_id > comunidades.id
+
+// Usuarios <-> Logros (a través de logro_usuario)
+logro_usuario.usuario_id > usuarios.id
+logro_usuario.logro_id > logros.id
+
+// Usuarios <-> Avatares (a través de usuario_avatar)
+usuario_avatar.usuario_id > usuarios.id
+usuario_avatar.avatar_id > catalogo_avatares.id
+
+// Rutas <-> Tipos de Vehículo (a través de ruta_tipo_vehiculo)
+ruta_tipo_vehiculo.ruta_id > rutas.id
+ruta_tipo_vehiculo.tipo_vehiculo_id > tipos_vehiculo.id
+
+// Usuarios <-> Viajes (a través de participantes_viaje)
+participantes_viaje.usuario_id > usuarios.id
+participantes_viaje.viaje_id > viajes.id

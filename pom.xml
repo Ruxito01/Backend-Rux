@@ -102,6 +102,12 @@
             <artifactId>firebase-admin</artifactId>
             <version>9.2.0</version>
         </dependency>
+        
+        <!-- Spring Mail para envío de correos (recuperación de contraseña) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
 	</dependencies>
 
 	<build>

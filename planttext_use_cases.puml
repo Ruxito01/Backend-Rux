@@ -1,0 +1,252 @@
+@startuml Casos_de_Uso_RUX
+
+' ============================================
+' DIAGRAMA DE CASOS DE USO - RÜX APP
+' Para usar en: https://www.planttext.com/
+' ============================================
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    ArrowColor DarkBlue
+}
+
+' ============================================
+' ACTORES
+' ============================================
+
+actor "Usuario" as User
+actor "Administrador" as Admin
+actor "Sistema Firebase" as Firebase <<Sistema>>
+actor "Sistema Supabase" as Supabase <<Sistema>>
+
+' ============================================
+' PAQUETE: GESTIÓN DE USUARIOS
+' ============================================
+
+rectangle "Gestión de Usuarios" {
+    usecase "Registrarse" as UC_Register
+    usecase "Iniciar Sesión" as UC_Login
+    usecase "Iniciar Sesión con Google" as UC_LoginGoogle
+    usecase "Recuperar Contraseña" as UC_RecoverPassword
+    usecase "Cerrar Sesión" as UC_Logout
+    usecase "Editar Perfil" as UC_EditProfile
+    usecase "Cambiar Foto de Perfil" as UC_ChangePhoto
+    usecase "Configurar Alias" as UC_SetAlias
+    usecase "Ver Perfil Público" as UC_ViewPublicProfile
+    usecase "Gestionar Fotos del Carrusel" as UC_ManagePhotos
+}
+
+' ============================================
+' PAQUETE: GESTIÓN DE VEHÍCULOS
+' ============================================
+
+rectangle "Gestión de Vehículos" {
+    usecase "Ver Mi Garaje" as UC_ViewGarage
+    usecase "Agregar Vehículo" as UC_AddVehicle
+    usecase "Editar Vehículo" as UC_EditVehicle
+    usecase "Eliminar Vehículo" as UC_DeleteVehicle
+    usecase "Ver Tipos de Vehículo" as UC_ViewVehicleTypes
+}
+
+' ============================================
+' PAQUETE: GESTIÓN DE COMUNIDADES
+' ============================================
+
+rectangle "Gestión de Comunidades" {
+    usecase "Ver Mis Comunidades" as UC_ViewCommunities
+    usecase "Crear Comunidad" as UC_CreateCommunity
+    usecase "Unirse a Comunidad Pública" as UC_JoinPublicCommunity
+    usecase "Solicitar Unirse a Comunidad Privada" as UC_RequestJoinPrivate
+    usecase "Salir de Comunidad" as UC_LeaveCommunity
+    usecase "Reingresar a Comunidad" as UC_RejoinCommunity
+    usecase "Editar Comunidad" as UC_EditCommunity
+    usecase "Buscar Comunidades" as UC_SearchCommunities
+    usecase "Ver Miembros de Comunidad" as UC_ViewMembers
+    usecase "Gestionar Solicitudes de Ingreso" as UC_ManageRequests
+    usecase "Aprobar Solicitud" as UC_ApproveRequest
+    usecase "Rechazar Solicitud" as UC_RejectRequest
+}
+
+' ============================================
+' PAQUETE: CHAT Y MENSAJERÍA
+' ============================================
+
+rectangle "Chat y Mensajería" {
+    usecase "Enviar Mensaje de Texto" as UC_SendTextMessage
+    usecase "Enviar Imagen" as UC_SendImage
+    usecase "Enviar Ubicación" as UC_SendLocation
+    usecase "Ver Historial de Chat" as UC_ViewChatHistory
+    usecase "Recibir Notificación Push" as UC_ReceivePush
+    usecase "Ver Estado Online/Offline" as UC_ViewOnlineStatus
+}
+
+' ============================================
+' PAQUETE: GESTIÓN DE RUTAS
+' ============================================
+
+rectangle "Gestión de Rutas" {
+    usecase "Ver Mis Rutas" as UC_ViewRoutes
+    usecase "Crear Ruta" as UC_CreateRoute
+    usecase "Editar Ruta" as UC_EditRoute
+    usecase "Eliminar Ruta" as UC_DeleteRoute
+    usecase "Agregar Puntos a Ruta" as UC_AddRoutePoints
+    usecase "Ver Detalles de Ruta" as UC_ViewRouteDetails
+    usecase "Buscar Rutas Públicas" as UC_SearchPublicRoutes
+}
+
+' ============================================
+' PAQUETE: GESTIÓN DE VIAJES
+' ============================================
+
+rectangle "Gestión de Viajes" {
+    usecase "Crear Viaje" as UC_CreateTrip
+    usecase "Programar Viaje" as UC_ScheduleTrip
+    usecase "Iniciar Viaje" as UC_StartTrip
+    usecase "Finalizar Viaje" as UC_EndTrip
+    usecase "Unirse a Viaje con Código" as UC_JoinTripCode
+    usecase "Compartir Ubicación en Tiempo Real" as UC_ShareLocation
+    usecase "Ver Participantes del Viaje" as UC_ViewTripParticipants
+    usecase "Subir Fotos de Viaje" as UC_UploadTripPhotos
+    usecase "Reportar Alerta/SOS" as UC_ReportAlert
+    usecase "Ver Replay de Viaje" as UC_ViewReplay
+}
+
+' ============================================
+' PAQUETE: LOGROS Y GAMIFICACIÓN
+' ============================================
+
+rectangle "Logros y Gamificación" {
+    usecase "Ver Mis Logros" as UC_ViewAchievements
+    usecase "Desbloquear Logro" as UC_UnlockAchievement
+    usecase "Ver Avatares Disponibles" as UC_ViewAvatars
+    usecase "Seleccionar Avatar" as UC_SelectAvatar
+}
+
+' ============================================
+' PAQUETE: ADMINISTRACIÓN
+' ============================================
+
+rectangle "Administración" {
+    usecase "Gestionar Tipos de Vehículo" as UC_AdminVehicleTypes
+    usecase "Crear Tipo de Vehículo" as UC_CreateVehicleType
+    usecase "Editar Tipo de Vehículo" as UC_EditVehicleType
+    usecase "Eliminar Tipo de Vehículo" as UC_DeleteVehicleType
+    usecase "Gestionar Logros" as UC_AdminAchievements
+    usecase "Crear Logro" as UC_CreateAchievement
+    usecase "Editar Logro" as UC_EditAchievement
+    usecase "Asignar Logro a Usuario" as UC_AssignAchievement
+    usecase "Gestionar Marcas/Modelos" as UC_AdminBrands
+}
+
+' ============================================
+' RELACIONES USUARIO
+' ============================================
+
+User --> UC_Register
+User --> UC_Login
+User --> UC_LoginGoogle
+User --> UC_RecoverPassword
+User --> UC_Logout
+User --> UC_EditProfile
+User --> UC_ChangePhoto
+User --> UC_SetAlias
+User --> UC_ViewPublicProfile
+User --> UC_ManagePhotos
+
+User --> UC_ViewGarage
+User --> UC_AddVehicle
+User --> UC_EditVehicle
+User --> UC_DeleteVehicle
+User --> UC_ViewVehicleTypes
+
+User --> UC_ViewCommunities
+User --> UC_CreateCommunity
+User --> UC_JoinPublicCommunity
+User --> UC_RequestJoinPrivate
+User --> UC_LeaveCommunity
+User --> UC_RejoinCommunity
+User --> UC_EditCommunity
+User --> UC_SearchCommunities
+User --> UC_ViewMembers
+User --> UC_ManageRequests
+
+User --> UC_SendTextMessage
+User --> UC_SendImage
+User --> UC_SendLocation
+User --> UC_ViewChatHistory
+User --> UC_ReceivePush
+User --> UC_ViewOnlineStatus
+
+User --> UC_ViewRoutes
+User --> UC_CreateRoute
+User --> UC_EditRoute
+User --> UC_DeleteRoute
+User --> UC_AddRoutePoints
+User --> UC_ViewRouteDetails
+User --> UC_SearchPublicRoutes
+
+User --> UC_CreateTrip
+User --> UC_ScheduleTrip
+User --> UC_StartTrip
+User --> UC_EndTrip
+User --> UC_JoinTripCode
+User --> UC_ShareLocation
+User --> UC_ViewTripParticipants
+User --> UC_UploadTripPhotos
+User --> UC_ReportAlert
+User --> UC_ViewReplay
+
+User --> UC_ViewAchievements
+User --> UC_UnlockAchievement
+User --> UC_ViewAvatars
+User --> UC_SelectAvatar
+
+' ============================================
+' RELACIONES ADMINISTRADOR
+' ============================================
+
+Admin --> UC_AdminVehicleTypes
+Admin --> UC_CreateVehicleType
+Admin --> UC_EditVehicleType
+Admin --> UC_DeleteVehicleType
+Admin --> UC_AdminAchievements
+Admin --> UC_CreateAchievement
+Admin --> UC_EditAchievement
+Admin --> UC_AssignAchievement
+Admin --> UC_AdminBrands
+
+' Admin también puede hacer todo lo del usuario
+Admin --|> User
+
+' ============================================
+' RELACIONES SISTEMAS EXTERNOS
+' ============================================
+
+UC_ReceivePush ..> Firebase : <<usa>>
+UC_ChangePhoto ..> Supabase : <<usa>>
+UC_ManagePhotos ..> Supabase : <<usa>>
+UC_UploadTripPhotos ..> Supabase : <<usa>>
+
+' ============================================
+' RELACIONES INCLUDE
+' ============================================
+
+UC_ManageRequests .> UC_ApproveRequest : <<include>>
+UC_ManageRequests .> UC_RejectRequest : <<include>>
+UC_CreateTrip .> UC_ShareLocation : <<include>>
+UC_StartTrip .> UC_ShareLocation : <<include>>
+
+' ============================================
+' RELACIONES EXTEND
+' ============================================
+
+UC_Login <. UC_LoginGoogle : <<extend>>
+UC_JoinPublicCommunity <. UC_RejoinCommunity : <<extend>>
+UC_ViewChatHistory <. UC_SendTextMessage : <<extend>>
+UC_ViewChatHistory <. UC_SendImage : <<extend>>
+UC_ViewChatHistory <. UC_SendLocation : <<extend>>
+
+@enduml

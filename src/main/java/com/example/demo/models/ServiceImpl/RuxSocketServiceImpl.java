@@ -1,8 +1,10 @@
 package com.example.demo.models.ServiceImpl;
 
 import com.example.demo.models.dao.IMensajeComunidadDao;
+import com.example.demo.models.dao.IMiembroComunidadDao;
 import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.MensajeComunidad;
+import com.example.demo.models.entity.MiembroComunidad;
 import com.example.demo.models.entity.UbicacionUsuario;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.service.FirebaseMessagingService;
@@ -34,6 +36,9 @@ public class RuxSocketServiceImpl implements IRuxSocketService {
 
     @Autowired
     private IComunidadService comunidadService;
+
+    @Autowired
+    private IMiembroComunidadDao miembroComunidadDao;
 
     @Autowired
     private FirebaseMessagingService firebaseMessagingService;
@@ -72,19 +77,24 @@ public class RuxSocketServiceImpl implements IRuxSocketService {
             String nombreRemitente = mensaje.getUsuario().getNombre();
             String contenido = mensaje.getContenido();
 
-            // Obtener la comunidad con sus miembros
+            // Obtener la comunidad para el nombre
             Comunidad comunidad = comunidadService.findById(comunidadId);
             if (comunidad == null)
                 return;
 
-            Set<Usuario> miembros = comunidad.getMiembros();
+            // Obtener miembros ACTIVOS usando MiembroComunidadDao
+            List<MiembroComunidad> membresias = miembroComunidadDao.findByComunidadId(comunidadId);
 
-            // Filtrar tokens: solo miembros con token FCM que NO son el remitente
-            List<String> tokens = miembros.stream()
+            // Filtrar tokens: solo miembros ACTIVOS con token FCM que NO son el remitente
+            List<String> tokens = membresias.stream()
+                    .filter(m -> m.getEstado() == null || "activo".equals(m.getEstado()))
+                    .map(MiembroComunidad::getUsuario)
                     .filter(u -> !u.getId().equals(remitenteId))
                     .map(Usuario::getFcmToken)
                     .filter(token -> token != null && !token.isEmpty())
                     .collect(Collectors.toList());
+
+            System.out.println("🔍 Miembros encontrados: " + membresias.size() + ", tokens válidos: " + tokens.size());
 
             if (!tokens.isEmpty()) {
                 String titulo = comunidad.getNombre();
@@ -93,9 +103,12 @@ public class RuxSocketServiceImpl implements IRuxSocketService {
 
                 System.out.println("📤 Enviando push a " + tokens.size() + " miembros de " + titulo);
                 firebaseMessagingService.enviarNotificacionMultiple(tokens, titulo, cuerpo, comunidadId);
+            } else {
+                System.out.println("⚠️ No hay tokens válidos para enviar notificaciones");
             }
         } catch (Exception e) {
             System.err.println("❌ Error enviando push notifications: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

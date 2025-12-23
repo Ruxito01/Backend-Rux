@@ -96,24 +96,31 @@ public class ModeloController {
             return ResponseEntity.badRequest().body("El ID de la marca es obligatorio");
         }
 
-        if (tipoVehiculoId == null) {
-            return ResponseEntity.badRequest().body("El ID del tipo de vehículo es obligatorio");
-        }
+        // tipoVehiculoId es opcional para permitir migración de datos existentes
+        // if (tipoVehiculoId == null) {
+        // return ResponseEntity.badRequest().body("El ID del tipo de vehículo es
+        // obligatorio");
+        // }
 
         Marca marca = marcaService.findById(marcaId);
         if (marca == null) {
             return ResponseEntity.badRequest().body("Marca no encontrada con ID: " + marcaId);
         }
 
-        TipoVehiculo tipoVehiculo = tipoVehiculoService.findById(tipoVehiculoId);
-        if (tipoVehiculo == null) {
-            return ResponseEntity.badRequest().body("Tipo de vehículo no encontrado con ID: " + tipoVehiculoId);
+        TipoVehiculo tipoVehiculo = null;
+        if (tipoVehiculoId != null) {
+            tipoVehiculo = tipoVehiculoService.findById(tipoVehiculoId);
+            if (tipoVehiculo == null) {
+                return ResponseEntity.badRequest().body("Tipo de vehículo no encontrado con ID: " + tipoVehiculoId);
+            }
         }
 
         Modelo modelo = new Modelo();
         modelo.setNombre(nombre);
         modelo.setMarca(marca);
-        modelo.setTipoVehiculo(tipoVehiculo);
+        if (tipoVehiculo != null) {
+            modelo.setTipoVehiculo(tipoVehiculo);
+        }
 
         return ResponseEntity.ok(service.save(modelo));
     }

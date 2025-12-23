@@ -46,9 +46,10 @@ public class Modelo implements Serializable {
     /**
      * Tipo de vehículo al que pertenece este modelo.
      * Ej: SUV, Moto Enduro, Jeep, etc.
+     * NOTA: nullable = true permite migración de datos existentes sin tipoVehiculo
      */
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "tipo_vehiculo_id", nullable = false)
+    @JoinColumn(name = "tipo_vehiculo_id", nullable = true)
     private TipoVehiculo tipoVehiculo;
 
     /**

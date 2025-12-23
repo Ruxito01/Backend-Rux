@@ -2,8 +2,10 @@ package com.example.demo.models.controller;
 
 import com.example.demo.models.entity.Marca;
 import com.example.demo.models.entity.Modelo;
+import com.example.demo.models.entity.TipoVehiculo;
 import com.example.demo.models.service.IMarcaService;
 import com.example.demo.models.service.IModeloService;
+import com.example.demo.models.service.ITipoVehiculoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,6 +34,9 @@ public class ModeloController {
 
     @Autowired
     private IMarcaService marcaService;
+
+    @Autowired
+    private ITipoVehiculoService tipoVehiculoService;
 
     @Operation(summary = "Obtener todos los modelos", description = "Retorna lista de todos los modelos")
     @ApiResponse(responseCode = "200", description = "Lista de modelos obtenida exitosamente")
@@ -75,11 +80,13 @@ public class ModeloController {
     })
     @PostMapping
     public ResponseEntity<?> create(
-            @Parameter(description = "Datos del modelo con marcaId", required = true) @RequestBody @NonNull Map<String, Object> body) {
+            @Parameter(description = "Datos del modelo con marcaId y tipoVehiculoId", required = true) @RequestBody @NonNull Map<String, Object> body) {
 
         // Extraer datos del body
         String nombre = (String) body.get("nombre");
         Long marcaId = body.get("marcaId") != null ? Long.valueOf(body.get("marcaId").toString()) : null;
+        Long tipoVehiculoId = body.get("tipoVehiculoId") != null ? Long.valueOf(body.get("tipoVehiculoId").toString())
+                : null;
 
         if (nombre == null || nombre.isEmpty()) {
             return ResponseEntity.badRequest().body("El nombre del modelo es obligatorio");
@@ -89,14 +96,24 @@ public class ModeloController {
             return ResponseEntity.badRequest().body("El ID de la marca es obligatorio");
         }
 
+        if (tipoVehiculoId == null) {
+            return ResponseEntity.badRequest().body("El ID del tipo de vehículo es obligatorio");
+        }
+
         Marca marca = marcaService.findById(marcaId);
         if (marca == null) {
             return ResponseEntity.badRequest().body("Marca no encontrada con ID: " + marcaId);
         }
 
+        TipoVehiculo tipoVehiculo = tipoVehiculoService.findById(tipoVehiculoId);
+        if (tipoVehiculo == null) {
+            return ResponseEntity.badRequest().body("Tipo de vehículo no encontrado con ID: " + tipoVehiculoId);
+        }
+
         Modelo modelo = new Modelo();
         modelo.setNombre(nombre);
         modelo.setMarca(marca);
+        modelo.setTipoVehiculo(tipoVehiculo);
 
         return ResponseEntity.ok(service.save(modelo));
     }
@@ -118,6 +135,8 @@ public class ModeloController {
 
         String nombre = (String) body.get("nombre");
         Long marcaId = body.get("marcaId") != null ? Long.valueOf(body.get("marcaId").toString()) : null;
+        Long tipoVehiculoId = body.get("tipoVehiculoId") != null ? Long.valueOf(body.get("tipoVehiculoId").toString())
+                : null;
 
         if (nombre != null && !nombre.isEmpty()) {
             existing.setNombre(nombre);
@@ -129,6 +148,14 @@ public class ModeloController {
                 return ResponseEntity.badRequest().body("Marca no encontrada con ID: " + marcaId);
             }
             existing.setMarca(marca);
+        }
+
+        if (tipoVehiculoId != null) {
+            TipoVehiculo tipoVehiculo = tipoVehiculoService.findById(tipoVehiculoId);
+            if (tipoVehiculo == null) {
+                return ResponseEntity.badRequest().body("Tipo de vehículo no encontrado con ID: " + tipoVehiculoId);
+            }
+            existing.setTipoVehiculo(tipoVehiculo);
         }
 
         return ResponseEntity.ok(service.save(existing));

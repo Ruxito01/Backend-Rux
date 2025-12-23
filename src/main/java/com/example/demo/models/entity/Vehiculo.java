@@ -26,9 +26,15 @@ public class Vehiculo implements Serializable {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    /**
+     * Modelo del vehículo (incluye marca y tipo de vehículo).
+     * Al seleccionar un modelo, se obtiene automáticamente:
+     * - La marca (a través de modeloEntidad.getMarca())
+     * - El tipo de vehículo (a través de modeloEntidad.getTipoVehiculo())
+     */
     @ManyToOne
-    @JoinColumn(name = "tipo_vehiculo_id", nullable = false)
-    private TipoVehiculo tipoVehiculo;
+    @JoinColumn(name = "modelo_id")
+    private Modelo modeloEntidad;
 
     /**
      * Alias/apodo del vehículo.
@@ -37,12 +43,16 @@ public class Vehiculo implements Serializable {
     private String alias;
 
     /**
-     * Marca del vehículo. Ej: "Yamaha", "Jeep", "Honda"
+     * Marca del vehículo (legacy/personalizado).
+     * Se usa si modeloEntidad es null.
+     * Ej: "Yamaha", "Jeep", "Honda"
      */
     private String marca;
 
     /**
-     * Modelo del vehículo. Ej: "WR450F", "Wrangler", "CRF450L"
+     * Modelo del vehículo (legacy/personalizado).
+     * Se usa si modeloEntidad es null.
+     * Ej: "WR450F", "Wrangler", "CRF450L"
      */
     private String modelo;
 

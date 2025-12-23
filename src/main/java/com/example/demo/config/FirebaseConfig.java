@@ -32,11 +32,19 @@ public class FirebaseConfig {
                     System.out.println("✅ Firebase Admin SDK inicializado correctamente");
                 } else {
                     // Si no hay archivo, usar credenciales por defecto de GCP
+                    // IMPORTANTE: necesita el Project ID explícitamente
+                    String projectId = System.getenv("GOOGLE_CLOUD_PROJECT");
+                    if (projectId == null) {
+                        projectId = "rux-movil"; // Fallback
+                    }
+
                     FirebaseOptions options = FirebaseOptions.builder()
                             .setCredentials(GoogleCredentials.getApplicationDefault())
+                            .setProjectId(projectId)
                             .build();
                     FirebaseApp.initializeApp(options);
-                    System.out.println("✅ Firebase inicializado con credenciales por defecto de GCP");
+                    System.out.println(
+                            "✅ Firebase inicializado con credenciales por defecto de GCP (Project: " + projectId + ")");
                 }
             }
         } catch (IOException e) {

@@ -29,7 +29,7 @@ public class MiembroComunidad implements Serializable {
     @Column(name = "fecha_union", nullable = false)
     private LocalDateTime fechaUnion = LocalDateTime.now();
 
-    @Column(name = "estado", nullable = false)
+    @Column(name = "estado")
     private String estado = "activo"; // "activo" o "inactivo"
 
     private static final long serialVersionUID = 1L;

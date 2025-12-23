@@ -2,6 +2,7 @@ package com.example.demo.models.ServiceImpl;
 
 import com.example.demo.models.dao.IMensajeComunidadDao;
 import com.example.demo.models.dao.IMiembroComunidadDao;
+import com.example.demo.models.dao.IUsuarioDao;
 import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.MensajeComunidad;
 import com.example.demo.models.entity.MiembroComunidad;
@@ -41,6 +42,9 @@ public class RuxSocketServiceImpl implements IRuxSocketService {
     private IMiembroComunidadDao miembroComunidadDao;
 
     @Autowired
+    private IUsuarioDao usuarioDao;
+
+    @Autowired
     private FirebaseMessagingService firebaseMessagingService;
 
     @Override
@@ -74,8 +78,19 @@ public class RuxSocketServiceImpl implements IRuxSocketService {
         try {
             Long comunidadId = mensaje.getComunidad().getId();
             Long remitenteId = mensaje.getUsuario().getId();
-            String nombreRemitente = mensaje.getUsuario().getNombre();
             String contenido = mensaje.getContenido();
+
+            // Cargar usuario completo desde la BD para obtener nombre/alias
+            Usuario remitente = usuarioDao.findById(remitenteId).orElse(null);
+            String nombreRemitente = "Usuario";
+            if (remitente != null) {
+                // Preferir alias sobre nombre
+                nombreRemitente = (remitente.getAlias() != null && !remitente.getAlias().isEmpty())
+                        ? remitente.getAlias()
+                        : (remitente.getNombre() != null ? remitente.getNombre() : "Usuario");
+            }
+
+            System.out.println("🔍 Remitente: " + nombreRemitente + " (ID: " + remitenteId + ")");
 
             // Obtener la comunidad para el nombre
             Comunidad comunidad = comunidadService.findById(comunidadId);

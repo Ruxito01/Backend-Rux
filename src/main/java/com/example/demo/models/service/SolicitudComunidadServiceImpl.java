@@ -95,16 +95,23 @@ public class SolicitudComunidadServiceImpl implements ISolicitudComunidadService
             solicitud.setRespondidoPor(respondidoPor);
         }
 
-        // Agregar usuario como miembro de la comunidad
+        // Agregar usuario como miembro usando MiembroComunidadDao
+        // IMPORTANTE: No usar la relación ManyToMany directamente porque la tabla tiene
+        // columnas adicionales
         Comunidad comunidad = solicitud.getComunidad();
         Usuario usuario = solicitud.getUsuario();
 
-        // Agregar relación bidireccional
-        comunidad.getMiembros().add(usuario);
-        usuario.getComunidades().add(comunidad);
-
-        // Guardar cambios
-        usuarioDao.save(usuario);
+        // Verificar si ya existe un registro (por seguridad)
+        MiembroComunidad existente = miembroComunidadDao.findByUsuarioAndComunidad(usuario.getId(),
+                comunidad.getId());
+        if (existente == null) {
+            // Crear nuevo registro en la tabla miembro_comunidad
+            MiembroComunidad nuevoMiembro = new MiembroComunidad();
+            nuevoMiembro.setUsuario(usuario);
+            nuevoMiembro.setComunidad(comunidad);
+            nuevoMiembro.setEstado("activo");
+            miembroComunidadDao.save(nuevoMiembro);
+        }
 
         return solicitudDao.save(solicitud);
     }

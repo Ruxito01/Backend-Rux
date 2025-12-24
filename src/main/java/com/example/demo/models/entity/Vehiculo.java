@@ -37,6 +37,14 @@ public class Vehiculo implements Serializable {
     private Modelo modeloEntidad;
 
     /**
+     * Tipo de vehiculo directo (moto, jeep, cuatrimoto, etc).
+     * Se usa para estadisticas y filtros en el dashboard.
+     */
+    @ManyToOne
+    @JoinColumn(name = "tipo_vehiculo_id")
+    private TipoVehiculo tipoVehiculo;
+
+    /**
      * Alias/apodo del vehículo.
      * Ej: "La Bestia", "El Rayo", "Mi Enduro"
      */

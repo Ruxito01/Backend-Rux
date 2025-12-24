@@ -5,7 +5,13 @@ import java.util.List;
 
 public interface IPuntoRutaService {
     List<PuntoRuta> findAll();
+
     PuntoRuta findById(Long id);
+
     PuntoRuta save(PuntoRuta entity);
+
     void deleteById(Long id);
+
+    // Buscar puntos por ID de ruta
+    List<PuntoRuta> findByRutaId(Long rutaId);
 }

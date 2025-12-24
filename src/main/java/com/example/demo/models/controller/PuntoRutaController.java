@@ -80,4 +80,12 @@ public class PuntoRutaController {
         service.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Obtener puntos por ruta", description = "Retorna todos los puntos de una ruta especifica ordenados por secuencia")
+    @ApiResponse(responseCode = "200", description = "Lista de puntos de ruta obtenida exitosamente")
+    @GetMapping("/ruta/{rutaId}")
+    public ResponseEntity<List<PuntoRuta>> findByRutaId(
+            @Parameter(description = "ID de la ruta", required = true, example = "1") @PathVariable @NonNull Long rutaId) {
+        return ResponseEntity.ok(service.findByRutaId(rutaId));
+    }
 }

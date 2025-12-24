@@ -34,6 +34,12 @@ public class TipoVehiculoServiceImpl implements ITipoVehiculoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public TipoVehiculo findByNombre(String nombre) {
+        return tipoVehiculoDao.findByNombre(nombre);
+    }
+
+    @Override
     @Transactional
     public void deleteById(Long id) {
         tipoVehiculoDao.deleteById(id);

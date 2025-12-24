@@ -45,27 +45,42 @@ public class TipoVehiculoController {
 
     @Operation(summary = "Crear nuevo tipo de vehículo", description = "Crea un nuevo tipo de vehículo en el sistema")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Tipo de vehículo creado exitosamente", content = @Content(schema = @Schema(implementation = TipoVehiculo.class)))
+            @ApiResponse(responseCode = "200", description = "Tipo de vehículo creado exitosamente", content = @Content(schema = @Schema(implementation = TipoVehiculo.class))),
+            @ApiResponse(responseCode = "409", description = "Ya existe un tipo de vehículo con ese nombre")
     })
     @PostMapping
-    public ResponseEntity<TipoVehiculo> create(
+    public ResponseEntity<?> create(
             @Parameter(description = "Datos del tipo de vehículo a crear", required = true) @RequestBody @NonNull TipoVehiculo entity) {
+        // Validar nombre duplicado
+        TipoVehiculo existente = service.findByNombre(entity.getNombre());
+        if (existente != null) {
+            return ResponseEntity.status(409)
+                    .body("Ya existe un tipo de vehículo con el nombre: " + entity.getNombre());
+        }
         return ResponseEntity.ok(service.save(entity));
     }
 
     @Operation(summary = "Actualizar tipo de vehículo", description = "Actualiza los datos de un tipo de vehículo existente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Tipo de vehículo actualizado exitosamente", content = @Content(schema = @Schema(implementation = TipoVehiculo.class))),
-            @ApiResponse(responseCode = "404", description = "Tipo de vehículo no encontrado")
+            @ApiResponse(responseCode = "404", description = "Tipo de vehículo no encontrado"),
+            @ApiResponse(responseCode = "409", description = "Ya existe otro tipo de vehículo con ese nombre")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<TipoVehiculo> update(
+    public ResponseEntity<?> update(
             @Parameter(description = "ID del tipo de vehículo a actualizar", required = true, example = "1") @PathVariable @NonNull Long id,
             @Parameter(description = "Nuevos datos del tipo de vehículo", required = true) @RequestBody @NonNull TipoVehiculo entity) {
         TipoVehiculo existing = service.findById(id);
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
+        // Validar nombre duplicado (excepto si es el mismo registro)
+        TipoVehiculo conMismoNombre = service.findByNombre(entity.getNombre());
+        if (conMismoNombre != null && !conMismoNombre.getId().equals(id)) {
+            return ResponseEntity.status(409)
+                    .body("Ya existe otro tipo de vehículo con el nombre: " + entity.getNombre());
+        }
+        entity.setId(id);
         return ResponseEntity.ok(service.save(entity));
     }
 

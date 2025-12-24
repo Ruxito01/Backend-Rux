@@ -19,4 +19,9 @@ public interface IModeloDao extends JpaRepository<Modelo, Long> {
      * Busca modelos cuyo nombre contenga el texto dado
      */
     List<Modelo> findByNombreContainingIgnoreCase(String nombre);
+
+    /**
+     * Busca un modelo por nombre exacto y marca
+     */
+    Modelo findByNombreAndMarca_Id(String nombre, Long marcaId);
 }

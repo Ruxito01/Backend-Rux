@@ -107,6 +107,13 @@ public class ModeloController {
             return ResponseEntity.badRequest().body("Marca no encontrada con ID: " + marcaId);
         }
 
+        // Validar nombre duplicado dentro de la misma marca
+        Modelo existente = service.findByNombreAndMarcaId(nombre, marcaId);
+        if (existente != null) {
+            return ResponseEntity.status(409)
+                    .body("Ya existe un modelo '" + nombre + "' para la marca " + marca.getNombre());
+        }
+
         TipoVehiculo tipoVehiculo = null;
         if (tipoVehiculoId != null) {
             tipoVehiculo = tipoVehiculoService.findById(tipoVehiculoId);
@@ -128,7 +135,8 @@ public class ModeloController {
     @Operation(summary = "Actualizar modelo", description = "Actualiza los datos de un modelo existente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Modelo actualizado exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Modelo no encontrado")
+            @ApiResponse(responseCode = "404", description = "Modelo no encontrado"),
+            @ApiResponse(responseCode = "409", description = "Ya existe otro modelo con ese nombre para la misma marca")
     })
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
@@ -145,7 +153,15 @@ public class ModeloController {
         Long tipoVehiculoId = body.get("tipoVehiculoId") != null ? Long.valueOf(body.get("tipoVehiculoId").toString())
                 : null;
 
-        if (nombre != null && !nombre.isEmpty()) {
+        // Determinar la marca final (nueva o existente)
+        Long marcaFinal = marcaId != null ? marcaId : existing.getMarca().getId();
+
+        // Validar nombre duplicado si se está cambiando el nombre
+        if (nombre != null && !nombre.isEmpty() && !nombre.equals(existing.getNombre())) {
+            Modelo conMismoNombre = service.findByNombreAndMarcaId(nombre, marcaFinal);
+            if (conMismoNombre != null && !conMismoNombre.getId().equals(id)) {
+                return ResponseEntity.status(409).body("Ya existe otro modelo '" + nombre + "' para esta marca");
+            }
             existing.setNombre(nombre);
         }
 

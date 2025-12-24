@@ -49,6 +49,12 @@ public class ModeloServiceImpl implements IModeloService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Modelo findByNombreAndMarcaId(String nombre, Long marcaId) {
+        return modeloDao.findByNombreAndMarca_Id(nombre, marcaId);
+    }
+
+    @Override
     @Transactional
     public void deleteById(Long id) {
         modeloDao.deleteById(id);

@@ -15,6 +15,8 @@ public interface IModeloService {
 
     List<Modelo> buscarPorNombre(String nombre);
 
+    Modelo findByNombreAndMarcaId(String nombre, Long marcaId);
+
     Modelo save(Modelo entity);
 
     void deleteById(Long id);

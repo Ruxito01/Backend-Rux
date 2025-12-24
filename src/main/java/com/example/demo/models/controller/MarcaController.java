@@ -60,26 +60,38 @@ public class MarcaController {
 
     @Operation(summary = "Crear nueva marca", description = "Crea una nueva marca de vehículo")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Marca creada exitosamente", content = @Content(schema = @Schema(implementation = Marca.class)))
+            @ApiResponse(responseCode = "200", description = "Marca creada exitosamente", content = @Content(schema = @Schema(implementation = Marca.class))),
+            @ApiResponse(responseCode = "409", description = "Ya existe una marca con ese nombre")
     })
     @PostMapping
-    public ResponseEntity<Marca> create(
+    public ResponseEntity<?> create(
             @Parameter(description = "Datos de la marca", required = true) @RequestBody @NonNull Marca entity) {
+        // Validar nombre duplicado
+        Marca existente = service.findByNombre(entity.getNombre());
+        if (existente != null) {
+            return ResponseEntity.status(409).body("Ya existe una marca con el nombre: " + entity.getNombre());
+        }
         return ResponseEntity.ok(service.save(entity));
     }
 
     @Operation(summary = "Actualizar marca", description = "Actualiza los datos de una marca existente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Marca actualizada exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Marca no encontrada")
+            @ApiResponse(responseCode = "404", description = "Marca no encontrada"),
+            @ApiResponse(responseCode = "409", description = "Ya existe otra marca con ese nombre")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Marca> update(
+    public ResponseEntity<?> update(
             @Parameter(description = "ID de la marca", required = true) @PathVariable @NonNull Long id,
             @Parameter(description = "Nuevos datos de la marca", required = true) @RequestBody @NonNull Marca entity) {
         Marca existing = service.findById(id);
         if (existing == null) {
             return ResponseEntity.notFound().build();
+        }
+        // Validar nombre duplicado (excepto si es el mismo registro)
+        Marca conMismoNombre = service.findByNombre(entity.getNombre());
+        if (conMismoNombre != null && !conMismoNombre.getId().equals(id)) {
+            return ResponseEntity.status(409).body("Ya existe otra marca con el nombre: " + entity.getNombre());
         }
         entity.setId(id);
         return ResponseEntity.ok(service.save(entity));

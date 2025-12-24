@@ -20,4 +20,9 @@ public interface IModeloService {
     Modelo save(Modelo entity);
 
     void deleteById(Long id);
+
+    /**
+     * Cuenta vehiculos asociados a un modelo
+     */
+    long countVehiculosByModeloId(Long modeloId);
 }

@@ -60,39 +60,65 @@ public class TipoVehiculoController {
         return ResponseEntity.ok(service.save(entity));
     }
 
-    @Operation(summary = "Actualizar tipo de vehículo", description = "Actualiza los datos de un tipo de vehículo existente")
+    @Operation(summary = "Actualizar tipo de vehiculo", description = "Actualiza los datos de un tipo de vehiculo existente")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Tipo de vehículo actualizado exitosamente", content = @Content(schema = @Schema(implementation = TipoVehiculo.class))),
-            @ApiResponse(responseCode = "404", description = "Tipo de vehículo no encontrado"),
-            @ApiResponse(responseCode = "409", description = "Ya existe otro tipo de vehículo con ese nombre")
+            @ApiResponse(responseCode = "200", description = "Tipo de vehiculo actualizado exitosamente", content = @Content(schema = @Schema(implementation = TipoVehiculo.class))),
+            @ApiResponse(responseCode = "400", description = "No se puede modificar, tiene vehiculos asociados"),
+            @ApiResponse(responseCode = "404", description = "Tipo de vehiculo no encontrado"),
+            @ApiResponse(responseCode = "409", description = "Ya existe otro tipo de vehiculo con ese nombre")
     })
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
-            @Parameter(description = "ID del tipo de vehículo a actualizar", required = true, example = "1") @PathVariable @NonNull Long id,
-            @Parameter(description = "Nuevos datos del tipo de vehículo", required = true) @RequestBody @NonNull TipoVehiculo entity) {
+            @Parameter(description = "ID del tipo de vehiculo a actualizar", required = true, example = "1") @PathVariable @NonNull Long id,
+            @Parameter(description = "Nuevos datos del tipo de vehiculo", required = true) @RequestBody @NonNull TipoVehiculo entity) {
         TipoVehiculo existing = service.findById(id);
         if (existing == null) {
             return ResponseEntity.notFound().build();
+        }
+        // Validar que no tenga vehiculos asociados
+        long countVehiculos = service.countVehiculosByTipoId(id);
+        if (countVehiculos > 0) {
+            return ResponseEntity.badRequest().body("No se puede modificar el tipo de vehiculo porque tiene "
+                    + countVehiculos + " vehiculo(s) asociado(s)");
         }
         // Validar nombre duplicado (excepto si es el mismo registro)
         TipoVehiculo conMismoNombre = service.findByNombre(entity.getNombre());
         if (conMismoNombre != null && !conMismoNombre.getId().equals(id)) {
             return ResponseEntity.status(409)
-                    .body("Ya existe otro tipo de vehículo con el nombre: " + entity.getNombre());
+                    .body("Ya existe otro tipo de vehiculo con el nombre: " + entity.getNombre());
         }
         entity.setId(id);
         return ResponseEntity.ok(service.save(entity));
     }
 
-    @Operation(summary = "Eliminar tipo de vehículo", description = "Elimina un tipo de vehículo del sistema")
+    @Operation(summary = "Eliminar tipo de vehiculo", description = "Elimina un tipo de vehiculo si no tiene vehiculos asociados")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Tipo de vehículo eliminado exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Tipo de vehículo no encontrado")
+            @ApiResponse(responseCode = "200", description = "Tipo de vehiculo eliminado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "No se puede eliminar, tiene vehiculos asociados"),
+            @ApiResponse(responseCode = "404", description = "Tipo de vehiculo no encontrado")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @Parameter(description = "ID del tipo de vehículo a eliminar", required = true, example = "1") @PathVariable @NonNull Long id) {
+    public ResponseEntity<?> delete(
+            @Parameter(description = "ID del tipo de vehiculo a eliminar", required = true, example = "1") @PathVariable @NonNull Long id) {
+        TipoVehiculo existing = service.findById(id);
+        if (existing == null) {
+            return ResponseEntity.notFound().build();
+        }
+        // Validar que no tenga vehiculos asociados
+        long countVehiculos = service.countVehiculosByTipoId(id);
+        if (countVehiculos > 0) {
+            return ResponseEntity.badRequest().body("No se puede eliminar el tipo de vehiculo porque tiene "
+                    + countVehiculos + " vehiculo(s) asociado(s)");
+        }
         service.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Contar vehiculos de un tipo", description = "Retorna la cantidad de vehiculos asociados a un tipo de vehiculo")
+    @ApiResponse(responseCode = "200", description = "Cantidad de vehiculos")
+    @GetMapping("/{id}/count-vehiculos")
+    public ResponseEntity<Long> countVehiculos(
+            @Parameter(description = "ID del tipo de vehiculo", required = true) @PathVariable @NonNull Long id) {
+        return ResponseEntity.ok(service.countVehiculosByTipoId(id));
     }
 }

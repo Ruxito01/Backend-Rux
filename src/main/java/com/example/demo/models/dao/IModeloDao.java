@@ -24,4 +24,9 @@ public interface IModeloDao extends JpaRepository<Modelo, Long> {
      * Busca un modelo por nombre exacto y marca
      */
     Modelo findByNombreAndMarca_Id(String nombre, Long marcaId);
+
+    /**
+     * Cuenta modelos por marca (para validar eliminacion)
+     */
+    long countByMarca_Id(Long marcaId);
 }

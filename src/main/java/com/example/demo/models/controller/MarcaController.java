@@ -77,6 +77,7 @@ public class MarcaController {
     @Operation(summary = "Actualizar marca", description = "Actualiza los datos de una marca existente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Marca actualizada exitosamente"),
+            @ApiResponse(responseCode = "400", description = "No se puede modificar, tiene modelos asociados"),
             @ApiResponse(responseCode = "404", description = "Marca no encontrada"),
             @ApiResponse(responseCode = "409", description = "Ya existe otra marca con ese nombre")
     })
@@ -88,6 +89,12 @@ public class MarcaController {
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
+        // Validar que no tenga modelos asociados
+        long countModelos = service.countModelosByMarcaId(id);
+        if (countModelos > 0) {
+            return ResponseEntity.badRequest()
+                    .body("No se puede modificar la marca porque tiene " + countModelos + " modelo(s) asociado(s)");
+        }
         // Validar nombre duplicado (excepto si es el mismo registro)
         Marca conMismoNombre = service.findByNombre(entity.getNombre());
         if (conMismoNombre != null && !conMismoNombre.getId().equals(id)) {
@@ -97,19 +104,34 @@ public class MarcaController {
         return ResponseEntity.ok(service.save(entity));
     }
 
-    @Operation(summary = "Eliminar marca", description = "Elimina una marca y todos sus modelos asociados")
+    @Operation(summary = "Eliminar marca", description = "Elimina una marca si no tiene modelos asociados")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Marca eliminada exitosamente"),
+            @ApiResponse(responseCode = "400", description = "No se puede eliminar, tiene modelos asociados"),
             @ApiResponse(responseCode = "404", description = "Marca no encontrada")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<?> delete(
             @Parameter(description = "ID de la marca", required = true) @PathVariable @NonNull Long id) {
         Marca existing = service.findById(id);
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
+        // Validar que no tenga modelos asociados
+        long countModelos = service.countModelosByMarcaId(id);
+        if (countModelos > 0) {
+            return ResponseEntity.badRequest()
+                    .body("No se puede eliminar la marca porque tiene " + countModelos + " modelo(s) asociado(s)");
+        }
         service.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Contar modelos de una marca", description = "Retorna la cantidad de modelos asociados a una marca")
+    @ApiResponse(responseCode = "200", description = "Cantidad de modelos")
+    @GetMapping("/{id}/count-modelos")
+    public ResponseEntity<Long> countModelos(
+            @Parameter(description = "ID de la marca", required = true) @PathVariable @NonNull Long id) {
+        return ResponseEntity.ok(service.countModelosByMarcaId(id));
     }
 }

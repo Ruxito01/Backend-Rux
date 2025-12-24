@@ -148,6 +148,13 @@ public class ModeloController {
             return ResponseEntity.notFound().build();
         }
 
+        // Validar que no tenga vehiculos asociados
+        long countVehiculos = service.countVehiculosByModeloId(id);
+        if (countVehiculos > 0) {
+            return ResponseEntity.badRequest().body(
+                    "No se puede modificar el modelo porque tiene " + countVehiculos + " vehiculo(s) asociado(s)");
+        }
+
         String nombre = (String) body.get("nombre");
         Long marcaId = body.get("marcaId") != null ? Long.valueOf(body.get("marcaId").toString()) : null;
         Long tipoVehiculoId = body.get("tipoVehiculoId") != null ? Long.valueOf(body.get("tipoVehiculoId").toString())
@@ -156,7 +163,7 @@ public class ModeloController {
         // Determinar la marca final (nueva o existente)
         Long marcaFinal = marcaId != null ? marcaId : existing.getMarca().getId();
 
-        // Validar nombre duplicado si se está cambiando el nombre
+        // Validar nombre duplicado si se esta cambiando el nombre
         if (nombre != null && !nombre.isEmpty() && !nombre.equals(existing.getNombre())) {
             Modelo conMismoNombre = service.findByNombreAndMarcaId(nombre, marcaFinal);
             if (conMismoNombre != null && !conMismoNombre.getId().equals(id)) {
@@ -176,7 +183,7 @@ public class ModeloController {
         if (tipoVehiculoId != null) {
             TipoVehiculo tipoVehiculo = tipoVehiculoService.findById(tipoVehiculoId);
             if (tipoVehiculo == null) {
-                return ResponseEntity.badRequest().body("Tipo de vehículo no encontrado con ID: " + tipoVehiculoId);
+                return ResponseEntity.badRequest().body("Tipo de vehiculo no encontrado con ID: " + tipoVehiculoId);
             }
             existing.setTipoVehiculo(tipoVehiculo);
         }
@@ -184,19 +191,34 @@ public class ModeloController {
         return ResponseEntity.ok(service.save(existing));
     }
 
-    @Operation(summary = "Eliminar modelo", description = "Elimina un modelo del sistema")
+    @Operation(summary = "Eliminar modelo", description = "Elimina un modelo si no tiene vehiculos asociados")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Modelo eliminado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "No se puede eliminar, tiene vehiculos asociados"),
             @ApiResponse(responseCode = "404", description = "Modelo no encontrado")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<?> delete(
             @Parameter(description = "ID del modelo", required = true) @PathVariable @NonNull Long id) {
         Modelo existing = service.findById(id);
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
+        // Validar que no tenga vehiculos asociados
+        long countVehiculos = service.countVehiculosByModeloId(id);
+        if (countVehiculos > 0) {
+            return ResponseEntity.badRequest()
+                    .body("No se puede eliminar el modelo porque tiene " + countVehiculos + " vehiculo(s) asociado(s)");
+        }
         service.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Contar vehiculos de un modelo", description = "Retorna la cantidad de vehiculos asociados a un modelo")
+    @ApiResponse(responseCode = "200", description = "Cantidad de vehiculos")
+    @GetMapping("/{id}/count-vehiculos")
+    public ResponseEntity<Long> countVehiculos(
+            @Parameter(description = "ID del modelo", required = true) @PathVariable @NonNull Long id) {
+        return ResponseEntity.ok(service.countVehiculosByModeloId(id));
     }
 }

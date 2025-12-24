@@ -6,17 +6,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.models.dao.IMarcaDao;
+import com.example.demo.models.dao.IModeloDao;
 import com.example.demo.models.entity.Marca;
 import com.example.demo.models.service.IMarcaService;
 
 /**
- * Implementación del servicio para Marca
+ * Implementacion del servicio para Marca
  */
 @Service
 public class MarcaServiceImpl implements IMarcaService {
 
     @Autowired
     private IMarcaDao marcaDao;
+
+    @Autowired
+    private IModeloDao modeloDao;
 
     @Override
     @Transactional(readOnly = true)
@@ -46,5 +50,11 @@ public class MarcaServiceImpl implements IMarcaService {
     @Transactional
     public void deleteById(Long id) {
         marcaDao.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countModelosByMarcaId(Long marcaId) {
+        return modeloDao.countByMarca_Id(marcaId);
     }
 }

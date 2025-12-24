@@ -6,17 +6,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.models.dao.IModeloDao;
+import com.example.demo.models.dao.IVehiculoDao;
 import com.example.demo.models.entity.Modelo;
 import com.example.demo.models.service.IModeloService;
 
 /**
- * Implementación del servicio para Modelo
+ * Implementacion del servicio para Modelo
  */
 @Service
 public class ModeloServiceImpl implements IModeloService {
 
     @Autowired
     private IModeloDao modeloDao;
+
+    @Autowired
+    private IVehiculoDao vehiculoDao;
 
     @Override
     @Transactional(readOnly = true)
@@ -58,5 +62,11 @@ public class ModeloServiceImpl implements IModeloService {
     @Transactional
     public void deleteById(Long id) {
         modeloDao.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countVehiculosByModeloId(Long modeloId) {
+        return vehiculoDao.countByModeloEntidad_Id(modeloId);
     }
 }

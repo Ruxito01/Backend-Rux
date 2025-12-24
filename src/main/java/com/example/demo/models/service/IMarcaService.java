@@ -16,4 +16,9 @@ public interface IMarcaService {
     Marca save(Marca entity);
 
     void deleteById(Long id);
+
+    /**
+     * Cuenta modelos asociados a una marca
+     */
+    long countModelosByMarcaId(Long marcaId);
 }

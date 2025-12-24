@@ -13,4 +13,9 @@ public interface ITipoVehiculoService {
     TipoVehiculo save(TipoVehiculo entity);
 
     void deleteById(Long id);
+
+    /**
+     * Cuenta vehiculos asociados a un tipo de vehiculo
+     */
+    long countVehiculosByTipoId(Long tipoId);
 }

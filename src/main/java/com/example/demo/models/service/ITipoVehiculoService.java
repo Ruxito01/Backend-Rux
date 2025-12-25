@@ -18,4 +18,9 @@ public interface ITipoVehiculoService {
      * Cuenta vehiculos asociados a un tipo de vehiculo
      */
     long countVehiculosByTipoId(Long tipoId);
+
+    /**
+     * Obtiene los tipos de vehículo de los vehículos de un usuario
+     */
+    List<TipoVehiculo> findByUsuarioId(Long usuarioId);
 }

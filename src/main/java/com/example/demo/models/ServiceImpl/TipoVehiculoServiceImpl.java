@@ -54,4 +54,10 @@ public class TipoVehiculoServiceImpl implements ITipoVehiculoService {
     public long countVehiculosByTipoId(Long tipoId) {
         return vehiculoDao.countByTipoVehiculo_Id(tipoId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TipoVehiculo> findByUsuarioId(Long usuarioId) {
+        return tipoVehiculoDao.findDistinctByVehiculos_Usuario_Id(usuarioId);
+    }
 }

@@ -114,4 +114,16 @@ public class TipoVehiculoController {
             @Parameter(description = "ID del tipo de vehiculo", required = true) @PathVariable @NonNull Long id) {
         return ResponseEntity.ok(service.countVehiculosByTipoId(id));
     }
+
+    @Operation(summary = "Obtener tipos de vehículo de un usuario", description = "Retorna los tipos de vehículo de los vehículos registrados por un usuario")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de tipos de vehículo del usuario"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<TipoVehiculo>> findByUsuarioId(
+            @Parameter(description = "ID del usuario", required = true, example = "1") @PathVariable @NonNull Long usuarioId) {
+        List<TipoVehiculo> tipos = service.findByUsuarioId(usuarioId);
+        return ResponseEntity.ok(tipos);
+    }
 }

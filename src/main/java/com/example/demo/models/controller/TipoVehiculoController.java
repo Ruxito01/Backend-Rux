@@ -63,7 +63,6 @@ public class TipoVehiculoController {
     @Operation(summary = "Actualizar tipo de vehiculo", description = "Actualiza los datos de un tipo de vehiculo existente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Tipo de vehiculo actualizado exitosamente", content = @Content(schema = @Schema(implementation = TipoVehiculo.class))),
-            @ApiResponse(responseCode = "400", description = "No se puede modificar, tiene vehiculos asociados"),
             @ApiResponse(responseCode = "404", description = "Tipo de vehiculo no encontrado"),
             @ApiResponse(responseCode = "409", description = "Ya existe otro tipo de vehiculo con ese nombre")
     })
@@ -74,12 +73,6 @@ public class TipoVehiculoController {
         TipoVehiculo existing = service.findById(id);
         if (existing == null) {
             return ResponseEntity.notFound().build();
-        }
-        // Validar que no tenga vehiculos asociados
-        long countVehiculos = service.countVehiculosByTipoId(id);
-        if (countVehiculos > 0) {
-            return ResponseEntity.badRequest().body("No se puede modificar el tipo de vehiculo porque tiene "
-                    + countVehiculos + " vehiculo(s) asociado(s)");
         }
         // Validar nombre duplicado (excepto si es el mismo registro)
         TipoVehiculo conMismoNombre = service.findByNombre(entity.getNombre());

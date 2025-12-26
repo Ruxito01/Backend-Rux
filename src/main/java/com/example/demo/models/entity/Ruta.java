@@ -28,6 +28,14 @@ public class Ruta implements Serializable {
     @JoinColumn(name = "creador_id", nullable = false)
     private Usuario creador;
 
+    /**
+     * Comunidad con la que se compartió la ruta (opcional).
+     * Si es null, la ruta no está asociada a ninguna comunidad.
+     */
+    @ManyToOne
+    @JoinColumn(name = "comunidad_id")
+    private Comunidad comunidad;
+
     @Column(nullable = false)
     private String nombre;
 

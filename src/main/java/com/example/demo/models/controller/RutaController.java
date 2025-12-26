@@ -81,4 +81,14 @@ public class RutaController {
         service.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Obtener rutas por comunidad", description = "Retorna las rutas compartidas con una comunidad")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de rutas de la comunidad")
+    })
+    @GetMapping("/comunidad/{comunidadId}")
+    public ResponseEntity<List<Ruta>> findByComunidad(
+            @Parameter(description = "ID de la comunidad", required = true, example = "1") @PathVariable @NonNull Long comunidadId) {
+        return ResponseEntity.ok(service.findByComunidadId(comunidadId));
+    }
 }

@@ -38,4 +38,10 @@ public class RutaServiceImpl implements IRutaService {
     public void deleteById(Long id) {
         rutaDao.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Ruta> findByComunidadId(Long comunidadId) {
+        return rutaDao.findByComunidad_Id(comunidadId);
+    }
 }

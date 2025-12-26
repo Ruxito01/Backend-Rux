@@ -67,4 +67,12 @@ public interface IViajeService {
      * @return Lista de viajes del usuario en ese día
      */
     List<Viaje> findViajesByUsuarioAndFecha(Long usuarioId, java.time.LocalDateTime fecha);
+
+    /**
+     * Obtiene todos los viajes asociados a una comunidad específica.
+     * 
+     * @param comunidadId ID de la comunidad
+     * @return Lista de viajes de la comunidad
+     */
+    List<Viaje> findByComunidadId(Long comunidadId);
 }

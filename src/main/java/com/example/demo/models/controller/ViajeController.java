@@ -235,4 +235,14 @@ public class ViajeController {
                 java.time.LocalDateTime fechaDateTime = java.time.LocalDateTime.parse(fecha);
                 return ResponseEntity.ok(service.findViajesByUsuarioAndFecha(usuarioId, fechaDateTime));
         }
+
+        @Operation(summary = "Obtener viajes por comunidad", description = "Retorna los viajes asociados a una comunidad específica")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Lista de viajes de la comunidad")
+        })
+        @GetMapping("/comunidad/{comunidadId}")
+        public ResponseEntity<List<Viaje>> findByComunidadId(
+                        @Parameter(description = "ID de la comunidad", required = true, example = "1") @PathVariable @NonNull Long comunidadId) {
+                return ResponseEntity.ok(service.findByComunidadId(comunidadId));
+        }
 }

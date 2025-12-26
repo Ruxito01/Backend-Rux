@@ -116,4 +116,12 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
                         @Param("usuarioId") Long usuarioId,
                         @Param("fechaInicioDia") LocalDateTime fechaInicioDia,
                         @Param("fechaFinDia") LocalDateTime fechaFinDia);
+
+        /**
+         * Obtiene todos los viajes asociados a una comunidad específica.
+         * 
+         * @param comunidadId ID de la comunidad
+         * @return Lista de viajes de la comunidad
+         */
+        List<Viaje> findByComunidad_Id(Long comunidadId);
 }

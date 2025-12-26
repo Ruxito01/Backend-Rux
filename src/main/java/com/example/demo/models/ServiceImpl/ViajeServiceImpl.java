@@ -309,4 +309,10 @@ public class ViajeServiceImpl implements IViajeService {
 
         return dao.findViajesByUsuarioAndFecha(usuarioId, fechaInicioDia, fechaFinDia);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Viaje> findByComunidadId(Long comunidadId) {
+        return dao.findByComunidad_Id(comunidadId);
+    }
 }

@@ -96,6 +96,7 @@ public class Viaje implements Serializable {
 
     // Relación uno a muchos con ParticipanteViaje (participantes con estado)
     @OneToMany(mappedBy = "viaje", cascade = CascadeType.ALL, orphanRemoval = true)
+    @org.hibernate.annotations.BatchSize(size = 50)
     @JsonIgnoreProperties("viaje")
     @lombok.ToString.Exclude
     @lombok.EqualsAndHashCode.Exclude

@@ -26,6 +26,8 @@ public class Viaje implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "ruta_id", nullable = false)
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Ruta ruta;
 
     @ManyToOne
@@ -40,6 +42,8 @@ public class Viaje implements Serializable {
     @ManyToOne
     @JoinColumn(name = "comunidad_id")
     @JsonIgnoreProperties({ "miembros", "creador" })
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Comunidad comunidad;
 
     /**

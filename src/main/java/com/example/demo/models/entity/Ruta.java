@@ -26,6 +26,8 @@ public class Ruta implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "creador_id", nullable = false)
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Usuario creador;
 
     /**
@@ -34,6 +36,8 @@ public class Ruta implements Serializable {
      */
     @ManyToOne
     @JoinColumn(name = "comunidad_id")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Comunidad comunidad;
 
     @Column(nullable = false)

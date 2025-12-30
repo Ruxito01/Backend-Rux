@@ -69,7 +69,6 @@ public class RutaServiceImpl implements IRutaService {
     @Override
     @Transactional(readOnly = true)
     public List<Ruta> findAllWithRelations() {
-        List<Ruta> rutas = rutaDao.findAllWithRelations();
-        return new java.util.ArrayList<>(new java.util.LinkedHashSet<>(rutas));
+        return rutaDao.findAllWithRelations();
     }
 }

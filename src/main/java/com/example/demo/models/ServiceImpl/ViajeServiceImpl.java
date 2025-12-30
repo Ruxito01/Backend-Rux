@@ -326,6 +326,10 @@ public class ViajeServiceImpl implements IViajeService {
     @Override
     @Transactional(readOnly = true)
     public List<Viaje> findAllWithRelations() {
-        return dao.findAllWithRelations();
+        List<Viaje> viajes = dao.findAllWithRelations();
+        // Deduplicar en memoria usando LinkedHashSet (preserva el orden)
+        // Necesario porque quitamos DISTINCT de la query para evitar problemas con
+        // campos TEXT
+        return new java.util.ArrayList<>(new java.util.LinkedHashSet<>(viajes));
     }
 }

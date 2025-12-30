@@ -11,7 +11,7 @@ public interface IRutaDao extends JpaRepository<Ruta, Long> {
     /**
      * Obtiene todas las rutas con sus relaciones principales cargadas (Creador).
      */
-    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT r FROM Ruta r " +
+    @org.springframework.data.jpa.repository.Query("SELECT r FROM Ruta r " +
             "LEFT JOIN FETCH r.creador " +
             "LEFT JOIN FETCH r.comunidad " +
             "ORDER BY r.nombre ASC")

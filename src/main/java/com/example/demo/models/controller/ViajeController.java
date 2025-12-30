@@ -236,13 +236,23 @@ public class ViajeController {
                 return ResponseEntity.ok(service.findViajesByUsuarioAndFecha(usuarioId, fechaDateTime));
         }
 
-        @Operation(summary = "Obtener viajes por comunidad", description = "Retorna los viajes asociados a una comunidad específica")
+        @Operation(summary = "Obtener viajes de la comunidad", description = "Retorna los viajes asociados a una comunidad específica")
         @ApiResponses(value = {
-                        @ApiResponse(responseCode = "200", description = "Lista de viajes de la comunidad")
+                        @ApiResponse(responseCode = "200", description = "Lista de viajes obtenida exitosamente")
         })
         @GetMapping("/comunidad/{comunidadId}")
         public ResponseEntity<List<Viaje>> findByComunidadId(
                         @Parameter(description = "ID de la comunidad", required = true, example = "1") @PathVariable @NonNull Long comunidadId) {
                 return ResponseEntity.ok(service.findByComunidadId(comunidadId));
+        }
+
+        @Operation(summary = "Obtener viajes recientes", description = "Retorna los viajes de los últimos X días")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Lista de viajes recientes")
+        })
+        @GetMapping("/recientes")
+        public ResponseEntity<List<Viaje>> getRecientes(
+                        @Parameter(description = "Días hacia atrás (default 7)", required = false) @RequestParam(defaultValue = "7") int dias) {
+                return ResponseEntity.ok(service.findRecientes(dias));
         }
 }

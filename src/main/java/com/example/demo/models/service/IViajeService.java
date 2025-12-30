@@ -75,4 +75,12 @@ public interface IViajeService {
      * @return Lista de viajes de la comunidad
      */
     List<Viaje> findByComunidadId(Long comunidadId);
+
+    /**
+     * Busca viajes programados o creados en los últimos X días.
+     * 
+     * @param dias Cantidad de días hacia atrás
+     * @return Lista de viajes recientes
+     */
+    List<Viaje> findRecientes(int dias);
 }

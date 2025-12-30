@@ -90,4 +90,13 @@ public class VehiculoController {
             @Parameter(description = "ID del usuario", required = true, example = "1") @PathVariable @NonNull Long usuarioId) {
         return ResponseEntity.ok(service.findByUsuarioId(usuarioId));
     }
+
+    @Operation(summary = "Obtener conteo de vehículos por tipo", description = "Retorna la cantidad de vehículos agrupados por tipo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Conteo obtenido exitosamente")
+    })
+    @GetMapping("/conteo-tipos")
+    public ResponseEntity<List<java.util.Map<String, Object>>> getConteoPorTipo() {
+        return ResponseEntity.ok(service.getConteoPorTipo());
+    }
 }

@@ -315,4 +315,11 @@ public class ViajeServiceImpl implements IViajeService {
     public List<Viaje> findByComunidadId(Long comunidadId) {
         return dao.findByComunidad_Id(comunidadId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Viaje> findRecientes(int dias) {
+        java.time.LocalDateTime fechaLimite = java.time.LocalDateTime.now().minusDays(dias);
+        return dao.findByFechaProgramadaAfterOrderByFechaProgramadaDesc(fechaLimite);
+    }
 }

@@ -16,4 +16,11 @@ public interface IVehiculoDao extends JpaRepository<Vehiculo, Long> {
      * Cuenta vehiculos por tipo de vehiculo (para validar eliminacion de tipos)
      */
     long countByTipoVehiculo_Id(Long tipoVehiculoId);
+
+    /**
+     * Obtiene el conteo de vehiculos agrupados por nombre de tipo.
+     * Retorna lista de arrays Object[] donde [0]=nombreTipo, [1]=cantidad.
+     */
+    @org.springframework.data.jpa.repository.Query("SELECT v.tipoVehiculo.nombre, COUNT(v) FROM Vehiculo v GROUP BY v.tipoVehiculo.nombre")
+    List<Object[]> countVehiculosGroupByTipo();
 }

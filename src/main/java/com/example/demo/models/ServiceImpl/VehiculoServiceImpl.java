@@ -44,4 +44,22 @@ public class VehiculoServiceImpl implements IVehiculoService {
     public List<Vehiculo> findByUsuarioId(Long usuarioId) {
         return vehiculoDao.findByUsuarioId(usuarioId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<java.util.Map<String, Object>> getConteoPorTipo() {
+        List<Object[]> resultados = vehiculoDao.countVehiculosGroupByTipo();
+
+        // Transformar List<Object[]> a List<Map<String, Object>> para JSON
+        List<java.util.Map<String, Object>> response = new java.util.ArrayList<>();
+
+        for (Object[] fila : resultados) {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("tipo", fila[0]); // Nombre del tipo
+            map.put("cantidad", fila[1]); // Conteo
+            response.add(map);
+        }
+
+        return response;
+    }
 }

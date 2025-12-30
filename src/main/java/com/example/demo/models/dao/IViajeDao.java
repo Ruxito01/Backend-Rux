@@ -124,4 +124,13 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
          * @return Lista de viajes de la comunidad
          */
         List<Viaje> findByComunidad_Id(Long comunidadId);
+
+        /**
+         * Busca viajes programados o creados después de una fecha específica.
+         * Útil para dashboards de "últimos X días".
+         * 
+         * @param fecha Fecha de corte
+         * @return Lista de viajes recientes
+         */
+        List<Viaje> findByFechaProgramadaAfterOrderByFechaProgramadaDesc(LocalDateTime fecha);
 }

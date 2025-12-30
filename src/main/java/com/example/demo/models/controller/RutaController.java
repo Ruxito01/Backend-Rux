@@ -28,7 +28,8 @@ public class RutaController {
     @ApiResponse(responseCode = "200", description = "Lista de rutas obtenida exitosamente")
     @GetMapping
     public ResponseEntity<List<Ruta>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+        // Optimizado: Carga EAGER con JOIN FETCH para evitar N+1
+        return ResponseEntity.ok(service.findAllWithRelations());
     }
 
     @Operation(summary = "Obtener ruta por ID", description = "Retorna una ruta específica según su ID")

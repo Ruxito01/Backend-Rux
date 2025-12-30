@@ -28,7 +28,8 @@ public class ViajeController {
         @ApiResponse(responseCode = "200", description = "Lista de viajes obtenida exitosamente")
         @GetMapping
         public ResponseEntity<List<Viaje>> findAll() {
-                return ResponseEntity.ok(service.findAll());
+                // USAR VERSIÓN OPTIMIZADA: Carga relaciones en 1 sola query (evita N+1)
+                return ResponseEntity.ok(service.findAllWithRelations());
         }
 
         @Operation(summary = "Obtener viaje por ID", description = "Retorna un viaje específico según su ID")

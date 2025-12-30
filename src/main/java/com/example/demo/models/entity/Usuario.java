@@ -67,6 +67,9 @@ public class Usuario implements Serializable {
         @Column(name = "fcm_token")
         private String fcmToken; // Token de Firebase Cloud Messaging para notificaciones push
 
+        @Transient
+        private boolean enRuta; // Campo calculado no persistido: true si el usuario está en un viaje activo
+
         // Relación muchos a muchos con Logros
         @ManyToMany(fetch = FetchType.LAZY, cascade = {
                         CascadeType.PERSIST,

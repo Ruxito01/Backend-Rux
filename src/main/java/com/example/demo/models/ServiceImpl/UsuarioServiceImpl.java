@@ -14,6 +14,9 @@ import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.entity.Logro;
 import com.example.demo.models.entity.MiembroComunidad;
+import com.example.demo.models.dao.IParticipanteViajeDao;
+import com.example.demo.models.entity.EstadoParticipante;
+import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.service.IUsuarioService;
 
 @Service
@@ -31,10 +34,25 @@ public class UsuarioServiceImpl implements IUsuarioService {
     @Autowired
     private IMiembroComunidadDao miembroComunidadDao;
 
+    @Autowired
+    private IParticipanteViajeDao participanteViajeDao;
+
     @Override
     @Transactional(readOnly = true)
     public List<Usuario> findAll() {
-        return usuarioDao.findAll();
+        List<Usuario> usuarios = usuarioDao.findAll();
+
+        // Obtener IDs de usuarios que están en un viaje "ingresa" (en curso)
+        List<Long> usuariosEnRuta = participanteViajeDao.findUsuarioIdsByEstado(EstadoParticipante.ingresa);
+
+        // Marcar el flag transitorio enRuta
+        for (Usuario u : usuarios) {
+            if (usuariosEnRuta.contains(u.getId())) {
+                u.setEnRuta(true);
+            }
+        }
+
+        return usuarios;
     }
 
     @Override

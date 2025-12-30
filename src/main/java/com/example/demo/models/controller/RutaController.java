@@ -36,6 +36,11 @@ public class RutaController {
             @ApiResponse(responseCode = "200", description = "Ruta encontrada", content = @Content(schema = @Schema(implementation = Ruta.class))),
             @ApiResponse(responseCode = "404", description = "Ruta no encontrada")
     })
+    @GetMapping("/resumen")
+    public List<com.example.demo.models.dto.RutaResumenDTO> indexResumen() {
+        return rutaService.findAllResumen();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Ruta> findById(
             @Parameter(description = "ID de la ruta a buscar", required = true, example = "1") @PathVariable @NonNull Long id) {

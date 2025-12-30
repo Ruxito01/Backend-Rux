@@ -36,6 +36,11 @@ public class ViajeController {
                         @ApiResponse(responseCode = "200", description = "Viaje encontrado", content = @Content(schema = @Schema(implementation = Viaje.class))),
                         @ApiResponse(responseCode = "404", description = "Viaje no encontrado")
         })
+        @GetMapping("/resumen")
+        public List<com.example.demo.models.dto.ViajeResumenDTO> indexResumen() {
+                return viajeService.findAllResumen();
+        }
+
         @GetMapping("/{id}")
         public ResponseEntity<Viaje> findById(
                         @Parameter(description = "ID del viaje a buscar", required = true, example = "1") @PathVariable @NonNull Long id) {

@@ -133,4 +133,12 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
          * @return Lista de viajes recientes
          */
         List<Viaje> findByFechaProgramadaAfterOrderByFechaProgramadaDesc(LocalDateTime fecha);
+
+        @org.springframework.data.jpa.repository.Query("SELECT new com.example.demo.models.dto.ViajeResumenDTO(" +
+                        "v.id, v.codigoInvitacion, v.estado, v.fechaProgramada, v.fechaCreacion, " +
+                        "v.ruta.id, v.ruta.nombre, v.ruta.latitudInicio, v.ruta.longitudInicio, " +
+                        "v.organizador.id, v.organizador.nombre, v.organizador.apellido, " +
+                        "(SELECT COUNT(p) FROM ParticipanteViaje p WHERE p.viaje.id = v.id)) " +
+                        "FROM Viaje v")
+        List<com.example.demo.models.dto.ViajeResumenDTO> findAllResumen();
 }

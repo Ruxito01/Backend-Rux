@@ -322,4 +322,10 @@ public class ViajeServiceImpl implements IViajeService {
         java.time.LocalDateTime fechaLimite = java.time.LocalDateTime.now().minusDays(dias);
         return dao.findByFechaProgramadaAfterOrderByFechaProgramadaDesc(fechaLimite);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.example.demo.models.dto.ViajeResumenDTO> findAllResumen() {
+        return dao.findAllResumen();
+    }
 }

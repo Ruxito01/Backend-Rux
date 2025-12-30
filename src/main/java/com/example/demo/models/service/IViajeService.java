@@ -83,4 +83,6 @@ public interface IViajeService {
      * @return Lista de viajes recientes
      */
     List<Viaje> findRecientes(int dias);
+
+    List<com.example.demo.models.dto.ViajeResumenDTO> findAllResumen();
 }

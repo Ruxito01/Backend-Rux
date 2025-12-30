@@ -65,4 +65,10 @@ public class RutaServiceImpl implements IRutaService {
     public List<Ruta> findByComunidadId(Long comunidadId) {
         return rutaDao.findByComunidad_Id(comunidadId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.example.demo.models.dto.RutaResumenDTO> findAllResumen() {
+        return rutaDao.findAllResumen();
+    }
 }

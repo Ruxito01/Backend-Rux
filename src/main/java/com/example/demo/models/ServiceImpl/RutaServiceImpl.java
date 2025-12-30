@@ -68,7 +68,7 @@ public class RutaServiceImpl implements IRutaService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<com.example.demo.models.dto.RutaResumenDTO> findAllResumen() {
-        return rutaDao.findAllResumen();
+    public List<Ruta> findAllWithRelations() {
+        return rutaDao.findAllWithRelations();
     }
 }

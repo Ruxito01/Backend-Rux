@@ -134,11 +134,17 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
          */
         List<Viaje> findByFechaProgramadaAfterOrderByFechaProgramadaDesc(LocalDateTime fecha);
 
-        @org.springframework.data.jpa.repository.Query("SELECT new com.example.demo.models.dto.ViajeResumenDTO(" +
-                        "v.id, v.codigoInvitacion, v.estado, v.fechaProgramada, v.fechaCreacion, " +
-                        "v.ruta.id, v.ruta.nombre, v.ruta.latitudInicio, v.ruta.longitudInicio, " +
-                        "v.organizador.id, v.organizador.nombre, v.organizador.apellido, " +
-                        "(SELECT COUNT(p) FROM ParticipanteViaje p WHERE p.viaje.id = v.id)) " +
-                        "FROM Viaje v")
-        List<com.example.demo.models.dto.ViajeResumenDTO> findAllResumen();
+        /**
+         * Obtiene todos los viajes con sus relaciones principales cargadas en una sola
+         * consulta
+         * para evitar el problema N+1 en dashboards.
+         * Carga: Ruta, Organizador, Comunidad, Participantes.
+         */
+        @org.springframework.data.jpa.repository.Query("SELECT DISTINCT v FROM Viaje v " +
+                        "LEFT JOIN FETCH v.ruta " +
+                        "LEFT JOIN FETCH v.organizador " +
+                        "LEFT JOIN FETCH v.comunidad " +
+                        "LEFT JOIN FETCH v.participantes " +
+                        "ORDER BY v.fechaProgramada DESC")
+        List<Viaje> findAllWithRelations();
 }

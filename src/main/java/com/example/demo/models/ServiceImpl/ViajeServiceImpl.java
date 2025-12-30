@@ -325,7 +325,7 @@ public class ViajeServiceImpl implements IViajeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<com.example.demo.models.dto.ViajeResumenDTO> findAllResumen() {
-        return dao.findAllResumen();
+    public List<Viaje> findAllWithRelations() {
+        return dao.findAllWithRelations();
     }
 }

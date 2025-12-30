@@ -6,8 +6,6 @@ import java.util.List;
 public interface IRutaService {
     List<Ruta> findAll();
 
-    List<com.example.demo.models.dto.RutaResumenDTO> findAllResumen();
-
     Ruta findById(Long id);
 
     Ruta save(Ruta entity);
@@ -15,4 +13,6 @@ public interface IRutaService {
     void deleteById(Long id);
 
     List<Ruta> findByComunidadId(Long comunidadId);
+
+    List<Ruta> findAllWithRelations();
 }

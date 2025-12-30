@@ -84,5 +84,8 @@ public interface IViajeService {
      */
     List<Viaje> findRecientes(int dias);
 
-    List<com.example.demo.models.dto.ViajeResumenDTO> findAllResumen();
+    /**
+     * Obtiene todos los viajes optimizados para dashboard.
+     */
+    List<Viaje> findAllWithRelations();
 }

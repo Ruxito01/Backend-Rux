@@ -36,11 +36,6 @@ public class RutaController {
             @ApiResponse(responseCode = "200", description = "Ruta encontrada", content = @Content(schema = @Schema(implementation = Ruta.class))),
             @ApiResponse(responseCode = "404", description = "Ruta no encontrada")
     })
-    @GetMapping("/resumen")
-    public List<com.example.demo.models.dto.RutaResumenDTO> indexResumen() {
-        return rutaService.findAllResumen();
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<Ruta> findById(
             @Parameter(description = "ID de la ruta a buscar", required = true, example = "1") @PathVariable @NonNull Long id) {
@@ -95,5 +90,11 @@ public class RutaController {
     public ResponseEntity<List<Ruta>> findByComunidad(
             @Parameter(description = "ID de la comunidad", required = true, example = "1") @PathVariable @NonNull Long comunidadId) {
         return ResponseEntity.ok(service.findByComunidadId(comunidadId));
+    }
+
+    @Operation(summary = "Obtener rutas para Dashboard", description = "Retorna todas las rutas con sus relaciones (Creador, Comunidad) cargadas EAGERly para evitar N+1")
+    @GetMapping("/dashboard")
+    public ResponseEntity<List<Ruta>> findAllForDashboard() {
+        return ResponseEntity.ok(service.findAllWithRelations());
     }
 }

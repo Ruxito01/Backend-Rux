@@ -34,25 +34,19 @@ public class UsuarioServiceImpl implements IUsuarioService {
     @Override
     @Transactional(readOnly = true)
     public List<Usuario> findAll() {
-        List<Usuario> usuarios = usuarioDao.findAll();
-        usuarios.forEach(this::calcularEnRuta);
-        return usuarios;
+        return usuarioDao.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Usuario> findById(Long id) {
-        Optional<Usuario> usuario = usuarioDao.findById(id);
-        usuario.ifPresent(this::calcularEnRuta);
-        return usuario;
+        return usuarioDao.findById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Usuario> findByEmail(String email) {
-        Optional<Usuario> usuario = usuarioDao.findByEmail(email);
-        usuario.ifPresent(this::calcularEnRuta);
-        return usuario;
+        return usuarioDao.findByEmail(email);
     }
 
     @Override
@@ -146,15 +140,6 @@ public class UsuarioServiceImpl implements IUsuarioService {
             Usuario usuario = usuarioOpt.get();
             usuario.setUltimaActividad(java.time.LocalDateTime.now());
             usuarioDao.save(usuario);
-        }
-    }
-
-    // Helper para verificar si el usuario está en ruta
-    private void calcularEnRuta(Usuario usuario) {
-        if (usuario.getViajesParticipados() != null) {
-            boolean enRuta = usuario.getViajesParticipados().stream()
-                    .anyMatch(p -> com.example.demo.models.entity.EstadoParticipante.ingresa.equals(p.getEstado()));
-            usuario.setEnRuta(enRuta);
         }
     }
 }

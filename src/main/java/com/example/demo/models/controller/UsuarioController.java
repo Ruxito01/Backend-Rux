@@ -115,9 +115,6 @@ public class UsuarioController {
             if (usuario.getFcmToken() != null) {
                 usuarioDB.setFcmToken(usuario.getFcmToken());
             }
-            if (usuario.getUltimaActividad() != null) {
-                usuarioDB.setUltimaActividad(usuario.getUltimaActividad());
-            }
             return new ResponseEntity<>(usuarioService.save(usuarioDB), HttpStatus.OK);
         }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

@@ -14,9 +14,6 @@ import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.entity.Logro;
 import com.example.demo.models.entity.MiembroComunidad;
-import com.example.demo.models.dao.IParticipanteViajeDao;
-import com.example.demo.models.entity.EstadoParticipante;
-import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.service.IUsuarioService;
 
 @Service
@@ -34,37 +31,28 @@ public class UsuarioServiceImpl implements IUsuarioService {
     @Autowired
     private IMiembroComunidadDao miembroComunidadDao;
 
-    @Autowired
-    private IParticipanteViajeDao participanteViajeDao;
-
     @Override
     @Transactional(readOnly = true)
     public List<Usuario> findAll() {
         List<Usuario> usuarios = usuarioDao.findAll();
-
-        // Obtener IDs de usuarios que están en un viaje "ingresa" (en curso)
-        List<Long> usuariosEnRuta = participanteViajeDao.findUsuarioIdsByEstado(EstadoParticipante.ingresa);
-
-        // Marcar el flag transitorio enRuta
-        for (Usuario u : usuarios) {
-            if (usuariosEnRuta.contains(u.getId())) {
-                u.setEnRuta(true);
-            }
-        }
-
+        usuarios.forEach(this::calcularEnRuta);
         return usuarios;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Usuario> findById(Long id) {
-        return usuarioDao.findById(id);
+        Optional<Usuario> usuario = usuarioDao.findById(id);
+        usuario.ifPresent(this::calcularEnRuta);
+        return usuario;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Usuario> findByEmail(String email) {
-        return usuarioDao.findByEmail(email);
+        Optional<Usuario> usuario = usuarioDao.findByEmail(email);
+        usuario.ifPresent(this::calcularEnRuta);
+        return usuario;
     }
 
     @Override
@@ -158,6 +146,15 @@ public class UsuarioServiceImpl implements IUsuarioService {
             Usuario usuario = usuarioOpt.get();
             usuario.setUltimaActividad(java.time.LocalDateTime.now());
             usuarioDao.save(usuario);
+        }
+    }
+
+    // Helper para verificar si el usuario está en ruta
+    private void calcularEnRuta(Usuario usuario) {
+        if (usuario.getViajesParticipados() != null) {
+            boolean enRuta = usuario.getViajesParticipados().stream()
+                    .anyMatch(p -> com.example.demo.models.entity.EstadoParticipante.ingresa.equals(p.getEstado()));
+            usuario.setEnRuta(enRuta);
         }
     }
 }

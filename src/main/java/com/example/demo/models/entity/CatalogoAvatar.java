@@ -33,11 +33,18 @@ public class CatalogoAvatar implements Serializable {
     private String descripcion;
 
     /**
-     * Ruta del asset en Flutter para el modelo 3D o imagen.
-     * Ej: "assets/models/avatars/mech.glb"
+     * URL del modelo 3D (.glb) almacenado en Supabase Storage.
+     * Bucket: "avatares"
      */
-    @Column(name = "ruta_asset_flutter")
-    private String rutaAssetFlutter;
+    @Column(name = "url_modelo_3d")
+    private String urlModelo3d;
+
+    /**
+     * URL de imagen preview del avatar (PNG/JPG) para mostrar en listas.
+     * Opcional - permite cargar una miniatura sin cargar el modelo 3D completo.
+     */
+    @Column(name = "url_preview")
+    private String urlPreview;
 
     /**
      * Indica si el avatar es premium (requiere compra o logro especial)

@@ -194,7 +194,7 @@ public class UsuarioController {
 
     @Operation(summary = "Agregar un avatar gratuito a la colección del usuario")
     @PostMapping("/{usuarioId}/avatares/{avatarId}")
-    public ResponseEntity<Usuario> agregarAvatar(
+    public ResponseEntity<?> agregarAvatar(
             @PathVariable Long usuarioId,
             @PathVariable Long avatarId) {
         // Verificar que el avatar no sea premium
@@ -206,17 +206,29 @@ public class UsuarioController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN); // No se pueden obtener avatares premium
         }
         return usuarioService.agregarAvatar(usuarioId, avatarId)
-                .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
+                .map(usuario -> {
+                    java.util.Map<String, Object> response = new java.util.HashMap<>();
+                    response.put("mensaje", "Avatar agregado a la colección");
+                    response.put("usuarioId", usuario.getId());
+                    response.put("avatarId", avatarId);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                })
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @Operation(summary = "Establecer el avatar activo del usuario")
     @PutMapping("/{usuarioId}/avatar-activo/{avatarId}")
-    public ResponseEntity<Usuario> establecerAvatarActivo(
+    public ResponseEntity<?> establecerAvatarActivo(
             @PathVariable Long usuarioId,
             @PathVariable Long avatarId) {
         return usuarioService.establecerAvatarActivo(usuarioId, avatarId)
-                .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
+                .map(usuario -> {
+                    java.util.Map<String, Object> response = new java.util.HashMap<>();
+                    response.put("mensaje", "Avatar activo actualizado");
+                    response.put("usuarioId", usuario.getId());
+                    response.put("avatarId", avatarId);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                })
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }

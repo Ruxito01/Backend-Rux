@@ -67,6 +67,12 @@ public class Usuario implements Serializable {
         @Column(name = "fcm_token")
         private String fcmToken; // Token de Firebase Cloud Messaging para notificaciones push
 
+        // Avatar activo seleccionado por el usuario (de su colección)
+        @ManyToOne(fetch = FetchType.EAGER)
+        @JoinColumn(name = "avatar_activo_id")
+        @JsonIgnoreProperties({ "usuarios", "descripcion" })
+        private CatalogoAvatar avatarActivo;
+
         // Relación muchos a muchos con Logros
         @ManyToMany(fetch = FetchType.LAZY, cascade = {
                         CascadeType.PERSIST,

@@ -1,8 +1,10 @@
 package com.example.demo.models.controller;
 
+import com.example.demo.models.entity.CatalogoAvatar;
 import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Logro;
 import com.example.demo.models.entity.Usuario;
+import com.example.demo.models.service.ICatalogoAvatarService;
 import com.example.demo.models.service.IUsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +24,9 @@ public class UsuarioController {
 
     @Autowired
     private IUsuarioService usuarioService;
+
+    @Autowired
+    private ICatalogoAvatarService avatarService;
 
     @Operation(summary = "Obtener todos los usuarios")
     @GetMapping
@@ -174,5 +179,44 @@ public class UsuarioController {
             usuario.setFcmToken(fcmToken);
             return new ResponseEntity<>(usuarioService.save(usuario), HttpStatus.OK);
         }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // ========== ENDPOINTS DE AVATARES ==========
+
+    @Operation(summary = "Obtener la colección de avatares del usuario")
+    @GetMapping("/{id}/avatares")
+    public ResponseEntity<Set<CatalogoAvatar>> getAvatares(@PathVariable Long id) {
+        Set<CatalogoAvatar> avatares = usuarioService.getAvataresByUsuarioId(id);
+        return avatares != null
+                ? new ResponseEntity<>(avatares, HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @Operation(summary = "Agregar un avatar gratuito a la colección del usuario")
+    @PostMapping("/{usuarioId}/avatares/{avatarId}")
+    public ResponseEntity<Usuario> agregarAvatar(
+            @PathVariable Long usuarioId,
+            @PathVariable Long avatarId) {
+        // Verificar que el avatar no sea premium
+        CatalogoAvatar avatar = avatarService.findById(avatarId);
+        if (avatar == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (Boolean.TRUE.equals(avatar.getEsPremium())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN); // No se pueden obtener avatares premium
+        }
+        return usuarioService.agregarAvatar(usuarioId, avatarId)
+                .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @Operation(summary = "Establecer el avatar activo del usuario")
+    @PutMapping("/{usuarioId}/avatar-activo/{avatarId}")
+    public ResponseEntity<Usuario> establecerAvatarActivo(
+            @PathVariable Long usuarioId,
+            @PathVariable Long avatarId) {
+        return usuarioService.establecerAvatarActivo(usuarioId, avatarId)
+                .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }

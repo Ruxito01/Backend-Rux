@@ -1,5 +1,6 @@
 package com.example.demo.models.service;
 
+import com.example.demo.models.entity.CatalogoAvatar;
 import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Logro;
 import com.example.demo.models.entity.Usuario;
@@ -31,4 +32,15 @@ public interface IUsuarioService {
 
     // Actualizar última actividad del usuario
     void actualizarUltimaActividad(Long usuarioId);
+
+    // ========== MÉTODOS DE AVATARES ==========
+
+    // Obtener la colección de avatares del usuario
+    Set<CatalogoAvatar> getAvataresByUsuarioId(Long usuarioId);
+
+    // Agregar un avatar a la colección del usuario
+    Optional<Usuario> agregarAvatar(Long usuarioId, Long avatarId);
+
+    // Establecer el avatar activo del usuario
+    Optional<Usuario> establecerAvatarActivo(Long usuarioId, Long avatarId);
 }

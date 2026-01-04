@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.models.dao.IUsuarioDao;
 import com.example.demo.models.dao.ILogroDao;
 import com.example.demo.models.dao.IComunidadDao;
+import com.example.demo.models.dao.ICatalogoAvatarDao;
 import com.example.demo.models.dao.IMiembroComunidadDao;
+import com.example.demo.models.entity.CatalogoAvatar;
 import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.entity.Logro;
@@ -30,6 +32,9 @@ public class UsuarioServiceImpl implements IUsuarioService {
 
     @Autowired
     private IMiembroComunidadDao miembroComunidadDao;
+
+    @Autowired
+    private ICatalogoAvatarDao avatarDao;
 
     @Override
     @Transactional(readOnly = true)
@@ -141,5 +146,54 @@ public class UsuarioServiceImpl implements IUsuarioService {
             usuario.setUltimaActividad(java.time.LocalDateTime.now());
             usuarioDao.save(usuario);
         }
+    }
+
+    // ========== MÉTODOS DE AVATARES ==========
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<CatalogoAvatar> getAvataresByUsuarioId(Long usuarioId) {
+        Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            Set<CatalogoAvatar> avatares = usuario.getAvatares();
+            avatares.size(); // Inicializar la colección lazy
+            return avatares;
+        }
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public Optional<Usuario> agregarAvatar(Long usuarioId, Long avatarId) {
+        Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
+        Optional<CatalogoAvatar> avatarOpt = avatarDao.findById(avatarId);
+
+        if (usuarioOpt.isPresent() && avatarOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            CatalogoAvatar avatar = avatarOpt.get();
+            usuario.getAvatares().add(avatar);
+            return Optional.of(usuarioDao.save(usuario));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    @Transactional
+    public Optional<Usuario> establecerAvatarActivo(Long usuarioId, Long avatarId) {
+        Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
+        Optional<CatalogoAvatar> avatarOpt = avatarDao.findById(avatarId);
+
+        if (usuarioOpt.isPresent() && avatarOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            CatalogoAvatar avatar = avatarOpt.get();
+
+            // Verificar que el usuario tenga el avatar en su colección
+            if (usuario.getAvatares().contains(avatar)) {
+                usuario.setAvatarActivo(avatar);
+                return Optional.of(usuarioDao.save(usuario));
+            }
+        }
+        return Optional.empty();
     }
 }

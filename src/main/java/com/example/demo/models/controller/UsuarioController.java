@@ -185,11 +185,24 @@ public class UsuarioController {
 
     @Operation(summary = "Obtener la colección de avatares del usuario")
     @GetMapping("/{id}/avatares")
-    public ResponseEntity<Set<CatalogoAvatar>> getAvatares(@PathVariable Long id) {
+    public ResponseEntity<?> getAvatares(@PathVariable Long id) {
         Set<CatalogoAvatar> avatares = usuarioService.getAvataresByUsuarioId(id);
-        return avatares != null
-                ? new ResponseEntity<>(avatares, HttpStatus.OK)
-                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (avatares == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        // Convertir a lista de Maps simples para evitar problemas de serialización
+        java.util.List<java.util.Map<String, Object>> listaAvatares = new java.util.ArrayList<>();
+        for (CatalogoAvatar avatar : avatares) {
+            java.util.Map<String, Object> avatarMap = new java.util.HashMap<>();
+            avatarMap.put("id", avatar.getId());
+            avatarMap.put("nombre", avatar.getNombre());
+            avatarMap.put("descripcion", avatar.getDescripcion());
+            avatarMap.put("urlModelo3d", avatar.getUrlModelo3d());
+            avatarMap.put("urlPreview", avatar.getUrlPreview());
+            avatarMap.put("esPremium", avatar.getEsPremium());
+            listaAvatares.add(avatarMap);
+        }
+        return new ResponseEntity<>(listaAvatares, HttpStatus.OK);
     }
 
     @Operation(summary = "Agregar un avatar gratuito a la colección del usuario")

@@ -186,9 +186,10 @@ public class UsuarioController {
     @Operation(summary = "Obtener la colección de avatares del usuario")
     @GetMapping("/{id}/avatares")
     public ResponseEntity<?> getAvatares(@PathVariable Long id) {
-        Set<CatalogoAvatar> avatares = usuarioService.getAvataresByUsuarioId(id);
-        if (avatares == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        // Usa query directa para evitar problemas de lazy loading
+        List<CatalogoAvatar> avatares = avatarService.findByUsuarioId(id);
+        if (avatares == null || avatares.isEmpty()) {
+            return new ResponseEntity<>(java.util.Collections.emptyList(), HttpStatus.OK);
         }
         // Convertir a lista de Maps simples para evitar problemas de serialización
         java.util.List<java.util.Map<String, Object>> listaAvatares = new java.util.ArrayList<>();

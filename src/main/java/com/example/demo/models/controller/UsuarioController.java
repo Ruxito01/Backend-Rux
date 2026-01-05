@@ -72,6 +72,16 @@ public class UsuarioController {
             comunidadMap.put("nombre", comunidad.getNombre());
             comunidadMap.put("descripcion", comunidad.getDescripcion());
             comunidadMap.put("urlImagen", comunidad.getUrlImagen());
+            comunidadMap.put("nivelPrivacidad", comunidad.getNivelPrivacidad());
+            comunidadMap.put("fechaCreacion", comunidad.getFechaCreacion());
+            // Agregar creador como objeto simplificado
+            if (comunidad.getCreador() != null) {
+                java.util.Map<String, Object> creadorMap = new java.util.HashMap<>();
+                creadorMap.put("id", comunidad.getCreador().getId());
+                creadorMap.put("nombre", comunidad.getCreador().getNombre());
+                creadorMap.put("apellido", comunidad.getCreador().getApellido());
+                comunidadMap.put("creador", creadorMap);
+            }
             listaComunidades.add(comunidadMap);
         }
         return new ResponseEntity<>(listaComunidades, HttpStatus.OK);

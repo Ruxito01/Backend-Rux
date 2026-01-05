@@ -17,4 +17,9 @@ public interface IComunidadDao extends JpaRepository<Comunidad, Long> {
 
     // Buscar comunidades creadas por un usuario
     List<Comunidad> findByCreador(Usuario creador);
+
+    // Obtener comunidades a las que pertenece un usuario (a través de
+    // miembro_comunidad)
+    @Query("SELECT c FROM Comunidad c JOIN c.miembros m WHERE m.id = :usuarioId")
+    List<Comunidad> findByMiembroId(@Param("usuarioId") Long usuarioId);
 }

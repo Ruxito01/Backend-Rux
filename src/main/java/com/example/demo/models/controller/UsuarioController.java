@@ -31,6 +31,9 @@ public class UsuarioController {
     @Autowired
     private com.example.demo.models.service.ILogroService logroService;
 
+    @Autowired
+    private com.example.demo.models.service.IComunidadService comunidadService;
+
     @Operation(summary = "Obtener todos los usuarios")
     @GetMapping
     public List<Usuario> findAll() {
@@ -55,11 +58,23 @@ public class UsuarioController {
 
     @Operation(summary = "Obtener las comunidades a las que pertenece un usuario")
     @GetMapping("/{id}/comunidades")
-    public ResponseEntity<Set<Comunidad>> getComunidades(@PathVariable Long id) {
-        Set<Comunidad> comunidades = usuarioService.getComunidadesByUsuarioId(id);
-        return comunidades != null
-                ? new ResponseEntity<>(comunidades, HttpStatus.OK)
-                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<?> getComunidades(@PathVariable Long id) {
+        // Usa query directa para evitar problemas de lazy loading
+        java.util.List<com.example.demo.models.entity.Comunidad> comunidades = comunidadService.findByMiembroId(id);
+        if (comunidades == null) {
+            return new ResponseEntity<>(java.util.Collections.emptyList(), HttpStatus.OK);
+        }
+        // Convertir a lista de Maps simples para evitar problemas de serialización
+        java.util.List<java.util.Map<String, Object>> listaComunidades = new java.util.ArrayList<>();
+        for (com.example.demo.models.entity.Comunidad comunidad : comunidades) {
+            java.util.Map<String, Object> comunidadMap = new java.util.HashMap<>();
+            comunidadMap.put("id", comunidad.getId());
+            comunidadMap.put("nombre", comunidad.getNombre());
+            comunidadMap.put("descripcion", comunidad.getDescripcion());
+            comunidadMap.put("imagen", comunidad.getUrlImagen());
+            listaComunidades.add(comunidadMap);
+        }
+        return new ResponseEntity<>(listaComunidades, HttpStatus.OK);
     }
 
     @Operation(summary = "Login de usuario")
@@ -139,9 +154,15 @@ public class UsuarioController {
 
     @Operation(summary = "Asignar un logro a un usuario")
     @PostMapping("/{usuarioId}/logros/{logroId}")
-    public ResponseEntity<Usuario> asignarLogro(@PathVariable Long usuarioId, @PathVariable Long logroId) {
+    public ResponseEntity<?> asignarLogro(@PathVariable Long usuarioId, @PathVariable Long logroId) {
         return usuarioService.asignarLogro(usuarioId, logroId)
-                .map(usuario -> new ResponseEntity<>(usuario, HttpStatus.OK))
+                .map(usuario -> {
+                    java.util.Map<String, Object> response = new java.util.HashMap<>();
+                    response.put("mensaje", "Logro asignado correctamente");
+                    response.put("usuarioId", usuario.getId());
+                    response.put("logroId", logroId);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                })
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 

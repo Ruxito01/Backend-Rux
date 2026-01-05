@@ -49,4 +49,10 @@ public class ComunidadServiceImpl implements IComunidadService {
                 .map(Comunidad::getMiembros)
                 .orElse(null);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Comunidad> findByMiembroId(Long usuarioId) {
+        return comunidadDao.findByMiembroId(usuarioId);
+    }
 }

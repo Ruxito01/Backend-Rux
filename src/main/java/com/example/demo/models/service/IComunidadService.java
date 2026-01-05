@@ -15,4 +15,6 @@ public interface IComunidadService {
     void deleteById(Long id);
 
     Set<Usuario> getMiembrosByComunidadId(Long comunidadId);
+
+    List<Comunidad> findByMiembroId(Long usuarioId); // Comunidades a las que pertenece un usuario
 }

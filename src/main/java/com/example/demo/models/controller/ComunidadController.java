@@ -48,40 +48,43 @@ public class ComunidadController {
 
     @Operation(summary = "Obtener miembros de una comunidad con fecha de unión")
     @GetMapping("/{id}/miembros")
-    public ResponseEntity<List<Map<String, Object>>> getMiembros(@PathVariable Long id) {
-        Set<Usuario> miembros = comunidadService.getMiembrosByComunidadId(id);
-        if (miembros == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<?> getMiembros(@PathVariable Long id) {
+        try {
+            // Verificar que la comunidad existe
+            Comunidad comunidad = comunidadService.findById(id);
+            if (comunidad == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Obtener relaciones desde miembro_comunidad - SOLO ACTIVOS
+            List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id).stream()
+                    .filter(r -> r.getEstado() == null || "activo".equals(r.getEstado()))
+                    .toList();
+
+            // Mapear usuarios con sus fechas de unión
+            List<Map<String, Object>> resultado = new java.util.ArrayList<>();
+            for (MiembroComunidad relacion : relaciones) {
+                // Obtener usuario directamente desde el servicio
+                Usuario usuario = usuarioService.findById(relacion.getUsuario().getId()).orElse(null);
+                if (usuario != null) {
+                    Map<String, Object> miembroData = new java.util.HashMap<>();
+                    miembroData.put("id", usuario.getId());
+                    miembroData.put("nombre", usuario.getNombre());
+                    miembroData.put("apellido", usuario.getApellido());
+                    miembroData.put("alias", usuario.getAlias());
+                    miembroData.put("foto", usuario.getFoto());
+                    miembroData.put("email", usuario.getEmail());
+                    miembroData.put("ultimaActividad", usuario.getUltimaActividad());
+                    miembroData.put("fechaUnion", relacion.getFechaUnion());
+                    resultado.add(miembroData);
+                }
+            }
+
+            return new ResponseEntity<>(resultado, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(java.util.Collections.emptyList(), HttpStatus.OK);
         }
-
-        // Obtener relaciones con fechas de unión - SOLO ACTIVOS (incluyendo null para
-        // compatibilidad)
-        List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id).stream()
-                .filter(r -> r.getEstado() == null || "activo".equals(r.getEstado()))
-                .toList();
-
-        // Mapear usuarios con sus fechas de unión
-        List<Map<String, Object>> resultado = new java.util.ArrayList<>();
-        for (Usuario usuario : miembros) {
-            Map<String, Object> miembroData = new java.util.HashMap<>();
-            miembroData.put("id", usuario.getId());
-            miembroData.put("nombre", usuario.getNombre());
-            miembroData.put("apellido", usuario.getApellido());
-            miembroData.put("alias", usuario.getAlias());
-            miembroData.put("foto", usuario.getFoto());
-            miembroData.put("email", usuario.getEmail());
-            miembroData.put("ultimaActividad", usuario.getUltimaActividad());
-
-            // Buscar fecha de unión
-            relaciones.stream()
-                    .filter(r -> r.getUsuario().getId().equals(usuario.getId()))
-                    .findFirst()
-                    .ifPresent(r -> miembroData.put("fechaUnion", r.getFechaUnion()));
-
-            resultado.add(miembroData);
-        }
-
-        return new ResponseEntity<>(resultado, HttpStatus.OK);
     }
 
     @Operation(summary = "Crear nueva comunidad")

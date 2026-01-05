@@ -71,7 +71,7 @@ public class UsuarioController {
             comunidadMap.put("id", comunidad.getId());
             comunidadMap.put("nombre", comunidad.getNombre());
             comunidadMap.put("descripcion", comunidad.getDescripcion());
-            comunidadMap.put("imagen", comunidad.getUrlImagen());
+            comunidadMap.put("urlImagen", comunidad.getUrlImagen());
             listaComunidades.add(comunidadMap);
         }
         return new ResponseEntity<>(listaComunidades, HttpStatus.OK);

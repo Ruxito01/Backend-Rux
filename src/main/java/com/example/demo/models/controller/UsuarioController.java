@@ -219,15 +219,13 @@ public class UsuarioController {
         if (Boolean.TRUE.equals(avatar.getEsPremium())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN); // No se pueden obtener avatares premium
         }
-        return usuarioService.agregarAvatar(usuarioId, avatarId)
-                .map(usuario -> {
-                    java.util.Map<String, Object> response = new java.util.HashMap<>();
-                    response.put("mensaje", "Avatar agregado a la colección");
-                    response.put("usuarioId", usuario.getId());
-                    response.put("avatarId", avatarId);
-                    return new ResponseEntity<>(response, HttpStatus.OK);
-                })
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        // Usar query nativa para evitar problemas de lazy loading
+        avatarService.insertarEnColeccion(usuarioId, avatarId);
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("mensaje", "Avatar agregado a la colección");
+        response.put("usuarioId", usuarioId);
+        response.put("avatarId", avatarId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @Operation(summary = "Establecer el avatar activo del usuario")

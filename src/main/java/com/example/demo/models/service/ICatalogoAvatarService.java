@@ -13,4 +13,6 @@ public interface ICatalogoAvatarService {
     void deleteById(Long id);
 
     List<CatalogoAvatar> findByUsuarioId(Long usuarioId); // Obtener avatares de un usuario
+
+    void insertarEnColeccion(Long usuarioId, Long avatarId); // Agregar avatar a colección
 }

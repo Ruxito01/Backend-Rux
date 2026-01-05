@@ -45,4 +45,10 @@ public class CatalogoAvatarServiceImpl implements ICatalogoAvatarService {
     public List<CatalogoAvatar> findByUsuarioId(Long usuarioId) {
         return dao.findByUsuarioId(usuarioId);
     }
+
+    @Override
+    @Transactional
+    public void insertarEnColeccion(Long usuarioId, Long avatarId) {
+        dao.insertarEnColeccion(usuarioId, avatarId);
+    }
 }

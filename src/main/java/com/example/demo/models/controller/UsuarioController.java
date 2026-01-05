@@ -28,6 +28,9 @@ public class UsuarioController {
     @Autowired
     private ICatalogoAvatarService avatarService;
 
+    @Autowired
+    private com.example.demo.models.service.ILogroService logroService;
+
     @Operation(summary = "Obtener todos los usuarios")
     @GetMapping
     public List<Usuario> findAll() {
@@ -144,11 +147,24 @@ public class UsuarioController {
 
     @Operation(summary = "Obtener los logros de un usuario")
     @GetMapping("/{id}/logros")
-    public ResponseEntity<Set<Logro>> getLogros(@PathVariable Long id) {
-        Set<Logro> logros = usuarioService.getLogrosByUsuarioId(id);
-        return logros != null
-                ? new ResponseEntity<>(logros, HttpStatus.OK)
-                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<?> getLogros(@PathVariable Long id) {
+        // Usa query directa para evitar problemas de lazy loading
+        java.util.List<com.example.demo.models.entity.Logro> logros = logroService.findByUsuarioId(id);
+        if (logros == null) {
+            return new ResponseEntity<>(java.util.Collections.emptyList(), HttpStatus.OK);
+        }
+        // Convertir a lista de Maps simples para evitar problemas de serialización
+        java.util.List<java.util.Map<String, Object>> listaLogros = new java.util.ArrayList<>();
+        for (com.example.demo.models.entity.Logro logro : logros) {
+            java.util.Map<String, Object> logroMap = new java.util.HashMap<>();
+            logroMap.put("id", logro.getId());
+            logroMap.put("nombre", logro.getNombre());
+            logroMap.put("descripcion", logro.getDescripcion());
+            logroMap.put("urlIcono", logro.getUrlIcono());
+            logroMap.put("criterioDesbloqueo", logro.getCriterioDesbloqueo());
+            listaLogros.add(logroMap);
+        }
+        return new ResponseEntity<>(listaLogros, HttpStatus.OK);
     }
 
     @Operation(summary = "Actualizar el alias de un usuario")

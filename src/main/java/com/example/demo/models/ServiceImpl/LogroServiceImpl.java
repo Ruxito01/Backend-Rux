@@ -38,4 +38,10 @@ public class LogroServiceImpl implements ILogroService {
     public void deleteById(Long id) {
         logroDao.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Logro> findByUsuarioId(Long usuarioId) {
+        return logroDao.findByUsuarioId(usuarioId);
+    }
 }

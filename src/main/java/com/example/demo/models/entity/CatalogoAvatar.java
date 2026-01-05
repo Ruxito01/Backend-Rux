@@ -53,8 +53,9 @@ public class CatalogoAvatar implements Serializable {
     private Boolean esPremium = false;
 
     // Relación muchos a muchos con Usuario
+    // Se usa @JsonIgnore para evitar recursión infinita con avatarActivo
     @ManyToMany(mappedBy = "avatares", fetch = FetchType.LAZY)
-    @JsonIgnoreProperties("avatares")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Set<Usuario> usuarios = new HashSet<>();
 
     private static final long serialVersionUID = 1L;

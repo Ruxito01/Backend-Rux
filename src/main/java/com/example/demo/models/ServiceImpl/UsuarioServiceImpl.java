@@ -188,18 +188,12 @@ public class UsuarioServiceImpl implements IUsuarioService {
             Usuario usuario = usuarioOpt.get();
             CatalogoAvatar avatar = avatarOpt.get();
 
-            // Inicializar la colección lazy (evita LazyInitializationException)
-            Set<CatalogoAvatar> avatares = usuario.getAvatares();
-            avatares.size(); // Forzar carga
-
-            // Si no tiene el avatar en su colección, agregarlo primero
-            if (!avatares.contains(avatar)) {
-                avatares.add(avatar);
-            }
-
-            // Establecer como activo
+            // Establecer como activo directamente (sin verificar colección para evitar lazy
+            // issues)
             usuario.setAvatarActivo(avatar);
-            return Optional.of(usuarioDao.save(usuario));
+            Usuario usuarioGuardado = usuarioDao.save(usuario);
+            usuarioDao.flush(); // Forzar escritura inmediata a la DB
+            return Optional.of(usuarioGuardado);
         }
         return Optional.empty();
     }

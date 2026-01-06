@@ -43,6 +43,14 @@ public class FotoViajeController {
         return entity != null ? ResponseEntity.ok(entity) : ResponseEntity.notFound().build();
     }
 
+    @Operation(summary = "Obtener fotos por viaje", description = "Retorna todas las fotos de un viaje específico")
+    @ApiResponse(responseCode = "200", description = "Lista de fotos del viaje")
+    @GetMapping("/viaje/{viajeId}")
+    public ResponseEntity<List<FotoViaje>> findByViajeId(
+            @Parameter(description = "ID del viaje", required = true, example = "1") @PathVariable @NonNull Long viajeId) {
+        return ResponseEntity.ok(service.findByViajeId(viajeId));
+    }
+
     @Operation(summary = "Crear nueva foto de viaje", description = "Sube una nueva foto asociada a un viaje")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Foto creada exitosamente", content = @Content(schema = @Schema(implementation = FotoViaje.class)))

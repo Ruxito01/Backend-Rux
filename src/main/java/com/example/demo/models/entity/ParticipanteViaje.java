@@ -44,6 +44,24 @@ public class ParticipanteViaje implements Serializable {
     @Column(name = "km_recorridos", precision = 10, scale = 2)
     private java.math.BigDecimal kmRecorridos;
 
+    // ========== TIEMPOS INDIVIDUALES ==========
+
+    // Cuando ESTE participante ingresó al viaje
+    @Column(name = "fecha_inicio_individual")
+    private java.time.LocalDateTime fechaInicioIndividual;
+
+    // Cuando ESTE participante finalizó el viaje
+    @Column(name = "fecha_fin_individual")
+    private java.time.LocalDateTime fechaFinIndividual;
+
+    // Duración en minutos de ESTE participante
+    @Column(name = "tiempo_individual_minutos")
+    private Integer tiempoIndividualMinutos;
+
+    // Velocidad promedio de ESTE participante (km/h)
+    @Column(name = "velocidad_individual", precision = 5, scale = 2)
+    private java.math.BigDecimal velocidadIndividual;
+
     // Constructor helper
     public ParticipanteViaje(Usuario usuario, Viaje viaje, EstadoParticipante estado) {
         this.usuario = usuario;

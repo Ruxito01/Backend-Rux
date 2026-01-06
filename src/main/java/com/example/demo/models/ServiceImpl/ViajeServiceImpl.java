@@ -223,6 +223,11 @@ public class ViajeServiceImpl implements IViajeService {
             // Si el participante ingresa y es el primero en ingresar,
             // guardar fecha_inicio_real y cambiar estado del viaje a en_curso
             if (estadoEnum == com.example.demo.models.entity.EstadoParticipante.ingresa) {
+
+                // Guardar fecha de inicio INDIVIDUAL del participante
+                participante.setFechaInicioIndividual(java.time.LocalDateTime.now());
+                usuarioDao.save(usuario);
+
                 boolean esPrimerIngreso = viaje.getFechaInicioReal() == null;
 
                 if (esPrimerIngreso) {
@@ -230,6 +235,50 @@ public class ViajeServiceImpl implements IViajeService {
                     viaje.setEstado("en_curso");
                     dao.save(viaje);
                 }
+            }
+
+            // Si el participante finaliza, calcular su tiempo individual
+            if (estadoEnum == com.example.demo.models.entity.EstadoParticipante.finaliza) {
+                participante.setFechaFinIndividual(java.time.LocalDateTime.now());
+
+                // Calcular tiempo individual en minutos
+                if (participante.getFechaInicioIndividual() != null) {
+                    long minutos = java.time.Duration.between(
+                            participante.getFechaInicioIndividual(),
+                            participante.getFechaFinIndividual()).toMinutes();
+                    participante.setTiempoIndividualMinutos((int) minutos);
+
+                    // Calcular velocidad individual (km/h)
+                    if (participante.getKmRecorridos() != null && minutos > 0) {
+                        double horas = minutos / 60.0;
+                        double velocidad = participante.getKmRecorridos().doubleValue() / horas;
+                        participante.setVelocidadIndividual(
+                                java.math.BigDecimal.valueOf(velocidad).setScale(2, java.math.RoundingMode.HALF_UP));
+                    }
+
+                    // ========== ACUMULAR ESTADÍSTICAS AL PERFIL DEL USUARIO ==========
+
+                    // Sumar km recorridos al total acumulado del usuario
+                    if (participante.getKmRecorridos() != null) {
+                        java.math.BigDecimal kmActuales = usuario.getKmTotalesAcumulados();
+                        if (kmActuales == null)
+                            kmActuales = java.math.BigDecimal.ZERO;
+                        usuario.setKmTotalesAcumulados(kmActuales.add(participante.getKmRecorridos()));
+                    }
+
+                    // Incrementar contador de viajes completados
+                    Integer viajesActuales = usuario.getViajesTotalesCompletados();
+                    if (viajesActuales == null)
+                        viajesActuales = 0;
+                    usuario.setViajesTotalesCompletados(viajesActuales + 1);
+
+                    // Sumar tiempo de este viaje al tiempo total del usuario
+                    Integer tiempoActual = usuario.getTiempoTotalMovimientoMinutos();
+                    if (tiempoActual == null)
+                        tiempoActual = 0;
+                    usuario.setTiempoTotalMovimientoMinutos(tiempoActual + (int) minutos);
+                }
+                usuarioDao.save(usuario);
             }
 
             // Verificar si TODOS los participantes han salido (cancela o finaliza)
@@ -241,6 +290,14 @@ public class ViajeServiceImpl implements IViajeService {
             if (todosFinalizados) {
                 viaje.setEstado("finalizado");
                 viaje.setFechaFinReal(java.time.LocalDateTime.now());
+
+                // Calcular tiempo total de movimiento en minutos
+                if (viaje.getFechaInicioReal() != null) {
+                    long minutos = java.time.Duration.between(
+                            viaje.getFechaInicioReal(),
+                            viaje.getFechaFinReal()).toMinutes();
+                    viaje.setTiempoTotalMovimientoMinutos((int) minutos);
+                }
 
                 // Calcular promedio de km recorridos y guardarlo en distancia_total_real_km
                 java.math.BigDecimal totalKm = viaje.getParticipantes().stream()
@@ -256,6 +313,28 @@ public class ViajeServiceImpl implements IViajeService {
                             2,
                             java.math.RoundingMode.HALF_UP);
                     viaje.setDistanciaTotalRealKm(promedio);
+
+                    // Calcular velocidad promedio (km/h)
+                    if (viaje.getTiempoTotalMovimientoMinutos() != null
+                            && viaje.getTiempoTotalMovimientoMinutos() > 0) {
+                        double horas = viaje.getTiempoTotalMovimientoMinutos() / 60.0;
+                        double velocidad = promedio.doubleValue() / horas;
+                        viaje.setVelocidadPromedioGrupo(
+                                java.math.BigDecimal.valueOf(velocidad).setScale(2, java.math.RoundingMode.HALF_UP));
+                    }
+                }
+
+                // Calcular TIEMPO PROMEDIO GRUPAL basado en tiempos individuales
+                int sumaTiemposIndividuales = viaje.getParticipantes().stream()
+                        .filter(p -> p.getTiempoIndividualMinutos() != null)
+                        .mapToInt(com.example.demo.models.entity.ParticipanteViaje::getTiempoIndividualMinutos)
+                        .sum();
+                long countTiempos = viaje.getParticipantes().stream()
+                        .filter(p -> p.getTiempoIndividualMinutos() != null)
+                        .count();
+                if (countTiempos > 0) {
+                    int tiempoPromedioGrupo = (int) (sumaTiemposIndividuales / countTiempos);
+                    viaje.setTiempoPromedioGrupoMinutos(tiempoPromedioGrupo);
                 }
 
                 dao.save(viaje);

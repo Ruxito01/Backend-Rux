@@ -86,6 +86,10 @@ public class Viaje implements Serializable {
     @Column(name = "tiempo_total_movimiento_minutos")
     private Integer tiempoTotalMovimientoMinutos;
 
+    // Promedio de tiempos individuales de todos los participantes
+    @Column(name = "tiempo_promedio_grupo_minutos")
+    private Integer tiempoPromedioGrupoMinutos;
+
     // ==========================================
     // REPLAY DEL VIAJE
     // ==========================================

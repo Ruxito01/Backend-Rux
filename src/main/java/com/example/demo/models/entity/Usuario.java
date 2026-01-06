@@ -67,6 +67,20 @@ public class Usuario implements Serializable {
         @Column(name = "fcm_token")
         private String fcmToken; // Token de Firebase Cloud Messaging para notificaciones push
 
+        // ========== ESTADÍSTICAS ACUMULADAS DEL USUARIO ==========
+
+        // Total de kilómetros recorridos en TODOS los viajes (histórico)
+        @Column(name = "km_totales_acumulados", precision = 10, scale = 2)
+        private java.math.BigDecimal kmTotalesAcumulados = java.math.BigDecimal.ZERO;
+
+        // Total de viajes completados (estado: finaliza)
+        @Column(name = "viajes_totales_completados")
+        private Integer viajesTotalesCompletados = 0;
+
+        // Tiempo total en movimiento en todos los viajes (minutos)
+        @Column(name = "tiempo_total_movimiento_minutos")
+        private Integer tiempoTotalMovimientoMinutos = 0;
+
         // Avatar activo seleccionado por el usuario (de su colección)
         @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(name = "avatar_activo_id")

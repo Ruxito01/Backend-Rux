@@ -147,4 +147,15 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
                         "LEFT JOIN FETCH v.participantes " +
                         "ORDER BY v.fechaProgramada DESC")
         List<Viaje> findAllWithRelations();
+
+        /**
+         * Busca viajes por estado en un rango de fechas programadas.
+         * Útil para scheduler de notificaciones.
+         * 
+         * @param estado Estado del viaje (ej: "programado")
+         * @param desde  Fecha inicio del rango
+         * @param hasta  Fecha fin del rango
+         * @return Lista de viajes en el rango
+         */
+        List<Viaje> findByEstadoAndFechaProgramadaBetween(String estado, LocalDateTime desde, LocalDateTime hasta);
 }

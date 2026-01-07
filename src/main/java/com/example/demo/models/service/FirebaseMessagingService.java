@@ -77,4 +77,45 @@ public class FirebaseMessagingService {
             enviarNotificacion(token, titulo, cuerpo, comunidadId);
         }
     }
+
+    /**
+     * Enviar notificación push para recordatorio de viaje
+     * 
+     * @param token            Token FCM del dispositivo
+     * @param titulo           Título de la notificación
+     * @param cuerpo           Cuerpo/mensaje de la notificación
+     * @param viajeId          ID del viaje para navegación
+     * @param tipoRecordatorio Tipo: "dia_anterior" o "1_hora_antes"
+     * @return ID del mensaje si fue exitoso, null si falló
+     */
+    public String enviarNotificacionViaje(String token, String titulo, String cuerpo, Long viajeId,
+            String tipoRecordatorio) {
+        if (token == null || token.isEmpty()) {
+            System.out.println("⚠️ Token FCM vacío, no se puede enviar notificación de viaje");
+            return null;
+        }
+
+        try {
+            Message message = Message.builder()
+                    .setToken(token)
+                    .setNotification(Notification.builder()
+                            .setTitle(titulo)
+                            .setBody(cuerpo)
+                            .build())
+                    .putData("viajeId", viajeId != null ? viajeId.toString() : "")
+                    .putData("type", "trip_reminder")
+                    .putData("tipoRecordatorio", tipoRecordatorio != null ? tipoRecordatorio : "")
+                    .build();
+
+            String response = FirebaseMessaging.getInstance().send(message);
+            System.out.println("✅ Notificación de viaje enviada: " + response);
+            return response;
+        } catch (FirebaseMessagingException e) {
+            System.err.println("❌ Error enviando notificación de viaje: " + e.getMessage());
+            return null;
+        } catch (Exception e) {
+            System.err.println("❌ Error general FCM (viaje): " + e.getMessage());
+            return null;
+        }
+    }
 }

@@ -8,18 +8,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
  * Servicio de tareas programadas para gestión automática de viajes.
  * Cancela automáticamente viajes programados que han excedido el tiempo límite
  * sin que ningún participante haya ingresado.
+ * Configurado para zona horaria de Ecuador (America/Guayaquil)
  */
 @Service
 public class ViajeSchedulerService {
 
     @Autowired
     private IViajeDao viajeDao;
+
+    // Zona horaria de Ecuador
+    private static final ZoneId ECUADOR_ZONE = ZoneId.of("America/Guayaquil");
 
     /**
      * Tarea programada que se ejecuta cada 5 minutos.
@@ -33,8 +39,13 @@ public class ViajeSchedulerService {
     public void cancelarViajesExpirados() {
         System.out.println("⏰ Ejecutando tarea: Cancelar viajes expirados...");
 
-        LocalDateTime ahora = LocalDateTime.now();
+        // Usar zona horaria de Ecuador
+        ZonedDateTime ahoraEcuador = ZonedDateTime.now(ECUADOR_ZONE);
+        LocalDateTime ahora = ahoraEcuador.toLocalDateTime();
         LocalDateTime limiteExpiracion = ahora.minusMinutes(30);
+
+        System.out.println("🕐 Hora actual Ecuador: " + ahora);
+        System.out.println("⏱️ Límite de expiración: " + limiteExpiracion);
 
         // Buscar todos los viajes en estado 'programado'
         List<Viaje> viajesProgramados = viajeDao.findAll().stream()
@@ -42,6 +53,8 @@ public class ViajeSchedulerService {
                 .filter(v -> v.getFechaProgramada() != null)
                 .filter(v -> v.getFechaProgramada().isBefore(limiteExpiracion))
                 .toList();
+
+        System.out.println("🔍 Viajes programados expirados encontrados: " + viajesProgramados.size());
 
         for (Viaje viaje : viajesProgramados) {
             // Verificar si algún participante ya ingresó
@@ -51,7 +64,7 @@ public class ViajeSchedulerService {
             if (!hayIngresado) {
                 // Cancelar el viaje y guardar fecha fin
                 viaje.setEstado("cancelado");
-                viaje.setFechaFinReal(java.time.LocalDateTime.now());
+                viaje.setFechaFinReal(ahora);
 
                 // Cambiar estado de todos los participantes que no ingresaron a 'cancela'
                 viaje.getParticipantes().forEach(p -> {

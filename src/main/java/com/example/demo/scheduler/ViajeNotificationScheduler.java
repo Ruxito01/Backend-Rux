@@ -36,58 +36,65 @@ public class ViajeNotificationScheduler {
      * y enviar recordatorio.
      */
     @Scheduled(cron = "0 */10 * * * *") // Cada 10 minutos
+    @Transactional(readOnly = true)
     public void enviarRecordatorio1HoraAntes() {
-        // Usar zona horaria de Ecuador explícitamente
-        ZonedDateTime ahoraEcuador = ZonedDateTime.now(ECUADOR_ZONE);
-        LocalDateTime ahora = ahoraEcuador.toLocalDateTime();
-        LocalDateTime en50Minutos = ahora.plusMinutes(50);
-        LocalDateTime en70Minutos = ahora.plusMinutes(70);
+        try {
+            // Usar zona horaria de Ecuador explícitamente
+            ZonedDateTime ahoraEcuador = ZonedDateTime.now(ECUADOR_ZONE);
+            LocalDateTime ahora = ahoraEcuador.toLocalDateTime();
+            LocalDateTime en50Minutos = ahora.plusMinutes(50);
+            LocalDateTime en70Minutos = ahora.plusMinutes(70);
 
-        // Log detallado para debugging
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        System.out.println("========================================");
-        System.out.println("🔍 [Scheduler 1h] Hora actual Ecuador: " + ahora.format(formatter));
-        System.out.println(
-                "🔍 Buscando viajes entre: " + en50Minutos.format(formatter) + " y " + en70Minutos.format(formatter));
+            // Log detallado para debugging
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            System.out.println("========================================");
+            System.out.println("🔍 [Scheduler 1h] Hora actual Ecuador: " + ahora.format(formatter));
+            System.out.println(
+                    "🔍 Buscando viajes entre: " + en50Minutos.format(formatter) + " y "
+                            + en70Minutos.format(formatter));
 
-        // Buscar viajes programados que empiezan entre 50 y 70 minutos
-        List<Viaje> viajes = viajeNotificationService.buscarViajesEnRango(en50Minutos, en70Minutos);
+            // Buscar viajes programados que empiezan entre 50 y 70 minutos
+            List<Viaje> viajes = viajeNotificationService.buscarViajesEnRango(en50Minutos, en70Minutos);
 
-        System.out.println("🔍 Viajes encontrados: " + viajes.size());
+            System.out.println("🔍 Viajes encontrados: " + viajes.size());
 
-        // Mostrar detalles de cada viaje encontrado
-        for (Viaje viaje : viajes) {
-            if (viaje.getFechaProgramada() != null) {
-                System.out.println("   📍 Viaje #" + viaje.getId() + " - " +
-                        (viaje.getRuta() != null ? viaje.getRuta().getNombre() : "Sin nombre") +
-                        " - Programado: " + viaje.getFechaProgramada().format(formatter));
+            // Mostrar detalles de cada viaje encontrado
+            for (Viaje viaje : viajes) {
+                if (viaje.getFechaProgramada() != null) {
+                    System.out.println("   📍 Viaje #" + viaje.getId() + " - " +
+                            (viaje.getRuta() != null ? viaje.getRuta().getNombre() : "Sin nombre") +
+                            " - Programado: " + viaje.getFechaProgramada().format(formatter));
+                }
             }
-        }
-        System.out.println("========================================");
+            System.out.println("========================================");
 
-        for (Viaje viaje : viajes) {
-            String key = viaje.getId() + "_1h";
+            for (Viaje viaje : viajes) {
+                String key = viaje.getId() + "_1h";
 
-            // Evitar notificaciones duplicadas
-            if (notificacionesEnviadas.contains(key)) {
-                continue;
+                // Evitar notificaciones duplicadas
+                if (notificacionesEnviadas.contains(key)) {
+                    continue;
+                }
+
+                try {
+                    viajeNotificationService.enviarRecordatorioViaje(viaje, "1_hora_antes");
+                    notificacionesEnviadas.add(key);
+                    System.out.println("✅ Recordatorio 1h enviado para viaje #" + viaje.getId());
+                } catch (Exception e) {
+                    System.err.println(
+                            "❌ Error enviando recordatorio 1h para viaje #" + viaje.getId() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
 
-            try {
-                viajeNotificationService.enviarRecordatorioViaje(viaje, "1_hora_antes");
-                notificacionesEnviadas.add(key);
-                System.out.println("✅ Recordatorio 1h enviado para viaje #" + viaje.getId());
-            } catch (Exception e) {
-                System.err.println(
-                        "❌ Error enviando recordatorio 1h para viaje #" + viaje.getId() + ": " + e.getMessage());
-                e.printStackTrace();
+            // Limpiar cache cada 1000 entradas para evitar memory leak
+            if (notificacionesEnviadas.size() > 1000) {
+                notificacionesEnviadas.clear();
+                System.out.println("🧹 Cache de notificaciones limpiado");
             }
-        }
-
-        // Limpiar cache cada 1000 entradas para evitar memory leak
-        if (notificacionesEnviadas.size() > 1000) {
-            notificacionesEnviadas.clear();
-            System.out.println("🧹 Cache de notificaciones limpiado");
+        } catch (Exception e) {
+            System.err.println("❌ ERROR CRÍTICO en scheduler 1h: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

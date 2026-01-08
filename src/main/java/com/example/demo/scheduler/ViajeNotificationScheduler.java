@@ -5,6 +5,7 @@ import com.example.demo.models.service.ViajeNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,6 +36,7 @@ public class ViajeNotificationScheduler {
      * y enviar recordatorio.
      */
     @Scheduled(cron = "0 */10 * * * *") // Cada 10 minutos
+    @Transactional(readOnly = true) // Mantener sesión abierta para lazy loading
     public void enviarRecordatorio1HoraAntes() {
         // Usar zona horaria de Ecuador explícitamente
         ZonedDateTime ahoraEcuador = ZonedDateTime.now(ECUADOR_ZONE);
@@ -95,6 +97,7 @@ public class ViajeNotificationScheduler {
      * del día siguiente
      */
     @Scheduled(cron = "0 0 20 * * *") // Todos los días a las 8 PM
+    @Transactional(readOnly = true)
     public void enviarRecordatorioDiaAnterior() {
         // Usar zona horaria de Ecuador
         ZonedDateTime ahoraEcuador = ZonedDateTime.now(ECUADOR_ZONE);

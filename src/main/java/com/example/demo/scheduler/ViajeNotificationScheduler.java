@@ -38,62 +38,46 @@ public class ViajeNotificationScheduler {
     @Scheduled(cron = "0 */10 * * * *") // Cada 10 minutos
     @Transactional(readOnly = true)
     public void enviarRecordatorio1HoraAntes() {
+        System.out.println("=== INICIO SCHEDULER ===");
         try {
-            // Usar zona horaria de Ecuador explícitamente
+            System.out.println("LOG 1: Obteniendo zona horaria");
             ZonedDateTime ahoraEcuador = ZonedDateTime.now(ECUADOR_ZONE);
+
+            System.out.println("LOG 2: Convirtiendo a LocalDateTime");
             LocalDateTime ahora = ahoraEcuador.toLocalDateTime();
+
+            System.out.println("LOG 3: Calculando rangos");
             LocalDateTime en50Minutos = ahora.plusMinutes(50);
             LocalDateTime en70Minutos = ahora.plusMinutes(70);
 
-            // Log detallado para debugging
+            System.out.println("LOG 4: Creando formatter");
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            System.out.println("========================================");
-            System.out.println("🔍 [Scheduler 1h] Hora actual Ecuador: " + ahora.format(formatter));
-            System.out.println(
-                    "🔍 Buscando viajes entre: " + en50Minutos.format(formatter) + " y "
-                            + en70Minutos.format(formatter));
 
-            // Buscar viajes programados que empiezan entre 50 y 70 minutos
+            System.out.println("LOG 5: Hora actual: " + ahora.format(formatter));
+
+            System.out.println("LOG 6: Antes de buscar viajes");
             List<Viaje> viajes = viajeNotificationService.buscarViajesEnRango(en50Minutos, en70Minutos);
 
-            System.out.println("🔍 Viajes encontrados: " + viajes.size());
+            System.out.println("LOG 7: Después de buscar. Encontrados: " + (viajes != null ? viajes.size() : "NULL"));
 
-            // Mostrar detalles de cada viaje encontrado
-            for (Viaje viaje : viajes) {
-                if (viaje.getFechaProgramada() != null) {
-                    System.out.println("   📍 Viaje #" + viaje.getId() + " - " +
-                            (viaje.getRuta() != null ? viaje.getRuta().getNombre() : "Sin nombre") +
-                            " - Programado: " + viaje.getFechaProgramada().format(formatter));
-                }
-            }
-            System.out.println("========================================");
+            if (viajes != null && !viajes.isEmpty()) {
+                System.out.println("LOG 8: Procesando " + viajes.size() + " viajes");
 
-            for (Viaje viaje : viajes) {
-                String key = viaje.getId() + "_1h";
+                for (Viaje viaje : viajes) {
+                    System.out.println("LOG 9: Viaje ID=" + viaje.getId());
+                    String key = viaje.getId() + "_1h";
 
-                // Evitar notificaciones duplicadas
-                if (notificacionesEnviadas.contains(key)) {
-                    continue;
-                }
-
-                try {
-                    viajeNotificationService.enviarRecordatorioViaje(viaje, "1_hora_antes");
-                    notificacionesEnviadas.add(key);
-                    System.out.println("✅ Recordatorio 1h enviado para viaje #" + viaje.getId());
-                } catch (Exception e) {
-                    System.err.println(
-                            "❌ Error enviando recordatorio 1h para viaje #" + viaje.getId() + ": " + e.getMessage());
-                    e.printStackTrace();
+                    if (!notificacionesEnviadas.contains(key)) {
+                        viajeNotificationService.enviarRecordatorioViaje(viaje, "1_hora_antes");
+                        notificacionesEnviadas.add(key);
+                        System.out.println("✅ Notificación enviada para viaje #" + viaje.getId());
+                    }
                 }
             }
 
-            // Limpiar cache cada 1000 entradas para evitar memory leak
-            if (notificacionesEnviadas.size() > 1000) {
-                notificacionesEnviadas.clear();
-                System.out.println("🧹 Cache de notificaciones limpiado");
-            }
+            System.out.println("=== FIN SCHEDULER EXITOSO ===");
         } catch (Exception e) {
-            System.err.println("❌ ERROR CRÍTICO en scheduler 1h: " + e.getMessage());
+            System.err.println("❌ ERROR: " + e.getClass().getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
     }

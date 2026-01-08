@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -91,7 +92,16 @@ public class ViajeNotificationService {
      * Buscar viajes programados en el rango de tiempo especificado
      */
     public List<Viaje> buscarViajesEnRango(LocalDateTime desde, LocalDateTime hasta) {
-        return viajeDao.findByEstadoAndFechaProgramadaBetween("programado", desde, hasta);
+        try {
+            System.out.println("🔎 Buscando en DAO viajes entre " + desde + " y " + hasta);
+            List<Viaje> viajes = viajeDao.findByEstadoAndFechaProgramadaBetween("programado", desde, hasta);
+            System.out.println("✅ Query exitosa. Viajes encontrados: " + (viajes != null ? viajes.size() : "null"));
+            return viajes != null ? viajes : new ArrayList<>();
+        } catch (Exception e) {
+            System.err.println("❌ ERROR en buscarViajesEnRango: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 
     /**

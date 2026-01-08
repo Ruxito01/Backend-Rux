@@ -94,7 +94,8 @@ public class ViajeNotificationService {
     public List<Viaje> buscarViajesEnRango(LocalDateTime desde, LocalDateTime hasta) {
         try {
             System.out.println("🔎 Buscando en DAO viajes entre " + desde + " y " + hasta);
-            List<Viaje> viajes = viajeDao.findByEstadoAndFechaProgramadaBetween("programado", desde, hasta);
+            List<Viaje> viajes = viajeDao.findByEstadoAndFechaProgramadaBetweenWithParticipantes("programado", desde,
+                    hasta);
             System.out.println("✅ Query exitosa. Viajes encontrados: " + (viajes != null ? viajes.size() : "null"));
             return viajes != null ? viajes : new ArrayList<>();
         } catch (Exception e) {

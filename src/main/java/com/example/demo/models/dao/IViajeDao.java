@@ -158,4 +158,25 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
          * @return Lista de viajes en el rango
          */
         List<Viaje> findByEstadoAndFechaProgramadaBetween(String estado, LocalDateTime desde, LocalDateTime hasta);
+
+        /**
+         * Busca viajes por estado en un rango de fechas programadas CON participantes
+         * cargados.
+         * Usa JOIN FETCH para evitar LazyInitializationException.
+         * 
+         * @param estado Estado del viaje
+         * @param desde  Fecha inicio del rango
+         * @param hasta  Fecha fin del rango
+         * @return Lista de viajes con participantes cargados
+         */
+        @org.springframework.data.jpa.repository.Query("SELECT DISTINCT v FROM Viaje v " +
+                        "LEFT JOIN FETCH v.participantes p " +
+                        "LEFT JOIN FETCH p.usuario " +
+                        "LEFT JOIN FETCH v.ruta " +
+                        "WHERE v.estado = :estado " +
+                        "AND v.fechaProgramada BETWEEN :desde AND :hasta")
+        List<Viaje> findByEstadoAndFechaProgramadaBetweenWithParticipantes(
+                        @org.springframework.data.repository.query.Param("estado") String estado,
+                        @org.springframework.data.repository.query.Param("desde") LocalDateTime desde,
+                        @org.springframework.data.repository.query.Param("hasta") LocalDateTime hasta);
 }

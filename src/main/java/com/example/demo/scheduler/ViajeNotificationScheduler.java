@@ -36,7 +36,6 @@ public class ViajeNotificationScheduler {
      * y enviar recordatorio.
      */
     @Scheduled(cron = "0 */10 * * * *") // Cada 10 minutos
-    @Transactional(readOnly = true) // Mantener sesión abierta para lazy loading
     public void enviarRecordatorio1HoraAntes() {
         // Usar zona horaria de Ecuador explícitamente
         ZonedDateTime ahoraEcuador = ZonedDateTime.now(ECUADOR_ZONE);

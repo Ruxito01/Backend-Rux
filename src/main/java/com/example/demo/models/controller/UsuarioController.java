@@ -290,4 +290,23 @@ public class UsuarioController {
                 })
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
+
+    @Operation(summary = "Actualizar la animacion del avatar activo")
+    @PatchMapping("/{usuarioId}/animacion-avatar")
+    public ResponseEntity<?> actualizarAnimacionAvatar(
+            @PathVariable Long usuarioId,
+            @RequestBody Map<String, String> body) {
+        String animacion = body.get("animacion");
+        return usuarioService.findById(usuarioId)
+                .map(usuario -> {
+                    usuario.setAnimacionAvatar(animacion);
+                    usuarioService.save(usuario);
+                    java.util.Map<String, Object> response = new java.util.HashMap<>();
+                    response.put("mensaje", "Animacion actualizada");
+                    response.put("usuarioId", usuarioId);
+                    response.put("animacion", animacion);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                })
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
 }

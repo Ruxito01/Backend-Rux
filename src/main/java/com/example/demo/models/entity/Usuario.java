@@ -87,6 +87,10 @@ public class Usuario implements Serializable {
         @JsonIgnoreProperties({ "usuarios", "descripcion" })
         private CatalogoAvatar avatarActivo;
 
+        // Nombre de la animación seleccionada para el avatar activo
+        @Column(name = "animacion_avatar")
+        private String animacionAvatar;
+
         // Relación muchos a muchos con Logros
         @ManyToMany(fetch = FetchType.LAZY, cascade = {
                         CascadeType.PERSIST,

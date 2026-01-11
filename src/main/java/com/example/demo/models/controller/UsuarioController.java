@@ -74,6 +74,11 @@ public class UsuarioController {
         java.util.List<java.util.Map<String, Object>> listaComunidades = new java.util.ArrayList<>();
 
         for (com.example.demo.models.entity.MiembroComunidad membresia : membresias) {
+            // EXCLUIR INACTIVOS: Si el usuario se salió, no debe aparecer en su lista
+            if ("inactivo".equals(membresia.getEstado())) {
+                continue;
+            }
+
             com.example.demo.models.entity.Comunidad comunidad = membresia.getComunidad();
             if (comunidad != null) {
                 java.util.Map<String, Object> comunidadMap = new java.util.HashMap<>();

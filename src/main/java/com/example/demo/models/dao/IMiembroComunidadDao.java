@@ -28,4 +28,10 @@ public interface IMiembroComunidadDao extends JpaRepository<MiembroComunidad, Lo
      */
     @Query("SELECT m FROM MiembroComunidad m WHERE m.usuario.id = :usuarioId")
     List<MiembroComunidad> findByUsuarioId(@Param("usuarioId") Long usuarioId);
+
+    /**
+     * Cuenta los miembros activos de una comunidad
+     */
+    @Query("SELECT COUNT(m) FROM MiembroComunidad m WHERE m.comunidad.id = :comunidadId AND (m.estado = 'activo' OR m.estado IS NULL)")
+    Long countMiembros(@Param("comunidadId") Long comunidadId);
 }

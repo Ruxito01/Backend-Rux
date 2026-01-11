@@ -89,6 +89,10 @@ public class UsuarioController {
                 comunidadMap.put("estado", membresia.getEstado());
                 comunidadMap.put("fechaUnion", membresia.getFechaUnion());
 
+                // Obtener conteo de miembros
+                Long conteo = miembroComunidadDao.countMiembros(comunidad.getId());
+                comunidadMap.put("conteoMiembros", conteo);
+
                 // Agregar creador como objeto simplificado
                 if (comunidad.getCreador() != null) {
                     java.util.Map<String, Object> creadorMap = new java.util.HashMap<>();

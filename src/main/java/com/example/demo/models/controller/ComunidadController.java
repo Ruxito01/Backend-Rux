@@ -241,19 +241,32 @@ public class ComunidadController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
-            // Verificar que no sea ya miembro activo usando MiembroComunidadDao
+            // Verificar si ya existe relación (activa o inactiva)
             List<MiembroComunidad> relaciones = miembroComunidadDao.findByComunidadId(id);
-            boolean yaEsMiembro = relaciones.stream()
-                    .anyMatch(r -> r.getUsuario().getId().equals(usuarioId)
-                            && (r.getEstado() == null || "activo".equals(r.getEstado())));
+            MiembroComunidad relacionExistente = relaciones.stream()
+                    .filter(r -> r.getUsuario().getId().equals(usuarioId))
+                    .findFirst()
+                    .orElse(null);
 
-            if (yaEsMiembro) {
-                Map<String, String> error = Map.of(
-                        "error", "Ya eres miembro de esta comunidad");
-                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+            if (relacionExistente != null) {
+                // Si existe y está activo, error
+                if (relacionExistente.getEstado() == null || "activo".equals(relacionExistente.getEstado())) {
+                    Map<String, String> error = Map.of(
+                            "error", "Ya eres miembro de esta comunidad");
+                    return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+                }
+
+                // Si existe pero inactivo, reactivar (REINGRESO TRANSPARENTE)
+                relacionExistente.setEstado("activo");
+                relacionExistente.setFechaUnion(java.time.LocalDateTime.now()); // Actualizar fecha de unión
+                miembroComunidadDao.save(relacionExistente);
+
+                Map<String, String> response = Map.of(
+                        "mensaje", "Has reingresado exitosamente a " + comunidad.getNombre());
+                return new ResponseEntity<>(response, HttpStatus.OK);
             }
 
-            // Guardar en tabla miembro_comunidad (no usar relación ManyToMany)
+            // Si no existe, crear nueva relación
             MiembroComunidad miembroComunidad = new MiembroComunidad();
             miembroComunidad.setUsuario(usuario);
             miembroComunidad.setComunidad(comunidad);

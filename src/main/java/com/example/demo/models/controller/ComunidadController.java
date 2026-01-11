@@ -190,20 +190,24 @@ public class ComunidadController {
 
         // Filtrar por nombre que contenga el query
         List<Comunidad> resultados = todas.stream()
-                .filter(c -> c.getNombre().toLowerCase().contains(query.toLowerCase()))
+                .filter(c -> c.getNombre() != null && c.getNombre().toLowerCase().contains(query.toLowerCase()))
                 .toList();
 
-        // Excluir comunidades donde el usuario ya es miembro
-        Usuario usuario = usuarioService.findById(usuarioId).orElse(null);
-        if (usuario != null) {
-            Set<Long> comunidadesUsuario = usuario.getComunidades().stream()
-                    .map(Comunidad::getId)
-                    .collect(java.util.stream.Collectors.toSet());
+        // Excluir SOLAMENTE las comunidades donde el usuario es miembro ACTIVO
+        // Buscar todas las membresías del usuario
+        List<MiembroComunidad> membresias = miembroComunidadDao.findByUsuarioId(usuarioId);
 
-            resultados = resultados.stream()
-                    .filter(c -> !comunidadesUsuario.contains(c.getId()))
-                    .toList();
-        }
+        // Obtener IDs de comunidades donde el estado es activo (o null por
+        // compatibilidad)
+        Set<Long> comunidadesActivas = membresias.stream()
+                .filter(m -> m.getEstado() == null || "activo".equals(m.getEstado()))
+                .map(m -> m.getComunidad().getId())
+                .collect(java.util.stream.Collectors.toSet());
+
+        // Filtrar resultados excluyendo las activas
+        resultados = resultados.stream()
+                .filter(c -> !comunidadesActivas.contains(c.getId()))
+                .toList();
 
         return new ResponseEntity<>(resultados, HttpStatus.OK);
     }

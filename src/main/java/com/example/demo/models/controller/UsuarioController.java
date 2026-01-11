@@ -34,6 +34,9 @@ public class UsuarioController {
     @Autowired
     private com.example.demo.models.service.IComunidadService comunidadService;
 
+    @Autowired
+    private com.example.demo.models.dao.IMiembroComunidadDao miembroComunidadDao;
+
     @Operation(summary = "Obtener todos los usuarios")
     @GetMapping
     public List<Usuario> findAll() {
@@ -59,30 +62,43 @@ public class UsuarioController {
     @Operation(summary = "Obtener las comunidades a las que pertenece un usuario")
     @GetMapping("/{id}/comunidades")
     public ResponseEntity<?> getComunidades(@PathVariable Long id) {
-        // Usa query directa para evitar problemas de lazy loading
-        java.util.List<com.example.demo.models.entity.Comunidad> comunidades = comunidadService.findByMiembroId(id);
-        if (comunidades == null) {
+        // Usar DAO de MiembroComunidad para obtener estado y fecha de unión
+        java.util.List<com.example.demo.models.entity.MiembroComunidad> membresias = miembroComunidadDao
+                .findByUsuarioId(id);
+
+        if (membresias == null) {
             return new ResponseEntity<>(java.util.Collections.emptyList(), HttpStatus.OK);
         }
-        // Convertir a lista de Maps simples para evitar problemas de serialización
+
+        // Convertir a lista de Maps incluyendo el estado
         java.util.List<java.util.Map<String, Object>> listaComunidades = new java.util.ArrayList<>();
-        for (com.example.demo.models.entity.Comunidad comunidad : comunidades) {
-            java.util.Map<String, Object> comunidadMap = new java.util.HashMap<>();
-            comunidadMap.put("id", comunidad.getId());
-            comunidadMap.put("nombre", comunidad.getNombre());
-            comunidadMap.put("descripcion", comunidad.getDescripcion());
-            comunidadMap.put("urlImagen", comunidad.getUrlImagen());
-            comunidadMap.put("nivelPrivacidad", comunidad.getNivelPrivacidad());
-            comunidadMap.put("fechaCreacion", comunidad.getFechaCreacion());
-            // Agregar creador como objeto simplificado
-            if (comunidad.getCreador() != null) {
-                java.util.Map<String, Object> creadorMap = new java.util.HashMap<>();
-                creadorMap.put("id", comunidad.getCreador().getId());
-                creadorMap.put("nombre", comunidad.getCreador().getNombre());
-                creadorMap.put("apellido", comunidad.getCreador().getApellido());
-                comunidadMap.put("creador", creadorMap);
+
+        for (com.example.demo.models.entity.MiembroComunidad membresia : membresias) {
+            com.example.demo.models.entity.Comunidad comunidad = membresia.getComunidad();
+            if (comunidad != null) {
+                java.util.Map<String, Object> comunidadMap = new java.util.HashMap<>();
+                // Datos de la comunidad
+                comunidadMap.put("id", comunidad.getId());
+                comunidadMap.put("nombre", comunidad.getNombre());
+                comunidadMap.put("descripcion", comunidad.getDescripcion());
+                comunidadMap.put("urlImagen", comunidad.getUrlImagen());
+                comunidadMap.put("nivelPrivacidad", comunidad.getNivelPrivacidad());
+                comunidadMap.put("fechaCreacion", comunidad.getFechaCreacion());
+
+                // Datos de la membresía (CRUCIAL PARA FILTRAR INACTIVOS)
+                comunidadMap.put("estado", membresia.getEstado());
+                comunidadMap.put("fechaUnion", membresia.getFechaUnion());
+
+                // Agregar creador como objeto simplificado
+                if (comunidad.getCreador() != null) {
+                    java.util.Map<String, Object> creadorMap = new java.util.HashMap<>();
+                    creadorMap.put("id", comunidad.getCreador().getId());
+                    creadorMap.put("nombre", comunidad.getCreador().getNombre());
+                    creadorMap.put("apellido", comunidad.getCreador().getApellido());
+                    comunidadMap.put("creador", creadorMap);
+                }
+                listaComunidades.add(comunidadMap);
             }
-            listaComunidades.add(comunidadMap);
         }
         return new ResponseEntity<>(listaComunidades, HttpStatus.OK);
     }

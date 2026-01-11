@@ -27,4 +27,20 @@ public interface IRuxSocketService {
      * Obtener historial de mensajes de una comunidad
      */
     List<MensajeComunidad> obtenerHistorialMensajes(Long comunidadId);
+
+    /**
+     * Editar un mensaje existente
+     * - Actualiza el contenido
+     * - Marca como editado
+     * - Hace broadcast a la comunidad
+     */
+    MensajeComunidad editarMensaje(Long mensajeId, String nuevoContenido);
+
+    /**
+     * Borrar un mensaje (soft delete)
+     * - Cambia contenido a "Mensaje borrado"
+     * - Marca como borrado
+     * - Hace broadcast a la comunidad
+     */
+    MensajeComunidad borrarMensaje(Long mensajeId);
 }

@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -143,5 +142,64 @@ public class RuxSocketServiceImpl implements IRuxSocketService {
     public List<MensajeComunidad> obtenerHistorialMensajes(Long comunidadId) {
         // Retornar últimos 50 mensajes ordenados por fecha descendente
         return mensajeComunidadDao.findTop50ByComunidadIdOrderByFechaEnvioDesc(comunidadId);
+    }
+
+    @Override
+    @Transactional
+    public MensajeComunidad editarMensaje(Long mensajeId, String nuevoContenido) {
+        // 1. Buscar el mensaje
+        MensajeComunidad mensaje = mensajeComunidadDao.findById(mensajeId)
+                .orElseThrow(() -> new RuntimeException("Mensaje no encontrado"));
+
+        // 2. Verificar que no esté borrado
+        if (mensaje.getBorrado()) {
+            throw new RuntimeException("No se puede editar un mensaje borrado");
+        }
+
+        // 3. Actualizar contenido y marcar como editado
+        mensaje.setContenido(nuevoContenido);
+        mensaje.setEditado(true);
+        mensaje.setFechaEdicion(LocalDateTime.now());
+
+        // 4. Guardar en base de datos
+        MensajeComunidad mensajeActualizado = mensajeComunidadDao.save(mensaje);
+
+        // 5. Hacer broadcast a la comunidad
+        Long comunidadId = mensajeActualizado.getComunidad().getId();
+        String destino = "/topic/comunidad/" + comunidadId;
+        messagingTemplate.convertAndSend(destino, mensajeActualizado);
+
+        System.out.println("✏️ Mensaje " + mensajeId + " editado y broadcast a " + destino);
+
+        return mensajeActualizado;
+    }
+
+    @Override
+    @Transactional
+    public MensajeComunidad borrarMensaje(Long mensajeId) {
+        // 1. Buscar el mensaje
+        MensajeComunidad mensaje = mensajeComunidadDao.findById(mensajeId)
+                .orElseThrow(() -> new RuntimeException("Mensaje no encontrado"));
+
+        // 2. Verificar que no esté ya borrado
+        if (mensaje.getBorrado()) {
+            throw new RuntimeException("El mensaje ya está borrado");
+        }
+
+        // 3. Marcar como borrado (soft delete)
+        mensaje.setContenido("Mensaje borrado");
+        mensaje.setBorrado(true);
+
+        // 4. Guardar en base de datos
+        MensajeComunidad mensajeBorrado = mensajeComunidadDao.save(mensaje);
+
+        // 5. Hacer broadcast a la comunidad
+        Long comunidadId = mensajeBorrado.getComunidad().getId();
+        String destino = "/topic/comunidad/" + comunidadId;
+        messagingTemplate.convertAndSend(destino, mensajeBorrado);
+
+        System.out.println("🗑️ Mensaje " + mensajeId + " borrado (soft delete) y broadcast a " + destino);
+
+        return mensajeBorrado;
     }
 }

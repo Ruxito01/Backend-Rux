@@ -40,4 +40,19 @@ public class MensajeComunidad implements Serializable {
 
     @Column(name = "fecha_envio", nullable = false)
     private LocalDateTime fechaEnvio = LocalDateTime.now();
+
+    // Campo para respuestas - referencia al mensaje original
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "mensaje_respondido_id")
+    private MensajeComunidad mensajeRespondido;
+
+    // Campos para edición y borrado soft
+    @Column(name = "borrado", nullable = false)
+    private Boolean borrado = false;
+
+    @Column(name = "editado", nullable = false)
+    private Boolean editado = false;
+
+    @Column(name = "fecha_edicion")
+    private LocalDateTime fechaEdicion;
 }

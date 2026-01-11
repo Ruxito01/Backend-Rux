@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller WebSocket para chat y GPS tracking
@@ -24,6 +25,8 @@ import java.util.List;
  * 
  * Endpoints REST (para historial):
  * - GET /api/chat/historial/{comunidadId} → Obtener historial de mensajes
+ * - PUT /api/chat/{id} → Editar mensaje
+ * - DELETE /api/chat/{id} → Borrar mensaje (soft delete)
  */
 @Controller
 @Tag(name = "WebSocket RÜX", description = "Chat y GPS en tiempo real")
@@ -62,5 +65,44 @@ public class RuxWebSocketController {
     public ResponseEntity<List<MensajeComunidad>> obtenerHistorial(@PathVariable Long comunidadId) {
         List<MensajeComunidad> mensajes = ruxSocketService.obtenerHistorialMensajes(comunidadId);
         return new ResponseEntity<>(mensajes, HttpStatus.OK);
+    }
+
+    /**
+     * Endpoint REST para editar un mensaje
+     * Solo el autor del mensaje puede editarlo
+     */
+    @Operation(summary = "Editar un mensaje")
+    @PutMapping("/api/chat/{id}")
+    @ResponseBody
+    public ResponseEntity<?> editarMensaje(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> payload) {
+        try {
+            String nuevoContenido = payload.get("contenido");
+            if (nuevoContenido == null || nuevoContenido.trim().isEmpty()) {
+                return new ResponseEntity<>("Contenido no puede estar vacío", HttpStatus.BAD_REQUEST);
+            }
+
+            MensajeComunidad mensaje = ruxSocketService.editarMensaje(id, nuevoContenido);
+            return new ResponseEntity<>(mensaje, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Endpoint REST para borrar un mensaje (soft delete)
+     * Solo el autor del mensaje puede borrarlo
+     */
+    @Operation(summary = "Borrar un mensaje (soft delete)")
+    @DeleteMapping("/api/chat/{id}")
+    @ResponseBody
+    public ResponseEntity<?> borrarMensaje(@PathVariable Long id) {
+        try {
+            MensajeComunidad mensaje = ruxSocketService.borrarMensaje(id);
+            return new ResponseEntity<>(mensaje, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

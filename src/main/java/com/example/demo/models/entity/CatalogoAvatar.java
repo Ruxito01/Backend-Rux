@@ -52,6 +52,15 @@ public class CatalogoAvatar implements Serializable {
     @Column(name = "es_premium")
     private Boolean esPremium = false;
 
+    /**
+     * Lista de nombres de animaciones disponibles en el modelo.
+     * Ejemplo: ["Run", "Idle", "Dance"]
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "catalogo_avatar_animaciones", joinColumns = @JoinColumn(name = "catalogo_avatar_id"))
+    @Column(name = "animacion")
+    private Set<String> animaciones = new HashSet<>();
+
     // Relación muchos a muchos con Usuario
     // Se usa @JsonIgnore para evitar recursión infinita con avatarActivo
     @ManyToMany(mappedBy = "avatares", fetch = FetchType.LAZY)

@@ -53,43 +53,13 @@ public class CatalogoAvatar implements Serializable {
     private Boolean esPremium = false;
 
     /**
-     * Lista de animaciones disponibles en el modelo.
-     * Mapeado como OneToMany para tener ID propio en la tabla.
+     * Lista de nombres de animaciones disponibles en el modelo.
+     * Ejemplo: ["Run", "Idle", "Dance"]
      */
-    @OneToMany(mappedBy = "avatar", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @com.fasterxml.jackson.annotation.JsonIgnore // Ignoramos la lista de entidades en el JSON directo
-    private Set<AvatarAnimacion> animacionesList = new HashSet<>();
-
-    /**
-     * Helper para mantener compatibilidad JSON y devolver solo los nombres.
-     * El frontend/mobile espera un array de strings ["run", "idle"]
-     */
-    @com.fasterxml.jackson.annotation.JsonProperty("animaciones")
-    public Set<String> getAnimaciones() {
-        if (animacionesList == null)
-            return new HashSet<>();
-        Set<String> nombres = new HashSet<>();
-        for (AvatarAnimacion anim : animacionesList) {
-            nombres.add(anim.getNombre());
-        }
-        return nombres;
-    }
-
-    /**
-     * Helper para setear animaciones desde strings (útil para carga inicial o
-     * admin).
-     */
-    public void setAnimaciones(Set<String> nombres) {
-        if (this.animacionesList == null) {
-            this.animacionesList = new HashSet<>();
-        }
-        this.animacionesList.clear();
-        if (nombres != null) {
-            for (String nombre : nombres) {
-                this.animacionesList.add(new AvatarAnimacion(nombre, this));
-            }
-        }
-    }
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "catalogo_avatar_animaciones", joinColumns = @JoinColumn(name = "catalogo_avatar_id"))
+    @Column(name = "animacion")
+    private Set<String> animaciones = new HashSet<>();
 
     // Relación muchos a muchos con Usuario
     // Se usa @JsonIgnore para evitar recursión infinita con avatarActivo

@@ -80,4 +80,37 @@ public class AlertaViajeController {
         service.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Crear alerta de viaje simplificada", description = "Crea una alerta recibiendo solo los IDs necesarios")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Alerta creada exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
+    @PostMapping("/crear")
+    public ResponseEntity<?> crearAlertaSimplificada(@RequestBody @NonNull java.util.Map<String, Object> request) {
+        try {
+            Long viajeId = Long.valueOf(request.get("viajeId").toString());
+            Long usuarioId = Long.valueOf(request.get("usuarioId").toString());
+            String tipoAlerta = request.get("tipoAlerta").toString();
+            java.math.BigDecimal latitud = new java.math.BigDecimal(request.get("latitud").toString());
+            java.math.BigDecimal longitud = new java.math.BigDecimal(request.get("longitud").toString());
+            String mensaje = request.get("mensaje") != null ? request.get("mensaje").toString() : null;
+
+            AlertaViaje alerta = service.crearAlerta(viajeId, usuarioId, tipoAlerta, latitud, longitud, mensaje);
+
+            // Retornar solo los campos necesarios para evitar lazy loading
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("id", alerta.getId());
+            response.put("tipoAlerta", alerta.getTipoAlerta());
+            response.put("mensaje", alerta.getMensaje());
+            response.put("latitud", alerta.getLatitud());
+            response.put("longitud", alerta.getLongitud());
+            response.put("estaActiva", alerta.getEstaActiva());
+            response.put("fechaReporte", alerta.getFechaReporte());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
+    }
 }

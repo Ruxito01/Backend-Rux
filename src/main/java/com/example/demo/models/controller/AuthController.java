@@ -40,6 +40,25 @@ public class AuthController {
     }
 
     /**
+     * Solicita un código para verificar email durante el registro
+     * NO requiere que el usuario exista
+     */
+    @Operation(summary = "Solicitar código para verificar email en registro")
+    @PostMapping("/solicitar-codigo-registro")
+    public ResponseEntity<Map<String, Object>> solicitarCodigoRegistro(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "El email es requerido"));
+        }
+
+        Map<String, Object> response = codigoRecuperacionService.generarCodigoParaRegistro(email);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Verifica si el código ingresado es válido
      */
     @Operation(summary = "Verificar código de recuperación")

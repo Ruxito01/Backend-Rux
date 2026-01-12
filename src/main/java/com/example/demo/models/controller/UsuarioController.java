@@ -273,6 +273,7 @@ public class UsuarioController {
             avatarMap.put("urlModelo3d", avatar.getUrlModelo3d());
             avatarMap.put("urlPreview", avatar.getUrlPreview());
             avatarMap.put("esPremium", avatar.getEsPremium());
+            avatarMap.put("animaciones", avatar.getAnimaciones()); // AGREGADO: Animaciones
             listaAvatares.add(avatarMap);
         }
         return new ResponseEntity<>(listaAvatares, HttpStatus.OK);

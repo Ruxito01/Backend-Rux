@@ -74,6 +74,50 @@ public class CodigoRecuperacionServiceImpl implements ICodigoRecuperacionService
         return response;
     }
 
+    /**
+     * Genera y envía código SIN validar que el usuario exista
+     * Usado para verificar email durante el registro
+     */
+    @Override
+    @Transactional
+    public Map<String, Object> generarCodigoParaRegistro(String email) {
+        Map<String, Object> response = new HashMap<>();
+
+        // Validar formato de email básico
+        if (!email.contains("@") || !email.contains(".")) {
+            response.put("success", false);
+            response.put("message", "Formato de email inválido");
+            return response;
+        }
+
+        // Eliminar códigos anteriores del mismo email
+        codigoRecuperacionDao.deleteByEmail(email.toLowerCase().trim());
+
+        // Generar código aleatorio de 6 dígitos
+        String codigo = String.format("%06d", random.nextInt(1000000));
+
+        // Guardar el código en la base de datos
+        CodigoRecuperacion codigoRecuperacion = new CodigoRecuperacion();
+        codigoRecuperacion.setEmail(email.toLowerCase().trim());
+        codigoRecuperacion.setCodigo(codigo);
+        codigoRecuperacion.setFechaCreacion(LocalDateTime.now());
+        codigoRecuperacion.setUsado(false);
+        codigoRecuperacionDao.save(codigoRecuperacion);
+
+        // Enviar el código por email
+        boolean enviado = emailService.enviarCodigoRecuperacion(email, codigo);
+
+        if (enviado) {
+            response.put("success", true);
+            response.put("message", "Código de verificación enviado a tu correo");
+        } else {
+            response.put("success", false);
+            response.put("message", "Error al enviar el correo. Intenta de nuevo más tarde.");
+        }
+
+        return response;
+    }
+
     @Override
     @Transactional
     public Map<String, Object> verificarCodigo(String email, String codigo) {

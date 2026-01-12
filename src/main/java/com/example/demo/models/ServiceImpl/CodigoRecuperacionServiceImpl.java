@@ -104,8 +104,8 @@ public class CodigoRecuperacionServiceImpl implements ICodigoRecuperacionService
         codigoRecuperacion.setUsado(false);
         codigoRecuperacionDao.save(codigoRecuperacion);
 
-        // Enviar el código por email
-        boolean enviado = emailService.enviarCodigoRecuperacion(email, codigo);
+        // Enviar el código por email (con mensaje de registro)
+        boolean enviado = emailService.enviarCodigoVerificacionRegistro(email, codigo);
 
         if (enviado) {
             response.put("success", true);

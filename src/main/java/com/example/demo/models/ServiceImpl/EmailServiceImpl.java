@@ -48,4 +48,33 @@ public class EmailServiceImpl implements IEmailService {
             return false;
         }
     }
+
+    @Override
+    public boolean enviarCodigoVerificacionRegistro(String email, String codigo) {
+        try {
+            System.out.println("📧 Enviando código de verificación de registro a: " + email);
+
+            SimpleMailMessage mensaje = new SimpleMailMessage();
+            mensaje.setFrom(fromEmail);
+            mensaje.setTo(email);
+            mensaje.setSubject("Verifica tu Email - RÜX");
+            mensaje.setText(
+                    "¡Bienvenido a RÜX!\n\n" +
+                            "Estás a un paso de completar tu registro.\n\n" +
+                            "Tu código de verificación es:\n\n" +
+                            "    " + codigo + "\n\n" +
+                            "Este código expira en 15 minutos.\n\n" +
+                            "Si no creaste una cuenta en RÜX, ignora este mensaje.\n\n" +
+                            "¡Nos vemos en la comunidad!\n" +
+                            "El equipo de RÜX");
+
+            mailSender.send(mensaje);
+            System.out.println("✅ Código de registro enviado a: " + email);
+            return true;
+        } catch (Exception e) {
+            System.err.println("❌ Error enviando código de registro a " + email + ": " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

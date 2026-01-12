@@ -13,4 +13,13 @@ public interface IEmailService {
      * @return true si se envió correctamente, false en caso de error
      */
     boolean enviarCodigoRecuperacion(String email, String codigo);
+
+    /**
+     * Envía un correo con el código de verificación para registro
+     * 
+     * @param email  Correo del destinatario
+     * @param codigo Código de 6 dígitos
+     * @return true si se envió correctamente, false en caso de error
+     */
+    boolean enviarCodigoVerificacionRegistro(String email, String codigo);
 }

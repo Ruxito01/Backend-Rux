@@ -62,8 +62,11 @@ public class RuxWebSocketController {
     @Operation(summary = "Obtener historial de mensajes de una comunidad")
     @GetMapping("/api/chat/historial/{comunidadId}")
     @ResponseBody
-    public ResponseEntity<List<MensajeComunidad>> obtenerHistorial(@PathVariable Long comunidadId) {
-        List<MensajeComunidad> mensajes = ruxSocketService.obtenerHistorialMensajes(comunidadId);
+    public ResponseEntity<List<MensajeComunidad>> obtenerHistorial(
+            @PathVariable Long comunidadId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        List<MensajeComunidad> mensajes = ruxSocketService.obtenerHistorialMensajes(comunidadId, page, size);
         return new ResponseEntity<>(mensajes, HttpStatus.OK);
     }
 

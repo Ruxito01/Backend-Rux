@@ -16,6 +16,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -139,9 +142,12 @@ public class RuxSocketServiceImpl implements IRuxSocketService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MensajeComunidad> obtenerHistorialMensajes(Long comunidadId) {
-        // Retornar últimos 50 mensajes ordenados por fecha descendente
-        return mensajeComunidadDao.findTop50ByComunidadIdOrderByFechaEnvioDesc(comunidadId);
+    public List<MensajeComunidad> obtenerHistorialMensajes(Long comunidadId, int page, int size) {
+        // Retornar mensajes paginados ordenados por fecha descendente (más nuevos
+        // primero)
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("fechaEnvio").descending());
+        Page<MensajeComunidad> pagina = mensajeComunidadDao.findByComunidadId(comunidadId, pageRequest);
+        return pagina.getContent();
     }
 
     @Override

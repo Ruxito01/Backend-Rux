@@ -2,6 +2,8 @@ package com.example.demo.models.dao;
 
 import com.example.demo.models.entity.MensajeComunidad;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 /**
@@ -17,5 +19,8 @@ public interface IMensajeComunidadDao extends JpaRepository<MensajeComunidad, Lo
     /**
      * Obtener últimos N mensajes de una comunidad
      */
-    List<MensajeComunidad> findTop50ByComunidadIdOrderByFechaEnvioDesc(Long comunidadId);
+    /**
+     * Obtener mensajes paginados de una comunidad
+     */
+    Page<MensajeComunidad> findByComunidadId(Long comunidadId, Pageable pageable);
 }

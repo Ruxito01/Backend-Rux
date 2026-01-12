@@ -24,9 +24,9 @@ public interface IRuxSocketService {
     void actualizarUbicacion(UbicacionUsuario ubicacion);
 
     /**
-     * Obtener historial de mensajes de una comunidad
+     * Obtener historial de mensajes paginado
      */
-    List<MensajeComunidad> obtenerHistorialMensajes(Long comunidadId);
+    List<MensajeComunidad> obtenerHistorialMensajes(Long comunidadId, int page, int size);
 
     /**
      * Editar un mensaje existente

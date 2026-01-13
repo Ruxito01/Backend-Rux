@@ -101,7 +101,7 @@ public class SolicitudComunidadServiceImpl implements ISolicitudComunidadService
         Comunidad comunidad = solicitud.getComunidad();
         Usuario usuario = solicitud.getUsuario();
 
-        // Verificar si ya existe un registro (por seguridad)
+        // Verificar si ya existe un registro (puede ser inactivo por salida anterior)
         MiembroComunidad existente = miembroComunidadDao.findByUsuarioAndComunidad(usuario.getId(),
                 comunidad.getId());
         if (existente == null) {
@@ -111,6 +111,11 @@ public class SolicitudComunidadServiceImpl implements ISolicitudComunidadService
             nuevoMiembro.setComunidad(comunidad);
             nuevoMiembro.setEstado("activo");
             miembroComunidadDao.save(nuevoMiembro);
+        } else {
+            // Si existe pero estaba inactivo, reactivar
+            existente.setEstado("activo");
+            existente.setFechaUnion(LocalDateTime.now()); // Actualizar fecha de reingreso
+            miembroComunidadDao.save(existente);
         }
 
         return solicitudDao.save(solicitud);

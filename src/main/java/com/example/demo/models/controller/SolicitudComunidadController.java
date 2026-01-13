@@ -103,11 +103,16 @@ public class SolicitudComunidadController {
                         HttpStatus.BAD_REQUEST);
             }
 
-            // Verificar que no sea ya miembro (usando DAO para evitar LAZY loading)
-            if (miembroComunidadDao.findByUsuarioAndComunidad(usuarioId, comunidadId) != null) {
-                return new ResponseEntity<>(
-                        Map.of("error", "Ya eres miembro de esta comunidad"),
-                        HttpStatus.BAD_REQUEST);
+            // Verificar que no sea ya miembro ACTIVO (permite solicitar si esta inactivo)
+            var membresia = miembroComunidadDao.findByUsuarioAndComunidad(usuarioId, comunidadId);
+            if (membresia != null) {
+                // Solo bloquear si es miembro ACTIVO
+                if (membresia.getEstado() == null || "activo".equals(membresia.getEstado())) {
+                    return new ResponseEntity<>(
+                            Map.of("error", "Ya eres miembro de esta comunidad"),
+                            HttpStatus.BAD_REQUEST);
+                }
+                // Si es inactivo, permitir que continue y cree solicitud
             }
 
             // Verificar que no tenga ya una solicitud pendiente

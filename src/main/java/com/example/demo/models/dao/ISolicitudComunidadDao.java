@@ -32,12 +32,6 @@ public interface ISolicitudComunidadDao extends JpaRepository<SolicitudComunidad
     List<SolicitudComunidad> findByUsuarioId(@Param("usuarioId") Long usuarioId);
 
     /**
-     * Busca solicitudes pendientes de un usuario
-     */
-    @Query("SELECT s FROM SolicitudComunidad s WHERE s.usuario.id = :usuarioId AND s.estado = 'pendiente'")
-    List<SolicitudComunidad> findPendientesByUsuarioId(@Param("usuarioId") Long usuarioId);
-
-    /**
      * Busca todas las solicitudes de una comunidad (todas, no solo pendientes)
      */
     @Query("SELECT s FROM SolicitudComunidad s WHERE s.comunidad.id = :comunidadId")

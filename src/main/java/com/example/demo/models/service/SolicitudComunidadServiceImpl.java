@@ -70,12 +70,6 @@ public class SolicitudComunidadServiceImpl implements ISolicitudComunidadService
 
     @Override
     @Transactional(readOnly = true)
-    public List<SolicitudComunidad> findPendientesByUsuarioId(Long usuarioId) {
-        return solicitudDao.findPendientesByUsuarioId(usuarioId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<SolicitudComunidad> findByComunidadId(Long comunidadId) {
         return solicitudDao.findByComunidadId(comunidadId);
     }

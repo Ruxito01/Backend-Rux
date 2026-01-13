@@ -51,6 +51,14 @@ public class SolicitudComunidadController {
         return solicitudService.findPendientesByComunidadId(comunidadId);
     }
 
+    @Operation(summary = "Obtener solicitudes pendientes de un usuario")
+    @GetMapping("/usuario/{usuarioId}/pendientes")
+    public List<SolicitudComunidad> getPendientesByUsuario(@PathVariable Long usuarioId) {
+        return solicitudService.findByUsuarioId(usuarioId).stream()
+                .filter(s -> "pendiente".equals(s.getEstado()))
+                .toList();
+    }
+
     @Operation(summary = "Crear nueva solicitud para unirse a comunidad privada")
     @PostMapping
     public ResponseEntity<?> crearSolicitud(@RequestBody Map<String, Object> payload) {

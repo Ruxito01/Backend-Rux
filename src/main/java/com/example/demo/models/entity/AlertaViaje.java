@@ -23,7 +23,7 @@ public class AlertaViaje implements Serializable {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "viaje_id", nullable = false)
+    @JoinColumn(name = "viaje_id", nullable = true)
     private Viaje viaje;
 
     @ManyToOne
@@ -36,6 +36,13 @@ public class AlertaViaje implements Serializable {
      */
     @Column(name = "tipo_alerta", nullable = false)
     private String tipoAlerta;
+
+    /**
+     * Origen de la alerta.
+     * Valores: 'chatbot' (búsqueda de servicios) o 'sos' (emergencia reportada)
+     */
+    @Column(name = "origen_alerta", length = 20)
+    private String origenAlerta = "sos";
 
     /**
      * Mensaje descriptivo de la alerta.
@@ -59,6 +66,20 @@ public class AlertaViaje implements Serializable {
      */
     @Column(precision = 10, scale = 7, nullable = false)
     private BigDecimal longitud;
+
+    /**
+     * Latitud del punto inicial (solo para alertas de chatbot).
+     * Representa dónde estaba el usuario cuando hizo la búsqueda.
+     */
+    @Column(name = "latitud_inicio", precision = 10, scale = 7)
+    private BigDecimal latitudInicio;
+
+    /**
+     * Longitud del punto inicial (solo para alertas de chatbot).
+     * Representa dónde estaba el usuario cuando hizo la búsqueda.
+     */
+    @Column(name = "longitud_inicio", precision = 10, scale = 7)
+    private BigDecimal longitudInicio;
 
     // ==========================================
     // ESTADO DE LA ALERTA

@@ -55,21 +55,30 @@ public class AlertaViajeServiceImpl implements IAlertaViajeService {
     @Override
     @Transactional
     public AlertaViaje crearAlerta(Long viajeId, Long usuarioId, String tipoAlerta,
-            BigDecimal latitud, BigDecimal longitud, String mensaje) {
-        // Buscar entidades
-        Viaje viaje = viajeDao.findById(viajeId)
-                .orElseThrow(() -> new RuntimeException("Viaje no encontrado: " + viajeId));
+            BigDecimal latitud, BigDecimal longitud, String mensaje,
+            BigDecimal latitudInicio, BigDecimal longitudInicio, String origenAlerta) {
+        // Buscar usuario (siempre obligatorio)
         Usuario usuario = usuarioDao.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + usuarioId));
 
+        // Buscar viaje solo si se proporciona (puede ser null para alertas de chatbot)
+        Viaje viaje = null;
+        if (viajeId != null) {
+            viaje = viajeDao.findById(viajeId)
+                    .orElseThrow(() -> new RuntimeException("Viaje no encontrado: " + viajeId));
+        }
+
         // Crear alerta
         AlertaViaje alerta = new AlertaViaje();
-        alerta.setViaje(viaje);
+        alerta.setViaje(viaje); // Puede ser null
         alerta.setUsuarioReporta(usuario);
         alerta.setTipoAlerta(tipoAlerta);
         alerta.setLatitud(latitud);
         alerta.setLongitud(longitud);
         alerta.setMensaje(mensaje);
+        alerta.setLatitudInicio(latitudInicio);
+        alerta.setLongitudInicio(longitudInicio);
+        alerta.setOrigenAlerta(origenAlerta != null ? origenAlerta : "sos");
         alerta.setEstaActiva(true);
         alerta.setFechaReporte(LocalDateTime.now());
 

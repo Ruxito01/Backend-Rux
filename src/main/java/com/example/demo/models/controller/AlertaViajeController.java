@@ -89,14 +89,29 @@ public class AlertaViajeController {
     @PostMapping("/crear")
     public ResponseEntity<?> crearAlertaSimplificada(@RequestBody @NonNull java.util.Map<String, Object> request) {
         try {
-            Long viajeId = Long.valueOf(request.get("viajeId").toString());
+            // viajeId ahora es opcional (puede ser null para alertas de chatbot)
+            Long viajeId = request.get("viajeId") != null
+                    ? Long.valueOf(request.get("viajeId").toString())
+                    : null;
             Long usuarioId = Long.valueOf(request.get("usuarioId").toString());
             String tipoAlerta = request.get("tipoAlerta").toString();
             java.math.BigDecimal latitud = new java.math.BigDecimal(request.get("latitud").toString());
             java.math.BigDecimal longitud = new java.math.BigDecimal(request.get("longitud").toString());
             String mensaje = request.get("mensaje") != null ? request.get("mensaje").toString() : null;
 
-            AlertaViaje alerta = service.crearAlerta(viajeId, usuarioId, tipoAlerta, latitud, longitud, mensaje);
+            // Nuevos campos opcionales
+            java.math.BigDecimal latitudInicio = request.get("latitudInicio") != null
+                    ? new java.math.BigDecimal(request.get("latitudInicio").toString())
+                    : null;
+            java.math.BigDecimal longitudInicio = request.get("longitudInicio") != null
+                    ? new java.math.BigDecimal(request.get("longitudInicio").toString())
+                    : null;
+            String origenAlerta = request.get("origenAlerta") != null
+                    ? request.get("origenAlerta").toString()
+                    : "sos";
+
+            AlertaViaje alerta = service.crearAlerta(viajeId, usuarioId, tipoAlerta, latitud, longitud, mensaje,
+                    latitudInicio, longitudInicio, origenAlerta);
 
             // Retornar solo los campos necesarios para evitar lazy loading
             java.util.Map<String, Object> response = new java.util.HashMap<>();
@@ -105,6 +120,7 @@ public class AlertaViajeController {
             response.put("mensaje", alerta.getMensaje());
             response.put("latitud", alerta.getLatitud());
             response.put("longitud", alerta.getLongitud());
+            response.put("origenAlerta", alerta.getOrigenAlerta());
             response.put("estaActiva", alerta.getEstaActiva());
             response.put("fechaReporte", alerta.getFechaReporte());
 

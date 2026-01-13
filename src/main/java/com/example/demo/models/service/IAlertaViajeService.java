@@ -15,5 +15,6 @@ public interface IAlertaViajeService {
 
     // Método simplificado para crear alertas desde Flutter
     AlertaViaje crearAlerta(Long viajeId, Long usuarioId, String tipoAlerta,
-            BigDecimal latitud, BigDecimal longitud, String mensaje);
+            BigDecimal latitud, BigDecimal longitud, String mensaje,
+            BigDecimal latitudInicio, BigDecimal longitudInicio, String origenAlerta);
 }

@@ -103,7 +103,7 @@ public class SolicitudComunidadController {
                         HttpStatus.BAD_REQUEST);
             }
 
-            // Verificar que no sea ya miembro ACTIVO (permite solicitar si esta inactivo)
+            // Verificar que no sea ya miembro ACTIVO (permitas solicitar si esta inactivo)
             var membresia = miembroComunidadDao.findByUsuarioAndComunidad(usuarioId, comunidadId);
             if (membresia != null) {
                 // Solo bloquear si es miembro ACTIVO

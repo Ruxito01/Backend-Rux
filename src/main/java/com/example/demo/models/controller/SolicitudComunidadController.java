@@ -51,6 +51,19 @@ public class SolicitudComunidadController {
         return solicitudService.findPendientesByComunidadId(comunidadId);
     }
 
+    @Operation(summary = "Obtener solicitudes pendientes de un usuario")
+    @GetMapping("/usuario/{usuarioId}/pendientes")
+    public List<Map<String, Object>> getPendientesByUsuario(@PathVariable Long usuarioId) {
+        List<SolicitudComunidad> solicitudes = solicitudService.findPendientesByUsuarioId(usuarioId);
+        // Retornar solo los datos necesarios (comunidadId)
+        return solicitudes.stream()
+                .map(s -> Map.<String, Object>of(
+                        "id", s.getId(),
+                        "comunidadId", s.getComunidad().getId(),
+                        "estado", s.getEstado()))
+                .toList();
+    }
+
     @Operation(summary = "Crear nueva solicitud para unirse a comunidad privada")
     @PostMapping
     public ResponseEntity<?> crearSolicitud(@RequestBody Map<String, Object> payload) {

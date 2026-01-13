@@ -42,6 +42,11 @@ public interface ISolicitudComunidadService {
     List<SolicitudComunidad> findByUsuarioId(Long usuarioId);
 
     /**
+     * Buscar solicitudes pendientes de un usuario
+     */
+    List<SolicitudComunidad> findPendientesByUsuarioId(Long usuarioId);
+
+    /**
      * Buscar todas las solicitudes de una comunidad
      */
     List<SolicitudComunidad> findByComunidadId(Long comunidadId);

@@ -127,7 +127,7 @@ public class SolicitudComunidadController {
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(
-                    Map.of("error", "Error al crear la solicitud"),
+                    Map.of("error", "Error al crear la solicitud: " + e.getMessage()),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

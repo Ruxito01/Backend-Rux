@@ -114,4 +114,53 @@ public class ViajeNotificationService {
         LocalDateTime ahora = LocalDateTime.now();
         return viajeDao.findByEstadoAndFechaProgramadaBetween("en_curso", hace2Horas, ahora);
     }
+
+    /**
+     * Notificar a todos los participantes que el viaje ha sido cancelado por el
+     * organizador
+     * 
+     * @param viaje             Viaje que fue cancelado
+     * @param nombreOrganizador Nombre del organizador que canceló
+     * @param organizadorId     ID del organizador (para no enviarle notificación a
+     *                          él mismo)
+     */
+    public void notificarViajeCancelado(Viaje viaje, String nombreOrganizador, Long organizadorId) {
+        if (viaje == null || viaje.getParticipantes() == null) {
+            System.out.println("⚠️ Viaje sin participantes para notificar cancelación");
+            return;
+        }
+
+        String rutaNombre = viaje.getRuta() != null ? viaje.getRuta().getNombre() : "el viaje";
+        String titulo = "⚠️ Viaje cancelado";
+        String cuerpo = nombreOrganizador + " ha cancelado el viaje \"" + rutaNombre + "\"";
+
+        int notificacionesEnviadas = 0;
+        for (ParticipanteViaje participante : viaje.getParticipantes()) {
+            Usuario usuario = participante.getUsuario();
+
+            // No enviar al organizador (quien canceló)
+            if (usuario == null || usuario.getId().equals(organizadorId)) {
+                continue;
+            }
+
+            if (usuario.getFcmToken() == null || usuario.getFcmToken().isEmpty()) {
+                System.out.println("⚠️ Usuario sin FCM token: " + usuario.getId());
+                continue;
+            }
+
+            String resultado = firebaseMessagingService.enviarNotificacionViaje(
+                    usuario.getFcmToken(),
+                    titulo,
+                    cuerpo,
+                    viaje.getId(),
+                    "viaje_cancelado");
+
+            if (resultado != null) {
+                notificacionesEnviadas++;
+            }
+        }
+
+        System.out.println(
+                "✅ Enviadas " + notificacionesEnviadas + " notificaciones de cancelación para viaje #" + viaje.getId());
+    }
 }

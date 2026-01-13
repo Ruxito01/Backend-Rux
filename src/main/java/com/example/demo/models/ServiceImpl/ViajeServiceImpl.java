@@ -411,4 +411,30 @@ public class ViajeServiceImpl implements IViajeService {
         // campos TEXT
         return new java.util.ArrayList<>(new java.util.LinkedHashSet<>(viajes));
     }
+
+    @Override
+    @Transactional
+    public boolean cancelarViajeCompleto(Long viajeId) {
+        Viaje viaje = dao.findById(viajeId).orElse(null);
+        if (viaje == null) {
+            return false;
+        }
+
+        // Cambiar estado del viaje a cancelado
+        viaje.setEstado("cancelado");
+        viaje.setFechaFinReal(java.time.LocalDateTime.now());
+
+        // Cambiar estado de TODOS los participantes a 'cancela'
+        if (viaje.getParticipantes() != null) {
+            for (com.example.demo.models.entity.ParticipanteViaje participante : viaje.getParticipantes()) {
+                // Solo cambiar si no ha finalizado ya
+                if (participante.getEstado() != com.example.demo.models.entity.EstadoParticipante.finaliza) {
+                    participante.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela);
+                }
+            }
+        }
+
+        dao.save(viaje);
+        return true;
+    }
 }

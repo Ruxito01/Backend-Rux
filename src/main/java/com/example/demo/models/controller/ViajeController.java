@@ -2,6 +2,7 @@ package com.example.demo.models.controller;
 
 import com.example.demo.models.entity.Viaje;
 import com.example.demo.models.service.IViajeService;
+import com.example.demo.models.service.ViajeNotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,6 +24,9 @@ public class ViajeController {
 
         @Autowired
         private IViajeService service;
+
+        @Autowired
+        private ViajeNotificationService notificationService;
 
         @Operation(summary = "Obtener todos los viajes", description = "Retorna una lista con todos los viajes programados o en curso en el sistema")
         @ApiResponse(responseCode = "200", description = "Lista de viajes obtenida exitosamente")
@@ -255,5 +259,70 @@ public class ViajeController {
         public ResponseEntity<List<Viaje>> getRecientes(
                         @Parameter(description = "Días hacia atrás (default 7)", required = false) @RequestParam(defaultValue = "7") int dias) {
                 return ResponseEntity.ok(service.findRecientes(dias));
+        }
+
+        @Operation(summary = "Cancelar viaje (organizador)", description = "Cancela el viaje completo y notifica a todos los participantes. Solo el organizador puede ejecutar esta acción.")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Viaje cancelado exitosamente"),
+                        @ApiResponse(responseCode = "403", description = "El usuario no es el organizador"),
+                        @ApiResponse(responseCode = "404", description = "Viaje no encontrado")
+        })
+        @PutMapping("/{viajeId}/cancelar")
+        public ResponseEntity<Void> cancelarViaje(
+                        @Parameter(description = "ID del viaje", required = true) @PathVariable @NonNull Long viajeId,
+                        @Parameter(description = "ID del organizador que cancela", required = true) @RequestParam @NonNull Long organizadorId) {
+
+                Viaje viaje = service.findById(viajeId);
+                if (viaje == null) {
+                        return ResponseEntity.notFound().build();
+                }
+
+                // Verificar que es el organizador
+                if (viaje.getOrganizador() == null || !viaje.getOrganizador().getId().equals(organizadorId)) {
+                        return ResponseEntity.status(403).build();
+                }
+
+                // Obtener nombre del organizador antes de cancelar
+                String nombreOrganizador = viaje.getOrganizador().getNombre() != null
+                                ? viaje.getOrganizador().getNombre()
+                                : "El organizador";
+
+                // Cancelar el viaje y todos los participantes
+                boolean cancelado = service.cancelarViajeCompleto(viajeId);
+                if (!cancelado) {
+                        return ResponseEntity.status(500).build();
+                }
+
+                // Enviar notificaciones push a todos los participantes
+                notificationService.notificarViajeCancelado(viaje, nombreOrganizador, organizadorId);
+
+                return ResponseEntity.ok().build();
+        }
+
+        @Operation(summary = "Re-admitir participante", description = "Permite que un participante que canceló vuelva a unirse al viaje. Solo el organizador puede ejecutar esta acción.")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Participante re-admitido exitosamente"),
+                        @ApiResponse(responseCode = "403", description = "El solicitante no es el organizador"),
+                        @ApiResponse(responseCode = "404", description = "Viaje o participante no encontrado")
+        })
+        @PutMapping("/{viajeId}/participante/{usuarioId}/readmitir")
+        public ResponseEntity<Void> readmitirParticipante(
+                        @Parameter(description = "ID del viaje", required = true) @PathVariable @NonNull Long viajeId,
+                        @Parameter(description = "ID del participante a re-admitir", required = true) @PathVariable @NonNull Long usuarioId,
+                        @Parameter(description = "ID del organizador", required = true) @RequestParam @NonNull Long organizadorId) {
+
+                Viaje viaje = service.findById(viajeId);
+                if (viaje == null) {
+                        return ResponseEntity.notFound().build();
+                }
+
+                // Verificar que es el organizador
+                if (viaje.getOrganizador() == null || !viaje.getOrganizador().getId().equals(organizadorId)) {
+                        return ResponseEntity.status(403).build();
+                }
+
+                // Cambiar estado de 'cancela' a 'registrado'
+                boolean readmitido = service.updateEstadoParticipante(viajeId, usuarioId, "registrado", null);
+                return readmitido ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
         }
 }

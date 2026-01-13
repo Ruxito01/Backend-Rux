@@ -88,4 +88,13 @@ public interface IViajeService {
      * Obtiene todos los viajes optimizados para dashboard.
      */
     List<Viaje> findAllWithRelations();
+
+    /**
+     * Cancela un viaje completo: cambia el estado del viaje a "cancelado"
+     * y el estado de todos los participantes a "cancela".
+     * 
+     * @param viajeId ID del viaje a cancelar
+     * @return true si se canceló exitosamente
+     */
+    boolean cancelarViajeCompleto(Long viajeId);
 }

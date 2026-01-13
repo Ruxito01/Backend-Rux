@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import com.example.demo.models.dao.IMiembroComunidadDao;
 
 @RestController
 @RequestMapping("/api/solicitud-comunidad")
@@ -29,6 +30,9 @@ public class SolicitudComunidadController {
 
     @Autowired
     private IComunidadService comunidadService;
+
+    @Autowired
+    private IMiembroComunidadDao miembroComunidadDao;
 
     @Operation(summary = "Obtener todas las solicitudes")
     @GetMapping
@@ -99,8 +103,8 @@ public class SolicitudComunidadController {
                         HttpStatus.BAD_REQUEST);
             }
 
-            // Verificar que no sea ya miembro
-            if (comunidad.getMiembros().contains(usuario)) {
+            // Verificar que no sea ya miembro (usando DAO para evitar LAZY loading)
+            if (miembroComunidadDao.findByUsuarioAndComunidad(usuarioId, comunidadId) != null) {
                 return new ResponseEntity<>(
                         Map.of("error", "Ya eres miembro de esta comunidad"),
                         HttpStatus.BAD_REQUEST);

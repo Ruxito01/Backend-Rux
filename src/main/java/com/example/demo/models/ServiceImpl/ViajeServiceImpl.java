@@ -578,9 +578,17 @@ public class ViajeServiceImpl implements IViajeService {
                     if (p.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona) {
                         System.out.println("  ✅ Estado es ABANDONA");
 
-                        if (p.getFechaFinIndividual() != null) {
+                        // Usar fechaFinIndividual si existe, sino fechaInicioIndividual como fallback
+                        java.time.LocalDateTime fechaReferencia = p.getFechaFinIndividual();
+                        if (fechaReferencia == null) {
+                            fechaReferencia = p.getFechaInicioIndividual();
+                            System.out.println("  ⚠️  FechaFinIndividual es NULL, usando FechaInicioIndividual: "
+                                    + fechaReferencia);
+                        }
+
+                        if (fechaReferencia != null) {
                             long minutos = java.time.Duration
-                                    .between(p.getFechaFinIndividual(), java.time.LocalDateTime.now()).toMinutes();
+                                    .between(fechaReferencia, java.time.LocalDateTime.now()).toMinutes();
                             System.out.println("  ⏱️  Minutos desde salida: " + minutos);
 
                             if (minutos <= 15) {
@@ -590,7 +598,7 @@ public class ViajeServiceImpl implements IViajeService {
                                 System.out.println("  ❌ Fuera de ventana (>15 min)");
                             }
                         } else {
-                            System.out.println("  ❌ FechaFinIndividual es NULL");
+                            System.out.println("  ❌ No hay fecha de referencia disponible");
                         }
                     } else {
                         System.out.println("  ❌ Estado NO es abandona");

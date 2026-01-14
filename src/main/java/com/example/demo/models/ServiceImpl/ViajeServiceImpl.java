@@ -147,6 +147,17 @@ public class ViajeServiceImpl implements IViajeService {
             return true; // Ya estaba agregado
         }
 
+        // ANTES de agregar al nuevo viaje, cancelar cualquier viaje donde haya
+        // abandonado
+        // Esto evita que pueda volver a un viaje anterior si se une a uno nuevo
+        usuario.getViajesParticipados().stream()
+                .filter(p -> p.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona)
+                .forEach(p -> {
+                    p.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela);
+                    System.out.println("🚫 Cancelado viaje abandonado ID: " + p.getViaje().getId());
+                });
+        usuarioDao.save(usuario);
+
         // Crear la relación con estado inicial REGISTRADO
         com.example.demo.models.entity.ParticipanteViaje participante = new com.example.demo.models.entity.ParticipanteViaje(
                 usuario, viaje, com.example.demo.models.entity.EstadoParticipante.registrado);
@@ -472,8 +483,8 @@ public class ViajeServiceImpl implements IViajeService {
         if (participante == null)
             return false;
 
-        // Validar que el estado actual sea CANCELA
-        if (participante.getEstado() != com.example.demo.models.entity.EstadoParticipante.cancela) {
+        // Validar que el estado actual sea ABANDONA (salió voluntariamente)
+        if (participante.getEstado() != com.example.demo.models.entity.EstadoParticipante.abandona) {
             return false;
         }
 
@@ -547,19 +558,19 @@ public class ViajeServiceImpl implements IViajeService {
     @Override
     @Transactional(readOnly = true)
     public List<Viaje> findViajesReingreso(Long usuarioId) {
-        // Consultamos viajes donde el usuario es participante con estado 'cancela'
+        // Consultamos viajes donde el usuario es participante con viaje en_curso
         List<Viaje> viajes = dao.findByParticipantes_Usuario_IdAndEstado(usuarioId, "en_curso");
 
-        // Filtramos en memoria aquellos donde el participante específico tiene estado
-        // cancela Y fecha < 15min
+        // Filtramos en memoria aquellos donde el participante tiene estado 'abandona' Y
+        // fecha < 15min
         return viajes.stream().filter(v -> {
-            boolean usuarioEsParticipanteCancelado = v.getParticipantes().stream()
+            boolean usuarioHaAbandonado = v.getParticipantes().stream()
                     .anyMatch(p -> p.getUsuario().getId().equals(usuarioId) &&
-                            p.getEstado() == com.example.demo.models.entity.EstadoParticipante.cancela &&
+                            p.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona &&
                             p.getFechaFinIndividual() != null &&
                             java.time.Duration.between(p.getFechaFinIndividual(), java.time.LocalDateTime.now())
                                     .toMinutes() <= 15);
-            return usuarioEsParticipanteCancelado;
+            return usuarioHaAbandonado;
         }).collect(java.util.stream.Collectors.toList());
     }
 }

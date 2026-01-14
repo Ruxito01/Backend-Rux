@@ -69,12 +69,21 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
         /**
          * Busca viajes donde el usuario es participante y tienen un estado de VIAJE
          * específico.
+         * Incluye JOIN FETCH de participantes para evitar LazyInitializationException
+         * y que se serialicen correctamente en JSON.
          * 
          * @param usuarioId ID del usuario
          * @param estado    Estado del viaje (ej: "en_curso")
-         * @return Lista de viajes filtrados
+         * @return Lista de viajes filtrados con participantes cargados
          */
-        java.util.List<Viaje> findByParticipantes_Usuario_IdAndEstado(Long usuarioId, String estado);
+        @org.springframework.data.jpa.repository.Query("SELECT DISTINCT v FROM Viaje v " +
+                        "LEFT JOIN FETCH v.participantes p " +
+                        "LEFT JOIN FETCH p.usuario " +
+                        "WHERE p.usuario.id = :usuarioId " +
+                        "AND v.estado = :estado")
+        java.util.List<Viaje> findByParticipantes_Usuario_IdAndEstado(
+                        @org.springframework.data.repository.query.Param("usuarioId") Long usuarioId,
+                        @org.springframework.data.repository.query.Param("estado") String estado);
 
         /**
          * Busca un viaje donde el usuario es participante con estado de VIAJE

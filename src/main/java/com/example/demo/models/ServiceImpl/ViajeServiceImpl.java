@@ -248,9 +248,10 @@ public class ViajeServiceImpl implements IViajeService {
                 }
             }
 
-            // Si el participante finaliza O CANCELA, calcular su tiempo individual
+            // Si el participante finaliza, cancela O ABANDONA, registrar fecha de salida
             if (estadoEnum == com.example.demo.models.entity.EstadoParticipante.finaliza ||
-                    estadoEnum == com.example.demo.models.entity.EstadoParticipante.cancela) {
+                    estadoEnum == com.example.demo.models.entity.EstadoParticipante.cancela ||
+                    estadoEnum == com.example.demo.models.entity.EstadoParticipante.abandona) {
 
                 // Setear fecha fin individual siempre (para validación de 15 min en reingreso)
                 participante.setFechaFinIndividual(java.time.LocalDateTime.now());
@@ -558,20 +559,45 @@ public class ViajeServiceImpl implements IViajeService {
     @Override
     @Transactional(readOnly = true)
     public List<Viaje> findViajesReingreso(Long usuarioId) {
+        System.out.println("🔍 Buscando viajes reingreso para usuario: " + usuarioId);
+
         // Consultamos viajes donde el usuario es participante con viaje en_curso
         List<Viaje> viajes = dao.findByParticipantes_Usuario_IdAndEstado(usuarioId, "en_curso");
+        System.out.println("📋 Viajes en_curso encontrados: " + viajes.size());
 
         // Filtramos en memoria aquellos donde el participante que tiene estado
-        // 'abandona' Y
-        // fecha < 15min
+        // 'abandona' Y fecha < 15min
         return viajes.stream().filter(v -> {
-            boolean usuarioHaAbandonado = v.getParticipantes().stream()
-                    .anyMatch(p -> p.getUsuario().getId().equals(usuarioId) &&
-                            p.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona &&
-                            p.getFechaFinIndividual() != null &&
-                            java.time.Duration.between(p.getFechaFinIndividual(), java.time.LocalDateTime.now())
-                                    .toMinutes() <= 15);
-            return usuarioHaAbandonado;
+            System.out.println("🔎 Verificando viaje ID: " + v.getId());
+
+            for (var p : v.getParticipantes()) {
+                if (p.getUsuario().getId().equals(usuarioId)) {
+                    System.out.println("  ✓ Participante encontrado - Estado: " + p.getEstado());
+                    System.out.println("  ✓ FechaFinIndividual: " + p.getFechaFinIndividual());
+
+                    if (p.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona) {
+                        System.out.println("  ✅ Estado es ABANDONA");
+
+                        if (p.getFechaFinIndividual() != null) {
+                            long minutos = java.time.Duration
+                                    .between(p.getFechaFinIndividual(), java.time.LocalDateTime.now()).toMinutes();
+                            System.out.println("  ⏱️  Minutos desde salida: " + minutos);
+
+                            if (minutos <= 15) {
+                                System.out.println("  ✅ Dentro de ventana de 15 min");
+                                return true;
+                            } else {
+                                System.out.println("  ❌ Fuera de ventana (>15 min)");
+                            }
+                        } else {
+                            System.out.println("  ❌ FechaFinIndividual es NULL");
+                        }
+                    } else {
+                        System.out.println("  ❌ Estado NO es abandona");
+                    }
+                }
+            }
+            return false;
         }).collect(java.util.stream.Collectors.toList());
     }
 }

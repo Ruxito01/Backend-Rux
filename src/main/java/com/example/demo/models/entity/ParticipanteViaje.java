@@ -62,6 +62,10 @@ public class ParticipanteViaje implements Serializable {
     @Column(name = "velocidad_individual", precision = 5, scale = 2)
     private java.math.BigDecimal velocidadIndividual;
 
+    // Contador de intentos de reingreso (máximo 2 permitidos)
+    @Column(name = "intentos_reingreso", columnDefinition = "INTEGER DEFAULT 0")
+    private Integer intentosReingreso = 0;
+
     // Constructor helper
     public ParticipanteViaje(Usuario usuario, Viaje viaje, EstadoParticipante estado) {
         this.usuario = usuario;

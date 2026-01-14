@@ -97,4 +97,14 @@ public interface IViajeService {
      * @return true si se canceló exitosamente
      */
     boolean cancelarViajeCompleto(Long viajeId);
+
+    // Solicitar readmisión tras cancelar (solo si < 15 min)
+    boolean solicitarReadmision(Long viajeId, Long usuarioId);
+
+    // Organizar responde a solicitud de readmisión
+    boolean responderReadmision(Long viajeId, Long usuarioId, boolean aceptado);
+
+    // Buscar viajes donde el usuario canceló hace menos de 15 minutos y el viaje
+    // sigue en curso
+    List<Viaje> findViajesReingreso(Long usuarioId);
 }

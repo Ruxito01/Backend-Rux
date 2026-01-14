@@ -4,5 +4,7 @@ public enum EstadoParticipante {
     registrado,
     ingresa,
     cancela,
-    finaliza
+    finaliza,
+    solicita_ingreso,
+    rechazado
 }

@@ -325,4 +325,48 @@ public class ViajeController {
                 boolean readmitido = service.updateEstadoParticipante(viajeId, usuarioId, "registrado", null);
                 return readmitido ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
         }
+
+        @Operation(summary = "Solicitar readmisión (usuario)", description = "Un participante que abandonó el viaje solicita volver a unirse.")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Solicitud enviada exitosamente"),
+                        @ApiResponse(responseCode = "400", description = "No cumple requisitos (tiempo > 15m)"),
+                        @ApiResponse(responseCode = "404", description = "Viaje o usuario no encontrado")
+        })
+        @PostMapping("/{viajeId}/readmision/solicitar")
+        public ResponseEntity<Void> solicitarReadmision(
+                        @Parameter(description = "ID del viaje", required = true) @PathVariable @NonNull Long viajeId,
+                        @Parameter(description = "ID del usuario solicitante", required = true) @RequestParam @NonNull Long usuarioId) {
+                boolean exito = service.solicitarReadmision(viajeId, usuarioId);
+                return exito ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+        }
+
+        @Operation(summary = "Responder readmisión (organizador)", description = "El organizador acepta o rechaza la solicitud de readmisión.")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Respuesta procesada exitosamente"),
+                        @ApiResponse(responseCode = "403", description = "El usuario no es el organizador")
+        })
+        @PostMapping("/{viajeId}/readmision/responder")
+        public ResponseEntity<Void> responderReadmision(
+                        @Parameter(description = "ID del viaje", required = true) @PathVariable @NonNull Long viajeId,
+                        @Parameter(description = "ID del participante", required = true) @RequestParam @NonNull Long usuarioId,
+                        @Parameter(description = "Aceptado (true/false)", required = true) @RequestParam @NonNull boolean aceptado,
+                        @Parameter(description = "ID del organizador", required = true) @RequestParam @NonNull Long organizadorId) {
+
+                // Validar organizador
+                Viaje viaje = service.findById(viajeId);
+                if (viaje == null || viaje.getOrganizador() == null
+                                || !viaje.getOrganizador().getId().equals(organizadorId)) {
+                        return ResponseEntity.status(403).build();
+                }
+
+                boolean exito = service.responderReadmision(viajeId, usuarioId, aceptado);
+                return exito ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+        }
+
+        @Operation(summary = "Verificar reingreso disponible", description = "Busca viajes donde el usuario puede solicitar reingreso (canceló hace < 15 min).")
+        @GetMapping("/usuario/{usuarioId}/reingreso-disponible")
+        public ResponseEntity<List<Viaje>> getViajesReingresoDisponible(
+                        @Parameter(description = "ID del usuario", required = true) @PathVariable @NonNull Long usuarioId) {
+                return ResponseEntity.ok(service.findViajesReingreso(usuarioId));
+        }
 }

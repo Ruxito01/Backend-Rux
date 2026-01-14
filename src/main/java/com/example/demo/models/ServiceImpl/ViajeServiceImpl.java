@@ -237,12 +237,17 @@ public class ViajeServiceImpl implements IViajeService {
                 }
             }
 
-            // Si el participante finaliza, calcular su tiempo individual
-            if (estadoEnum == com.example.demo.models.entity.EstadoParticipante.finaliza) {
+            // Si el participante finaliza O CANCELA, calcular su tiempo individual
+            if (estadoEnum == com.example.demo.models.entity.EstadoParticipante.finaliza ||
+                    estadoEnum == com.example.demo.models.entity.EstadoParticipante.cancela) {
+
+                // Setear fecha fin individual siempre (para validación de 15 min en reingreso)
                 participante.setFechaFinIndividual(java.time.LocalDateTime.now());
 
-                // Calcular tiempo individual en minutos
-                if (participante.getFechaInicioIndividual() != null) {
+                // Solo calcular estadísticas si FINALIZA (no si cancela)
+                if (estadoEnum == com.example.demo.models.entity.EstadoParticipante.finaliza &&
+                        participante.getFechaInicioIndividual() != null) {
+
                     long minutos = java.time.Duration.between(
                             participante.getFechaInicioIndividual(),
                             participante.getFechaFinIndividual()).toMinutes();
@@ -435,6 +440,111 @@ public class ViajeServiceImpl implements IViajeService {
         }
 
         dao.save(viaje);
+        dao.save(viaje);
         return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean solicitarReadmision(Long viajeId, Long usuarioId) {
+        // Buscar viaje
+        Viaje viaje = dao.findById(viajeId).orElse(null);
+        if (viaje == null || !"en_curso".equals(viaje.getEstado())) {
+            return false;
+        }
+
+        // Buscar participante using stream filter on collection to ensure loaded state
+        // if fetched with relations
+        // Or fetch fresh using dao if safer. Let's use Usuario DAO approach as used in
+        // updateEstadoParticipante
+        Usuario usuario = usuarioDao.findById(usuarioId).orElse(null);
+        if (usuario == null)
+            return false;
+
+        com.example.demo.models.entity.ParticipanteViaje participante = usuario.getViajesParticipados().stream()
+                .filter(p -> p.getViaje().getId().equals(viajeId))
+                .findFirst()
+                .orElse(null);
+
+        if (participante == null)
+            return false;
+
+        // Validar que el estado actual sea CANCELA
+        if (participante.getEstado() != com.example.demo.models.entity.EstadoParticipante.cancela) {
+            return false;
+        }
+
+        // Validar tiempo (15 min)
+        java.time.LocalDateTime fechaSalida = participante.getFechaFinIndividual();
+        if (fechaSalida == null) {
+            // Si no hay fecha de salida registrada, rechazamos por seguridad o permitimos?
+            // Mejor rechazar o asumir que fue hace poco.
+            // Para robustez, requerimos fecha.
+            return false;
+        }
+
+        long minutosDesdeSalida = java.time.Duration.between(fechaSalida, java.time.LocalDateTime.now()).toMinutes();
+        if (minutosDesdeSalida > 15) {
+            return false;
+        }
+
+        // Cambiar estado a solicita_ingreso
+        participante.setEstado(com.example.demo.models.entity.EstadoParticipante.solicita_ingreso);
+        usuarioDao.save(usuario); // Guardar cambios
+
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean responderReadmision(Long viajeId, Long usuarioId, boolean aceptado) {
+        Usuario usuario = usuarioDao.findById(usuarioId).orElse(null);
+        if (usuario == null)
+            return false;
+
+        com.example.demo.models.entity.ParticipanteViaje participante = usuario.getViajesParticipados().stream()
+                .filter(p -> p.getViaje().getId().equals(viajeId))
+                .findFirst()
+                .orElse(null);
+
+        if (participante == null)
+            return false;
+
+        if (aceptado) {
+            participante.setEstado(com.example.demo.models.entity.EstadoParticipante.ingresa);
+            // Limpiar fecha fin individual anterior para que el cálculo de tiempo sea
+            // correcto al finalizar de nuevo
+            // OJO: Si limpiamos fechaFinIndividual, al finalizar se calculará el tiempo
+            // desde el INICIO original.
+            // Si queremos descontar el tiempo que estuvo fuera, deberíamos tener lógica de
+            // "sesiones" o acumular tiempo.
+            // Por simplicidad MVP: Limpiamos fecha fin y asumimos continuidad (el tiempo
+            // "fuera" cuenta como tiempo de viaje).
+            participante.setFechaFinIndividual(null);
+        } else {
+            participante.setEstado(com.example.demo.models.entity.EstadoParticipante.rechazado);
+        }
+
+        usuarioDao.save(usuario);
+        return true;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Viaje> findViajesReingreso(Long usuarioId) {
+        // Consultamos viajes donde el usuario es participante con estado 'cancela'
+        List<Viaje> viajes = dao.findByParticipantes_Usuario_IdAndEstado(usuarioId, "en_curso");
+
+        // Filtramos en memoria aquellos donde el participante específico tiene estado
+        // cancela Y fecha < 15min
+        return viajes.stream().filter(v -> {
+            boolean usuarioEsParticipanteCancelado = v.getParticipantes().stream()
+                    .anyMatch(p -> p.getUsuario().getId().equals(usuarioId) &&
+                            p.getEstado() == com.example.demo.models.entity.EstadoParticipante.cancela &&
+                            p.getFechaFinIndividual() != null &&
+                            java.time.Duration.between(p.getFechaFinIndividual(), java.time.LocalDateTime.now())
+                                    .toMinutes() <= 15);
+            return usuarioEsParticipanteCancelado;
+        }).collect(java.util.stream.Collectors.toList());
     }
 }

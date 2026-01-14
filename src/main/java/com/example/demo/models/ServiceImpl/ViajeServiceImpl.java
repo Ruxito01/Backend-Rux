@@ -561,7 +561,8 @@ public class ViajeServiceImpl implements IViajeService {
         // Consultamos viajes donde el usuario es participante con viaje en_curso
         List<Viaje> viajes = dao.findByParticipantes_Usuario_IdAndEstado(usuarioId, "en_curso");
 
-        // Filtramos en memoria aquellos donde el participante tiene estado 'abandona' Y
+        // Filtramos en memoria aquellos donde el participante que tiene estado
+        // 'abandona' Y
         // fecha < 15min
         return viajes.stream().filter(v -> {
             boolean usuarioHaAbandonado = v.getParticipantes().stream()

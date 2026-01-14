@@ -444,6 +444,9 @@ public class ViajeServiceImpl implements IViajeService {
         return true;
     }
 
+    @Autowired
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
     @Override
     @Transactional
     public boolean solicitarReadmision(Long viajeId, Long usuarioId) {
@@ -491,6 +494,18 @@ public class ViajeServiceImpl implements IViajeService {
         // Cambiar estado a solicita_ingreso
         participante.setEstado(com.example.demo.models.entity.EstadoParticipante.solicita_ingreso);
         usuarioDao.save(usuario); // Guardar cambios
+
+        // Notificar al organizador vía WebSocket
+        java.util.Map<String, Object> notification = new java.util.HashMap<>();
+        notification.put("tipo", "SOLICITUD_REINGRESO");
+        notification.put("usuarioId", usuarioId);
+        notification.put("nombre", (usuario.getAlias() != null && !usuario.getAlias().isEmpty()) ? usuario.getAlias()
+                : usuario.getNombre());
+        notification.put("viajeId", viajeId);
+
+        String destino = "/topic/viaje/" + viajeId + "/eventos";
+        messagingTemplate.convertAndSend(destino, notification);
+        System.out.println("🔔 Solicitud reingreso enviada a socket: " + destino);
 
         return true;
     }

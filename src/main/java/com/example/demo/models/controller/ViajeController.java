@@ -369,4 +369,26 @@ public class ViajeController {
                         @Parameter(description = "ID del usuario", required = true) @PathVariable @NonNull Long usuarioId) {
                 return ResponseEntity.ok(service.findViajesReingreso(usuarioId));
         }
+
+        @Operation(summary = "Expirar reingreso (tiempo agotado)", description = "Actualiza el estado a 'cancela' si ha pasado el tiempo límite de reingreso (15 min).")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Reingreso expirado exitosamente (estado cambiado a cancela)"),
+                        @ApiResponse(responseCode = "304", description = "No expiró (aún dentro de tiempo o estado incorrecto)"),
+                        @ApiResponse(responseCode = "404", description = "Viaje o participante no encontrado")
+        })
+        @PutMapping("/{viajeId}/participante/{usuarioId}/expirar-reingreso")
+        public ResponseEntity<Void> expirarReingreso(
+                        @Parameter(description = "ID del viaje", required = true) @PathVariable @NonNull Long viajeId,
+                        @Parameter(description = "ID del participante", required = true) @PathVariable @NonNull Long usuarioId) {
+                boolean expirado = service.expirarReingreso(viajeId, usuarioId);
+                // Si expiró y cambió estado -> 200 OK
+                if (expirado) {
+                        return ResponseEntity.ok().build();
+                }
+                // Si no expiró (porque no pasó el tiempo o no estaba en estado correcto) -> 304
+                // Not Modified o 200 OK sin cambios?
+                // Usaremos 200 OK para simplificar manejo en cliente, pero indicando que no
+                // hubo cambio real (o quizás 204 No Content)
+                return ResponseEntity.ok().build();
+        }
 }

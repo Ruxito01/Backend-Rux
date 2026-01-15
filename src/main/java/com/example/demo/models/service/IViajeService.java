@@ -107,4 +107,6 @@ public interface IViajeService {
     // Buscar viajes donde el usuario canceló hace menos de 15 minutos y el viaje
     // sigue en curso
     List<Viaje> findViajesReingreso(Long usuarioId);
+
+    boolean expirarReingreso(Long viajeId, Long usuarioId);
 }

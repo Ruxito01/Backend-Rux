@@ -638,4 +638,49 @@ public class ViajeServiceImpl implements IViajeService {
             return false;
         }).collect(java.util.stream.Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public boolean expirarReingreso(Long viajeId, Long usuarioId) {
+        // Buscar usuario
+        Usuario usuario = usuarioDao.findById(usuarioId).orElse(null);
+        if (usuario == null)
+            return false;
+
+        // Buscar participante en el viaje específico
+        com.example.demo.models.entity.ParticipanteViaje participante = usuario.getViajesParticipados().stream()
+                .filter(p -> p.getViaje().getId().equals(viajeId))
+                .findFirst()
+                .orElse(null);
+
+        if (participante == null)
+            return false;
+
+        // Verificar estados válidos para expirar (abandona o rechazado)
+        boolean esAbandona = participante.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona;
+        boolean esRechazado = participante.getEstado() == com.example.demo.models.entity.EstadoParticipante.rechazado;
+
+        if (!esAbandona && !esRechazado) {
+            return false; // No se puede expirar si no está en estado de reingreso pendiente
+        }
+
+        // Verificar si REALMENTE expiró el tiempo (> 15 min)
+        java.time.LocalDateTime fechaReferencia = participante.getFechaFinIndividual();
+        if (fechaReferencia == null) {
+            fechaReferencia = participante.getFechaInicioIndividual();
+        }
+
+        if (fechaReferencia != null) {
+            long minutos = java.time.Duration.between(fechaReferencia, java.time.LocalDateTime.now()).toMinutes();
+            if (minutos > 15) {
+                // Expiró el tiempo, cambiar a CANCELA definitivamente
+                participante.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela);
+                usuarioDao.save(usuario);
+                System.out.println("⌛ Tiempo de reingreso expirado para usuario " + usuarioId + " -> Estado CANCELA");
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

@@ -79,6 +79,7 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
         @org.springframework.data.jpa.repository.Query("SELECT DISTINCT v FROM Viaje v " +
                         "LEFT JOIN FETCH v.participantes p " +
                         "LEFT JOIN FETCH p.usuario " +
+                        "LEFT JOIN FETCH v.ruta " +
                         "WHERE p.usuario.id = :usuarioId " +
                         "AND v.estado = :estado")
         java.util.List<Viaje> findByParticipantes_Usuario_IdAndEstado(

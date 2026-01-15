@@ -349,7 +349,7 @@ public class ViajeController {
         public ResponseEntity<Void> responderReadmision(
                         @Parameter(description = "ID del viaje", required = true) @PathVariable @NonNull Long viajeId,
                         @Parameter(description = "ID del participante", required = true) @RequestParam @NonNull Long usuarioId,
-                        @Parameter(description = "Aceptado (true/false)", required = true) @RequestParam @NonNull boolean aceptado,
+                        @Parameter(description = "Aceptado (true/false)", required = true) @RequestParam boolean aceptado,
                         @Parameter(description = "ID del organizador", required = true) @RequestParam @NonNull Long organizadorId) {
 
                 // Validar organizador

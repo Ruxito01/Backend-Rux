@@ -147,6 +147,17 @@ public class ViajeServiceImpl implements IViajeService {
             return true; // Ya estaba agregado
         }
 
+        // ANTES de agregar al nuevo viaje, cancelar cualquier viaje donde haya
+        // abandonado
+        // Esto evita que pueda volver a un viaje anterior si se une a uno nuevo
+        usuario.getViajesParticipados().stream()
+                .filter(p -> p.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona)
+                .forEach(p -> {
+                    p.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela);
+                    System.out.println("🚫 Cancelado viaje abandonado ID: " + p.getViaje().getId());
+                });
+        usuarioDao.save(usuario);
+
         // Crear la relación con estado inicial REGISTRADO
         com.example.demo.models.entity.ParticipanteViaje participante = new com.example.demo.models.entity.ParticipanteViaje(
                 usuario, viaje, com.example.demo.models.entity.EstadoParticipante.registrado);
@@ -237,9 +248,10 @@ public class ViajeServiceImpl implements IViajeService {
                 }
             }
 
-            // Si el participante finaliza O CANCELA, calcular su tiempo individual
+            // Si el participante finaliza, cancela O ABANDONA, registrar fecha de salida
             if (estadoEnum == com.example.demo.models.entity.EstadoParticipante.finaliza ||
-                    estadoEnum == com.example.demo.models.entity.EstadoParticipante.cancela) {
+                    estadoEnum == com.example.demo.models.entity.EstadoParticipante.cancela ||
+                    estadoEnum == com.example.demo.models.entity.EstadoParticipante.abandona) {
 
                 // Setear fecha fin individual siempre (para validación de 15 min en reingreso)
                 participante.setFechaFinIndividual(java.time.LocalDateTime.now());
@@ -456,10 +468,7 @@ public class ViajeServiceImpl implements IViajeService {
             return false;
         }
 
-        // Buscar participante using stream filter on collection to ensure loaded state
-        // if fetched with relations
-        // Or fetch fresh using dao if safer. Let's use Usuario DAO approach as used in
-        // updateEstadoParticipante
+        // Buscar participante
         Usuario usuario = usuarioDao.findById(usuarioId).orElse(null);
         if (usuario == null)
             return false;
@@ -472,24 +481,41 @@ public class ViajeServiceImpl implements IViajeService {
         if (participante == null)
             return false;
 
-        // Validar que el estado actual sea CANCELA
-        if (participante.getEstado() != com.example.demo.models.entity.EstadoParticipante.cancela) {
+        // Validar que el estado actual sea ABANDONA o RECHAZADO (puede reintentar)
+        boolean esAbandona = participante.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona;
+        boolean esRechazado = participante.getEstado() == com.example.demo.models.entity.EstadoParticipante.rechazado;
+
+        if (!esAbandona && !esRechazado) {
             return false;
         }
 
-        // Validar tiempo (15 min)
-        java.time.LocalDateTime fechaSalida = participante.getFechaFinIndividual();
-        if (fechaSalida == null) {
-            // Si no hay fecha de salida registrada, rechazamos por seguridad o permitimos?
-            // Mejor rechazar o asumir que fue hace poco.
-            // Para robustez, requerimos fecha.
+        // Validar límite de 2 intentos
+        int intentosActuales = participante.getIntentosReingreso() != null ? participante.getIntentosReingreso() : 0;
+        if (intentosActuales >= 2) {
+            System.out.println("❌ Usuario " + usuarioId + " ya agotó sus 2 intentos de reingreso");
             return false;
         }
 
-        long minutosDesdeSalida = java.time.Duration.between(fechaSalida, java.time.LocalDateTime.now()).toMinutes();
+        // Validar tiempo (15 min) - usar fechaFinIndividual o fechaInicioIndividual
+        // como fallback
+        java.time.LocalDateTime fechaReferencia = participante.getFechaFinIndividual();
+        if (fechaReferencia == null) {
+            fechaReferencia = participante.getFechaInicioIndividual();
+        }
+
+        if (fechaReferencia == null) {
+            return false;
+        }
+
+        long minutosDesdeSalida = java.time.Duration.between(fechaReferencia, java.time.LocalDateTime.now())
+                .toMinutes();
         if (minutosDesdeSalida > 15) {
             return false;
         }
+
+        // Incrementar contador de intentos
+        participante.setIntentosReingreso(intentosActuales + 1);
+        System.out.println("🔄 Intento de reingreso #" + (intentosActuales + 1) + " para usuario " + usuarioId);
 
         // Cambiar estado a solicita_ingreso
         participante.setEstado(com.example.demo.models.entity.EstadoParticipante.solicita_ingreso);
@@ -502,6 +528,7 @@ public class ViajeServiceImpl implements IViajeService {
         notification.put("nombre", (usuario.getAlias() != null && !usuario.getAlias().isEmpty()) ? usuario.getAlias()
                 : usuario.getNombre());
         notification.put("viajeId", viajeId);
+        notification.put("intentoNumero", intentosActuales + 1);
 
         String destino = "/topic/viaje/" + viajeId + "/eventos";
         messagingTemplate.convertAndSend(destino, notification);
@@ -527,17 +554,25 @@ public class ViajeServiceImpl implements IViajeService {
 
         if (aceptado) {
             participante.setEstado(com.example.demo.models.entity.EstadoParticipante.ingresa);
-            // Limpiar fecha fin individual anterior para que el cálculo de tiempo sea
-            // correcto al finalizar de nuevo
-            // OJO: Si limpiamos fechaFinIndividual, al finalizar se calculará el tiempo
-            // desde el INICIO original.
-            // Si queremos descontar el tiempo que estuvo fuera, deberíamos tener lógica de
-            // "sesiones" o acumular tiempo.
-            // Por simplicidad MVP: Limpiamos fecha fin y asumimos continuidad (el tiempo
-            // "fuera" cuenta como tiempo de viaje).
+            // Limpiar fecha fin individual y resetear intentos
             participante.setFechaFinIndividual(null);
+            participante.setIntentosReingreso(0); // Resetear contador para futuros abandonos
+            System.out.println("✅ Usuario " + usuarioId + " readmitido al viaje " + viajeId);
         } else {
-            participante.setEstado(com.example.demo.models.entity.EstadoParticipante.rechazado);
+            // Verificar si ya agotó los 2 intentos
+            int intentosActuales = participante.getIntentosReingreso() != null ? participante.getIntentosReingreso()
+                    : 0;
+
+            if (intentosActuales >= 2) {
+                // Ya usó sus 2 intentos, cambiar a cancela (definitivo)
+                participante.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela);
+                System.out.println("❌ Usuario " + usuarioId + " rechazado definitivamente (sin más intentos)");
+            } else {
+                // Aún tiene intentos disponibles, cambiar a rechazado (puede reintentar)
+                participante.setEstado(com.example.demo.models.entity.EstadoParticipante.rechazado);
+                System.out
+                        .println("⚠️ Usuario " + usuarioId + " rechazado. Intentos usados: " + intentosActuales + "/2");
+            }
         }
 
         usuarioDao.save(usuario);
@@ -547,19 +582,105 @@ public class ViajeServiceImpl implements IViajeService {
     @Override
     @Transactional(readOnly = true)
     public List<Viaje> findViajesReingreso(Long usuarioId) {
-        // Consultamos viajes donde el usuario es participante con estado 'cancela'
-        List<Viaje> viajes = dao.findByParticipantes_Usuario_IdAndEstado(usuarioId, "en_curso");
+        System.out.println("🔍 Buscando viajes reingreso para usuario: " + usuarioId);
 
-        // Filtramos en memoria aquellos donde el participante específico tiene estado
-        // cancela Y fecha < 15min
+        // Consultamos viajes donde el usuario es participante con viaje en_curso
+        List<Viaje> viajes = dao.findByParticipantes_Usuario_IdAndEstado(usuarioId, "en_curso");
+        System.out.println("📋 Viajes en_curso encontrados: " + viajes.size());
+
+        // Filtramos en memoria aquellos donde el participante tiene estado
+        // 'abandona' o 'rechazado' (con intentos disponibles) Y fecha < 15min
         return viajes.stream().filter(v -> {
-            boolean usuarioEsParticipanteCancelado = v.getParticipantes().stream()
-                    .anyMatch(p -> p.getUsuario().getId().equals(usuarioId) &&
-                            p.getEstado() == com.example.demo.models.entity.EstadoParticipante.cancela &&
-                            p.getFechaFinIndividual() != null &&
-                            java.time.Duration.between(p.getFechaFinIndividual(), java.time.LocalDateTime.now())
-                                    .toMinutes() <= 15);
-            return usuarioEsParticipanteCancelado;
+            System.out.println("🔎 Verificando viaje ID: " + v.getId());
+
+            for (var p : v.getParticipantes()) {
+                if (p.getUsuario().getId().equals(usuarioId)) {
+                    System.out.println("  ✓ Participante encontrado - Estado: " + p.getEstado());
+                    System.out.println("  ✓ FechaFinIndividual: " + p.getFechaFinIndividual());
+
+                    boolean esAbandona = p.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona;
+                    boolean esRechazado = p.getEstado() == com.example.demo.models.entity.EstadoParticipante.rechazado;
+                    int intentosUsados = p.getIntentosReingreso() != null ? p.getIntentosReingreso() : 0;
+
+                    // Permitir reingreso si abandona, o si rechazado con intentos disponibles
+                    boolean puedeReingresar = esAbandona || (esRechazado && intentosUsados < 2);
+
+                    if (puedeReingresar) {
+                        System.out.println("  ✅ Estado permite reingreso (intentos usados: " + intentosUsados + "/2)");
+
+                        // Usar fechaFinIndividual si existe, sino fechaInicioIndividual como fallback
+                        java.time.LocalDateTime fechaReferencia = p.getFechaFinIndividual();
+                        if (fechaReferencia == null) {
+                            fechaReferencia = p.getFechaInicioIndividual();
+                            System.out.println("  ⚠️  FechaFinIndividual es NULL, usando FechaInicioIndividual: "
+                                    + fechaReferencia);
+                        }
+
+                        if (fechaReferencia != null) {
+                            long minutos = java.time.Duration
+                                    .between(fechaReferencia, java.time.LocalDateTime.now()).toMinutes();
+                            System.out.println("  ⏱️  Minutos desde salida: " + minutos);
+
+                            if (minutos <= 15) {
+                                System.out.println("  ✅ Dentro de ventana de 15 min");
+                                return true;
+                            } else {
+                                System.out.println("  ❌ Fuera de ventana (>15 min)");
+                            }
+                        } else {
+                            System.out.println("  ❌ No hay fecha de referencia disponible");
+                        }
+                    } else {
+                        System.out.println("  ❌ Estado no permite reingreso o sin intentos disponibles");
+                    }
+                }
+            }
+            return false;
         }).collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public boolean expirarReingreso(Long viajeId, Long usuarioId) {
+        // Buscar usuario
+        Usuario usuario = usuarioDao.findById(usuarioId).orElse(null);
+        if (usuario == null)
+            return false;
+
+        // Buscar participante en el viaje específico
+        com.example.demo.models.entity.ParticipanteViaje participante = usuario.getViajesParticipados().stream()
+                .filter(p -> p.getViaje().getId().equals(viajeId))
+                .findFirst()
+                .orElse(null);
+
+        if (participante == null)
+            return false;
+
+        // Verificar estados válidos para expirar (abandona o rechazado)
+        boolean esAbandona = participante.getEstado() == com.example.demo.models.entity.EstadoParticipante.abandona;
+        boolean esRechazado = participante.getEstado() == com.example.demo.models.entity.EstadoParticipante.rechazado;
+
+        if (!esAbandona && !esRechazado) {
+            return false; // No se puede expirar si no está en estado de reingreso pendiente
+        }
+
+        // Verificar si REALMENTE expiró el tiempo (> 15 min)
+        java.time.LocalDateTime fechaReferencia = participante.getFechaFinIndividual();
+        if (fechaReferencia == null) {
+            fechaReferencia = participante.getFechaInicioIndividual();
+        }
+
+        if (fechaReferencia != null) {
+            long minutos = java.time.Duration.between(fechaReferencia, java.time.LocalDateTime.now()).toMinutes();
+            if (minutos > 15) {
+                // Expiró el tiempo, cambiar a CANCELA definitivamente
+                participante.setEstado(com.example.demo.models.entity.EstadoParticipante.cancela);
+                usuarioDao.save(usuario);
+                System.out.println("⌛ Tiempo de reingreso expirado para usuario " + usuarioId + " -> Estado CANCELA");
+                return true;
+            }
+        }
+
+        return false;
     }
 }

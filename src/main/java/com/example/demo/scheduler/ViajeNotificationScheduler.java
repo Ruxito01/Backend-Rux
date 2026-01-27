@@ -85,8 +85,11 @@ public class ViajeNotificationScheduler {
     /**
      * Ejecuta diariamente a las 8:00 PM (zona horaria Ecuador) para recordatorios
      * del día siguiente
+     * IMPORTANTE: zone="America/Guayaquil" asegura que se ejecute a las 8PM hora
+     * Ecuador
+     * independientemente de la zona horaria del servidor (us-central1 = UTC-6)
      */
-    @Scheduled(cron = "0 0 20 * * *") // Todos los días a las 8 PM
+    @Scheduled(cron = "0 0 20 * * *", zone = "America/Guayaquil") // 8 PM hora Ecuador
     @Transactional(readOnly = true)
     public void enviarRecordatorioDiaAnterior() {
         // Usar zona horaria de Ecuador
@@ -126,9 +129,9 @@ public class ViajeNotificationScheduler {
     }
 
     /**
-     * Limpiar cache de notificaciones enviadas cada domingo a las 3 AM
+     * Limpiar cache de notificaciones enviadas cada domingo a las 3 AM hora Ecuador
      */
-    @Scheduled(cron = "0 0 3 * * SUN")
+    @Scheduled(cron = "0 0 3 * * SUN", zone = "America/Guayaquil")
     public void limpiarCacheNotificaciones() {
         int size = notificacionesEnviadas.size();
         notificacionesEnviadas.clear();

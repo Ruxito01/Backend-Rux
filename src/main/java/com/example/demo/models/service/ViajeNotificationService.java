@@ -3,7 +3,9 @@ package com.example.demo.models.service;
 import com.example.demo.models.entity.ParticipanteViaje;
 import com.example.demo.models.entity.Usuario;
 import com.example.demo.models.entity.Viaje;
+import com.example.demo.models.entity.Comunidad;
 import com.example.demo.models.dao.IViajeDao;
+import com.example.demo.models.dao.IComunidadDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,9 @@ public class ViajeNotificationService {
 
     @Autowired
     private IViajeDao viajeDao;
+
+    @Autowired
+    private IComunidadDao comunidadDao;
 
     /**
      * Enviar recordatorio de viaje a todos los participantes
@@ -162,5 +167,80 @@ public class ViajeNotificationService {
 
         System.out.println(
                 "✅ Enviadas " + notificacionesEnviadas + " notificaciones de cancelación para viaje #" + viaje.getId());
+    }
+
+    /**
+     * Notificar a todos los miembros de una comunidad que se ha compartido una
+     * nueva ruta
+     * 
+     * @param comunidadId   ID de la comunidad
+     * @param nombreUsuario Nombre del usuario que compartió
+     * @param nombreRuta    Nombre de la ruta compartida
+     * @param organizadorId ID del organizador (para no enviarle notificación a él
+     *                      mismo)
+     */
+    public void notificarRutaCompartida(Long comunidadId, String nombreUsuario, String nombreRuta, Long organizadorId) {
+        if (comunidadId == null) {
+            System.out.println("⚠️ comunidadId es null, no se puede notificar");
+            return;
+        }
+
+        try {
+            // Obtener comunidad con sus miembros
+            Comunidad comunidad = comunidadDao.findByIdWithMiembros(comunidadId).orElse(null);
+            if (comunidad == null) {
+                System.out.println("⚠️ Comunidad no encontrada: " + comunidadId);
+                return;
+            }
+
+            String titulo = "🗺️ Nueva ruta en " + (comunidad.getNombre() != null ? comunidad.getNombre() : "tu grupo");
+            String cuerpo = nombreUsuario + " ha agregado la ruta \"" + nombreRuta + "\" al grupo";
+
+            int notificacionesEnviadas = 0;
+
+            // Notificar a todos los miembros
+            for (Usuario miembro : comunidad.getMiembros()) {
+                // No enviar al organizador
+                if (miembro.getId().equals(organizadorId)) {
+                    continue;
+                }
+
+                if (miembro.getFcmToken() == null || miembro.getFcmToken().isEmpty()) {
+                    System.out.println("⚠️ Miembro sin FCM token: " + miembro.getId());
+                    continue;
+                }
+
+                String resultado = firebaseMessagingService.enviarNotificacion(
+                        miembro.getFcmToken(),
+                        titulo,
+                        cuerpo,
+                        comunidadId);
+
+                if (resultado != null) {
+                    notificacionesEnviadas++;
+                }
+            }
+
+            // También notificar al creador de la comunidad (si no es el organizador)
+            Usuario creador = comunidad.getCreador();
+            if (creador != null && !creador.getId().equals(organizadorId)) {
+                if (creador.getFcmToken() != null && !creador.getFcmToken().isEmpty()) {
+                    String resultado = firebaseMessagingService.enviarNotificacion(
+                            creador.getFcmToken(),
+                            titulo,
+                            cuerpo,
+                            comunidadId);
+                    if (resultado != null) {
+                        notificacionesEnviadas++;
+                    }
+                }
+            }
+
+            System.out.println("✅ Enviadas " + notificacionesEnviadas +
+                    " notificaciones de ruta compartida para comunidad #" + comunidadId);
+        } catch (Exception e) {
+            System.err.println("❌ Error al notificar ruta compartida: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

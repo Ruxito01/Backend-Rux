@@ -56,7 +56,34 @@ public class ViajeController {
         public ResponseEntity<?> create(
                         @Parameter(description = "Datos del viaje a crear", required = true) @RequestBody @NonNull Viaje entity) {
                 try {
-                        return ResponseEntity.ok(service.save(entity));
+                        Viaje viajeGuardado = service.save(entity);
+
+                        // Si el viaje tiene comunidad asociada, notificar a los miembros
+                        if (viajeGuardado.getComunidad() != null && viajeGuardado.getComunidad().getId() != null) {
+                                String nombreUsuario = "Un usuario";
+                                String nombreRuta = "una ruta";
+                                Long organizadorId = null;
+
+                                if (viajeGuardado.getOrganizador() != null) {
+                                        organizadorId = viajeGuardado.getOrganizador().getId();
+                                        if (viajeGuardado.getOrganizador().getNombre() != null) {
+                                                nombreUsuario = viajeGuardado.getOrganizador().getNombre();
+                                        }
+                                }
+
+                                if (viajeGuardado.getRuta() != null && viajeGuardado.getRuta().getNombre() != null) {
+                                        nombreRuta = viajeGuardado.getRuta().getNombre();
+                                }
+
+                                // Enviar notificación push a miembros de la comunidad
+                                notificationService.notificarRutaCompartida(
+                                                viajeGuardado.getComunidad().getId(),
+                                                nombreUsuario,
+                                                nombreRuta,
+                                                organizadorId);
+                        }
+
+                        return ResponseEntity.ok(viajeGuardado);
                 } catch (Exception e) {
                         e.printStackTrace();
                         return ResponseEntity.status(500).body("Error creating via: " + e.getMessage());

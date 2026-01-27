@@ -60,6 +60,7 @@ public class Comunidad implements Serializable {
          * Si es null, la comunidad es "Libre" (cualquier tipo).
          */
         @Column(name = "tipo_vehiculo_comunidad")
+        @com.fasterxml.jackson.annotation.JsonProperty("tipo_vehiculo_comunidad")
         private Long tipoVehiculoComunidad;
 
         // Relación muchos a muchos con Usuario (miembros de la comunidad)

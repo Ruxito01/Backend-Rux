@@ -24,7 +24,7 @@ public interface ILogroUsuarioDao extends JpaRepository<LogroUsuario, Long> {
      * Busca logros obtenidos pero NO celebrados por el usuario.
      * Útil para que la app móvil sepa qué animaciones mostrar.
      */
-    @Query("SELECT lu FROM LogroUsuario lu WHERE lu.usuario.id = :usuarioId AND lu.celebrado = false")
+    @Query("SELECT lu FROM LogroUsuario lu WHERE lu.usuario.id = :usuarioId AND (lu.celebrado = false OR lu.celebrado IS NULL)")
     List<LogroUsuario> findByUsuarioIdAndCelebradoFalse(@Param("usuarioId") Long usuarioId);
 
     /**

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "logro_usuario", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"usuario_id", "logro_id"})
+        @UniqueConstraint(columnNames = { "usuario_id", "logro_id" })
 })
 @Data
 @NoArgsConstructor
@@ -26,13 +26,14 @@ public class LogroUsuario implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
-    @JsonIgnoreProperties({"logrosObtenidos", "hibernateLazyInitializer", "handler"}) 
-    // Evitamos ciclo infinito al serializar usuario -> logroUsuario -> usuario
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.EAGER) // Eager porque queremos ver el logro al consultar
     @JoinColumn(name = "logro_id", nullable = false)
-    @JsonIgnoreProperties({"usuariosQueLoTienen", "hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({ "usuariosQueLoTienen", "hibernateLazyInitializer", "handler" })
     private Logro logro;
 
     @Column(name = "fecha_obtencion", nullable = false)

@@ -189,4 +189,16 @@ public interface IViajeDao extends JpaRepository<Viaje, Long> {
                         @org.springframework.data.repository.query.Param("estado") String estado,
                         @org.springframework.data.repository.query.Param("desde") LocalDateTime desde,
                         @org.springframework.data.repository.query.Param("hasta") LocalDateTime hasta);
+
+        // Conteo estricto de viajes finalizados donde el usuario participó
+        @org.springframework.data.jpa.repository.Query("SELECT COUNT(v) FROM Viaje v JOIN v.participantes p " +
+                        "WHERE p.usuario.id = :usuarioId AND v.estado = 'finalizado'")
+        long countViajesFinalizadosByUser(@Param("usuarioId") Long usuarioId);
+
+        // Suma estricta de distancia de viajes finalizados donde el usuario participó
+        // Se asume que 'distanciaTotalRealKm' está en Viaje. Si es nulo, suma 0.
+        @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(v.distanciaTotalRealKm), 0) FROM Viaje v JOIN v.participantes p "
+                        +
+                        "WHERE p.usuario.id = :usuarioId AND v.estado = 'finalizado'")
+        java.math.BigDecimal sumDistanciaViajesFinalizadosByUser(@Param("usuarioId") Long usuarioId);
 }

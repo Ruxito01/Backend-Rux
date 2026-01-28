@@ -65,6 +65,9 @@ public class LogroController {
         return entity != null ? ResponseEntity.ok(entity) : ResponseEntity.notFound().build();
     }
 
+    @Autowired
+    private com.example.demo.models.service.LogroVerificadorService logroVerificadorService;
+
     @Operation(summary = "Crear nuevo logro", description = "Crea un nuevo logro en el sistema")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Logro creado exitosamente", content = @Content(schema = @Schema(implementation = Logro.class)))
@@ -72,7 +75,17 @@ public class LogroController {
     @PostMapping
     public ResponseEntity<Logro> create(
             @Parameter(description = "Datos del logro a crear", required = true) @RequestBody @NonNull Logro entity) {
-        return ResponseEntity.ok(service.save(entity));
+        Logro nuevoLogro = service.save(entity);
+
+        // Verificar retroactivamente si usuarios ya cumplen este nuevo logro
+        try {
+            logroVerificadorService.verificarLogroRetroactivo(nuevoLogro);
+        } catch (Exception e) {
+            System.err.println("Error en verificacion retroactiva: " + e.getMessage());
+            // No fallamos la request principal, solo logueamos
+        }
+
+        return ResponseEntity.ok(nuevoLogro);
     }
 
     @Operation(summary = "Actualizar logro", description = "Actualiza los datos de un logro existente")
@@ -88,7 +101,19 @@ public class LogroController {
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(service.save(entity));
+        Logro updatedLogro = service.save(entity);
+
+        // Verificar retroactivamente también al actualizar
+        // (Solo útil si se cambia el criterio, y dado que bloqueamos edición si ya
+        // tiene desbloqueos,
+        // esto servirá para asignar el logro por primera vez si bajamos la dificultad)
+        try {
+            logroVerificadorService.verificarLogroRetroactivo(updatedLogro);
+        } catch (Exception e) {
+            System.err.println("Error en verificacion retroactiva (update): " + e.getMessage());
+        }
+
+        return ResponseEntity.ok(updatedLogro);
     }
 
     @Operation(summary = "Eliminar logro", description = "Elimina un logro del sistema")

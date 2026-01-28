@@ -26,6 +26,9 @@ public class LogroVerificadorService {
     private com.example.demo.models.dao.IMiembroComunidadDao miembroComunidadDao;
 
     @Autowired
+    private com.example.demo.models.dao.IViajeDao viajeDao; // Para verificar VIAJES y DISTANCIA
+
+    @Autowired
     private com.example.demo.models.dao.IRutaDao rutaDao; // Para verificar RUTAS_CREADAS
 
     /**
@@ -84,13 +87,14 @@ public class LogroVerificadorService {
 
             switch (tipo) {
                 case "VIAJES":
-                    // Verificar cantidad de viajes completados
-                    Integer viajes = usuario.getViajesTotalesCompletados();
-                    return viajes != null && viajes >= valorRequerido;
+                    // Verificar cantidad de viajes completados (estado='finalizado') de forma
+                    // estricta
+                    long viajes = viajeDao.countViajesFinalizadosByUser(usuario.getId());
+                    return viajes >= valorRequerido;
 
                 case "DISTANCIA":
-                    // Verificar distancia acumulada (en la BD suele estar en KM)
-                    java.math.BigDecimal distancia = usuario.getKmTotalesAcumulados();
+                    // Verificar distancia acumulada (estado='finalizado') de forma estricta
+                    java.math.BigDecimal distancia = viajeDao.sumDistanciaViajesFinalizadosByUser(usuario.getId());
                     return distancia != null && distancia.doubleValue() >= valorRequerido;
 
                 case "VEHICULOS":
@@ -116,5 +120,34 @@ public class LogroVerificadorService {
             System.err.println("Error parseando criterio logro: " + criterioRaw + " - " + e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Verifica un logro específico para TODOS los usuarios.
+     * Útil cuando se crea un nuevo logro y se quiere aplicar retroactivamente.
+     * ADVERTENCIA: Puede ser costoso si hay muchos usuarios.
+     */
+    @Transactional
+    public void verificarLogroRetroactivo(Logro nuevoLogro) {
+        if (nuevoLogro == null || nuevoLogro.getCriterioDesbloqueo() == null) {
+            return;
+        }
+
+        List<Usuario> usuarios = usuarioService.findAll(); // O usar paginación si son muchos
+        int asignados = 0;
+
+        for (Usuario usuario : usuarios) {
+            // Verificar si ya tiene el logro (aunque si es nuevo, nadie debería tenerlo)
+            boolean yaLoTiene = usuario.getLogros().stream().anyMatch(l -> l.getId().equals(nuevoLogro.getId()));
+
+            if (!yaLoTiene && cumpleCriterio(usuario, nuevoLogro.getCriterioDesbloqueo())) {
+                usuario.getLogros().add(nuevoLogro);
+                usuarioService.save(usuario);
+                asignados++;
+            }
+        }
+
+        System.out.println("✅ Logro retroactivo verificado: " + nuevoLogro.getNombre() + ". Asignado a " + asignados
+                + " usuarios.");
     }
 }

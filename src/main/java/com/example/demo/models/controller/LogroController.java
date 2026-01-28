@@ -31,6 +31,28 @@ public class LogroController {
         return ResponseEntity.ok(service.findAll());
     }
 
+    @Operation(summary = "Obtener logros con estadísticas", description = "Retorna lista de logros incluyendo cantidad de usuarios que lo han desbloqueado")
+    @GetMapping("/stats")
+    public ResponseEntity<List<java.util.Map<String, Object>>> findAllWithStats() {
+        List<Object[]> resultados = service.findAllWithUserCount();
+        List<java.util.Map<String, Object>> respuesta = new java.util.ArrayList<>();
+
+        for (Object[] fila : resultados) {
+            Logro logro = (Logro) fila[0];
+            Long count = (Long) fila[1];
+
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", logro.getId());
+            map.put("nombre", logro.getNombre());
+            map.put("descripcion", logro.getDescripcion());
+            map.put("urlIcono", logro.getUrlIcono());
+            map.put("criterioDesbloqueo", logro.getCriterioDesbloqueo());
+            map.put("cantidadDesbloqueos", count);
+            respuesta.add(map);
+        }
+        return ResponseEntity.ok(respuesta);
+    }
+
     @Operation(summary = "Obtener logro por ID", description = "Retorna un logro específico según su ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Logro encontrado", content = @Content(schema = @Schema(implementation = Logro.class))),

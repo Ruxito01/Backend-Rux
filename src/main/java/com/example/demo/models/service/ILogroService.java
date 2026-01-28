@@ -13,4 +13,6 @@ public interface ILogroService {
     void deleteById(Long id);
 
     List<Logro> findByUsuarioId(Long usuarioId); // Obtener logros de un usuario
+
+    List<Object[]> findAllWithUserCount();
 }

@@ -16,4 +16,7 @@ public interface IRutaDao extends JpaRepository<Ruta, Long> {
             "LEFT JOIN FETCH r.comunidad " +
             "ORDER BY r.nombre ASC")
     List<Ruta> findAllWithRelations();
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(r) FROM Ruta r WHERE r.creador.id = :usuarioId AND r.comunidad IS NULL")
+    long countByUsuarioId(@org.springframework.data.repository.query.Param("usuarioId") Long usuarioId);
 }

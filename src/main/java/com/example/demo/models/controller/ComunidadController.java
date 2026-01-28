@@ -31,6 +31,9 @@ public class ComunidadController {
     @Autowired
     private IMiembroComunidadDao miembroComunidadDao;
 
+    @Autowired
+    private com.example.demo.models.service.LogroVerificadorService logroVerificadorService;
+
     @Operation(summary = "Obtener todas las comunidades")
     @GetMapping
     public List<Comunidad> findAll() {
@@ -133,6 +136,11 @@ public class ComunidadController {
             miembroComunidad.setEstado("activo");
             miembroComunidadDao.save(miembroComunidad);
             System.out.println("✅ Miembro agregado a comunidad");
+
+            System.out.println("✅ Miembro agregado a comunidad");
+
+            // Verificar logros (COMUNIDADES, RUTAS_CREADAS si aplica)
+            logroVerificadorService.verificarLogros(creador);
 
             return new ResponseEntity<>(nuevaComunidad, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -274,6 +282,11 @@ public class ComunidadController {
             miembroComunidad.setEstado("activo");
             miembroComunidadDao.save(miembroComunidad);
 
+            miembroComunidadDao.save(miembroComunidad);
+
+            // Verificar logros
+            logroVerificadorService.verificarLogros(usuario);
+
             Map<String, String> response = Map.of(
                     "mensaje", "Te has unido exitosamente a " + comunidad.getNombre());
             return new ResponseEntity<>(response, HttpStatus.OK);
@@ -395,6 +408,9 @@ public class ComunidadController {
                 nuevaRelacion.setEstado("activo");
                 miembroComunidadDao.save(nuevaRelacion);
             }
+
+            // Verificar logros
+            logroVerificadorService.verificarLogros(usuario);
 
             Map<String, String> response = Map.of(
                     "mensaje", "Te has reintegrado a " + comunidad.getNombre());

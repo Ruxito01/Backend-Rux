@@ -23,4 +23,6 @@ public interface IVehiculoDao extends JpaRepository<Vehiculo, Long> {
      */
     @org.springframework.data.jpa.repository.Query("SELECT v.tipoVehiculo.nombre, COUNT(v) FROM Vehiculo v GROUP BY v.tipoVehiculo.nombre")
     List<Object[]> countVehiculosGroupByTipo();
+
+    long countByUsuarioId(Long usuarioId);
 }

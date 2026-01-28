@@ -94,7 +94,8 @@ public class Usuario implements Serializable {
         // Relación Uno a Muchos con LogroUsuario (Tabla intermedia con atributos extra)
         // Reemplaza la antigua relación @ManyToMany simple
         @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-        @JsonIgnoreProperties("usuario") // Evitar ciclo
+        @JsonIgnore // Ignorar al serializar Usuario para evitar LazyInitializationException y
+                    // ciclos
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         private Set<LogroUsuario> logrosObtenidos = new HashSet<>();

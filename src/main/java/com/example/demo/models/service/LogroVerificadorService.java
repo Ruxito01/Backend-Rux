@@ -130,24 +130,39 @@ public class LogroVerificadorService {
     @Transactional
     public void verificarLogroRetroactivo(Logro nuevoLogro) {
         if (nuevoLogro == null || nuevoLogro.getCriterioDesbloqueo() == null) {
+            System.err.println("⚠️ LogroRetroactivo: Logro nulo o criterio nulo");
             return;
         }
 
+        System.out.println("🔍 Iniciando verificacion retroactiva para: " + nuevoLogro.getNombre() + " ("
+                + nuevoLogro.getCriterioDesbloqueo() + ")");
+
         List<Usuario> usuarios = usuarioService.findAll(); // O usar paginación si son muchos
         int asignados = 0;
+        int verificados = 0;
 
         for (Usuario usuario : usuarios) {
-            // Verificar si ya tiene el logro (aunque si es nuevo, nadie debería tenerlo)
-            boolean yaLoTiene = usuario.getLogros().stream().anyMatch(l -> l.getId().equals(nuevoLogro.getId()));
+            verificados++;
+            try {
+                // Verificar si ya tiene el logro (aunque si es nuevo, nadie debería tenerlo)
+                boolean yaLoTiene = usuario.getLogros().stream().anyMatch(l -> l.getId().equals(nuevoLogro.getId()));
 
-            if (!yaLoTiene && cumpleCriterio(usuario, nuevoLogro.getCriterioDesbloqueo())) {
-                usuario.getLogros().add(nuevoLogro);
-                usuarioService.save(usuario);
-                asignados++;
+                if (yaLoTiene) {
+                    continue;
+                }
+
+                if (cumpleCriterio(usuario, nuevoLogro.getCriterioDesbloqueo())) {
+                    usuario.getLogros().add(nuevoLogro);
+                    usuarioService.save(usuario);
+                    asignados++;
+                    System.out.println("   -> Asignado a usuario ID: " + usuario.getId());
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Error verificando usuario " + usuario.getId() + ": " + e.getMessage());
             }
         }
 
-        System.out.println("✅ Logro retroactivo verificado: " + nuevoLogro.getNombre() + ". Asignado a " + asignados
-                + " usuarios.");
+        System.out.println("✅ Logro retroactivo verificado: " + nuevoLogro.getNombre() + ". Verificados: " + verificados
+                + ". Asignados: " + asignados);
     }
 }

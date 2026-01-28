@@ -127,4 +127,19 @@ public class LogroController {
         service.deleteById(id);
         return ResponseEntity.ok().build();
     }
+
+    @Autowired
+    private com.example.demo.models.dao.ILogroUsuarioDao logroUsuarioDao;
+
+    @Operation(summary = "Marcar logro como celebrado", description = "Marca que el usuario ya vio la animación del logro")
+    @PostMapping("/celebrar/{logroId}/usuario/{usuarioId}")
+    public ResponseEntity<Void> celebrarLogro(@PathVariable Long logroId, @PathVariable Long usuarioId) {
+        com.example.demo.models.entity.LogroUsuario lu = logroUsuarioDao.findByUsuarioIdAndLogroId(usuarioId, logroId);
+        if (lu != null) {
+            lu.setCelebrado(true);
+            logroUsuarioDao.save(lu);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }

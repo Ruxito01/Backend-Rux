@@ -39,10 +39,10 @@ public class Logro implements Serializable {
     @Column(name = "criterio_desbloqueo")
     private String criterioDesbloqueo;
 
-    // Relación muchos a muchos con Usuario
-    @ManyToMany(mappedBy = "logros", fetch = FetchType.LAZY)
+    // Relación Uno a Muchos con LogroUsuario
+    @OneToMany(mappedBy = "logro", cascade = CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonIgnore
-    private Set<Usuario> usuarios = new HashSet<>();
+    private Set<LogroUsuario> usuariosQueLoTienen = new HashSet<>();
 
     private static final long serialVersionUID = 1L;
 }

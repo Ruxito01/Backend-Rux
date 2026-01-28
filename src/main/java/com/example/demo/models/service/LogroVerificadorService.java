@@ -31,6 +31,9 @@ public class LogroVerificadorService {
     @Autowired
     private com.example.demo.models.dao.IRutaDao rutaDao; // Para verificar RUTAS_CREADAS
 
+    @Autowired
+    private com.example.demo.models.dao.ILogroUsuarioDao logroUsuarioDao;
+
     /**
      * Verifica si el usuario cumple con algún logro pendiente y lo asigna.
      * Se debe llamar después de cualquier acción relevante (finalizar viaje,
@@ -45,13 +48,11 @@ public class LogroVerificadorService {
         List<Logro> todosLosLogros = logroService.findAll();
 
         // 2. Obtener IDs de logros que el usuario YA tiene
-        // (Usamos el servicio de usuario o cargamos la colección si es Lazy, aquí
-        // asumimos acceso transactional)
-        Set<Long> logrosDesbloqueadosIds = usuario.getLogros().stream()
-                .map(Logro::getId)
+        // Usamos el DAO de la tabla intermedia para mayor eficiencia
+        Set<Long> logrosDesbloqueadosIds = logroUsuarioDao.findByUsuarioId(usuario.getId())
+                .stream()
+                .map(lu -> lu.getLogro().getId())
                 .collect(Collectors.toSet());
-
-        boolean nuevosLogros = false;
 
         for (Logro logro : todosLosLogros) {
             // Si ya lo tiene, saltar
@@ -61,16 +62,21 @@ public class LogroVerificadorService {
 
             // Verificar si cumple el criterio
             if (cumpleCriterio(usuario, logro.getCriterioDesbloqueo())) {
-                usuario.getLogros().add(logro);
-                nuevosLogros = true;
-                // Opcional: Notificar al usuario aquí (Push Notification)
+                // Asignar logro mediante la entidad intermedia
+                com.example.demo.models.entity.LogroUsuario nuevoLogroUsuario = new com.example.demo.models.entity.LogroUsuario();
+                nuevoLogroUsuario.setUsuario(usuario);
+                nuevoLogroUsuario.setLogro(logro);
+                nuevoLogroUsuario.setFechaObtencion(java.time.LocalDateTime.now());
+                nuevoLogroUsuario.setCelebrado(false); // Por defecto no celebrado
+
+                logroUsuarioDao.save(nuevoLogroUsuario);
+
                 System.out.println("LOGRO DESBLOQUEADO: " + logro.getNombre() + " para usuario " + usuario.getEmail());
             }
         }
 
-        if (nuevosLogros) {
-            usuarioService.save(usuario);
-        }
+        // No necesitamos usuarioService.save(usuario) porque guardamos directamente en
+        // logroUsuarioDao
     }
 
     private boolean cumpleCriterio(Usuario usuario, String criterioRaw) {
@@ -125,7 +131,6 @@ public class LogroVerificadorService {
     /**
      * Verifica un logro específico para TODOS los usuarios.
      * Útil cuando se crea un nuevo logro y se quiere aplicar retroactivamente.
-     * ADVERTENCIA: Puede ser costoso si hay muchos usuarios.
      */
     @Transactional
     public void verificarLogroRetroactivo(Logro nuevoLogro) {
@@ -137,23 +142,29 @@ public class LogroVerificadorService {
         System.out.println("🔍 Iniciando verificacion retroactiva para: " + nuevoLogro.getNombre() + " ("
                 + nuevoLogro.getCriterioDesbloqueo() + ")");
 
-        List<Usuario> usuarios = usuarioService.findAll(); // O usar paginación si son muchos
+        List<Usuario> usuarios = usuarioService.findAll();
         int asignados = 0;
         int verificados = 0;
 
         for (Usuario usuario : usuarios) {
             verificados++;
             try {
-                // Verificar si ya tiene el logro (aunque si es nuevo, nadie debería tenerlo)
-                boolean yaLoTiene = usuario.getLogros().stream().anyMatch(l -> l.getId().equals(nuevoLogro.getId()));
+                // Verificar si ya tiene el logro usando el DAO
+                boolean yaLoTiene = logroUsuarioDao.existsByUsuarioIdAndLogroId(usuario.getId(), nuevoLogro.getId());
 
                 if (yaLoTiene) {
                     continue;
                 }
 
                 if (cumpleCriterio(usuario, nuevoLogro.getCriterioDesbloqueo())) {
-                    usuario.getLogros().add(nuevoLogro);
-                    usuarioService.save(usuario);
+                    com.example.demo.models.entity.LogroUsuario nuevoLogroUsuario = new com.example.demo.models.entity.LogroUsuario();
+                    nuevoLogroUsuario.setUsuario(usuario);
+                    nuevoLogroUsuario.setLogro(nuevoLogro);
+                    nuevoLogroUsuario.setFechaObtencion(java.time.LocalDateTime.now());
+                    nuevoLogroUsuario.setCelebrado(false);
+
+                    logroUsuarioDao.save(nuevoLogroUsuario);
+
                     asignados++;
                     System.out.println("   -> Asignado a usuario ID: " + usuario.getId());
                 }

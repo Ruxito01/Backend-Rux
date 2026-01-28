@@ -66,6 +66,11 @@ public class UsuarioServiceImpl implements IUsuarioService {
         usuarioDao.deleteById(id);
     }
 
+    @Autowired
+    private com.example.demo.models.dao.ILogroUsuarioDao logroUsuarioDao;
+
+    // ...
+
     @Override
     @Transactional
     public Optional<Usuario> asignarLogro(Long usuarioId, Long logroId) {
@@ -75,11 +80,25 @@ public class UsuarioServiceImpl implements IUsuarioService {
         if (usuarioOpt.isPresent() && logroOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
             Logro logro = logroOpt.get();
-            usuario.getLogros().add(logro);
-            return Optional.of(usuarioDao.save(usuario));
+
+            // Verificar si ya lo tiene
+            if (logroUsuarioDao.existsByUsuarioIdAndLogroId(usuarioId, logroId)) {
+                return Optional.of(usuario);
+            }
+
+            com.example.demo.models.entity.LogroUsuario lu = new com.example.demo.models.entity.LogroUsuario();
+            lu.setUsuario(usuario);
+            lu.setLogro(logro);
+            lu.setFechaObtencion(java.time.LocalDateTime.now());
+            lu.setCelebrado(false);
+            logroUsuarioDao.save(lu);
+
+            return Optional.of(usuario);
         }
         return Optional.empty();
     }
+
+    // ... (otras funciones)
 
     @Override
     @Transactional(readOnly = true)
@@ -110,15 +129,11 @@ public class UsuarioServiceImpl implements IUsuarioService {
     @Override
     @Transactional(readOnly = true)
     public Set<Logro> getLogrosByUsuarioId(Long usuarioId) {
-        Optional<Usuario> usuarioOpt = usuarioDao.findById(usuarioId);
-        if (usuarioOpt.isPresent()) {
-            Usuario usuario = usuarioOpt.get();
-            // Forzar la carga de logros dentro de la transacción
-            Set<Logro> logros = usuario.getLogros();
-            logros.size(); // Inicializar la colección lazy
-            return logros;
-        }
-        return null;
+        // Obtenemos los logros via la tabla intermedia
+        List<com.example.demo.models.entity.LogroUsuario> logrosUsuario = logroUsuarioDao.findByUsuarioId(usuarioId);
+        return logrosUsuario.stream()
+                .map(com.example.demo.models.entity.LogroUsuario::getLogro)
+                .collect(java.util.stream.Collectors.toSet());
     }
 
     @Override

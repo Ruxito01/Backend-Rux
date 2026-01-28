@@ -132,6 +132,20 @@ public class LogroController {
     private com.example.demo.models.dao.ILogroUsuarioDao logroUsuarioDao;
 
     @Operation(summary = "Marcar logro como celebrado", description = "Marca que el usuario ya vio la animación del logro")
+    @GetMapping("/pendientes-celebracion/usuario/{usuarioId}")
+    public ResponseEntity<List<Logro>> getLogrosPendientesCelebracion(@PathVariable Long usuarioId) {
+        System.out.println("🔍 Buscando logros pendientes para usuario: " + usuarioId);
+        List<com.example.demo.models.entity.LogroUsuario> list = logroUsuarioDao
+                .findByUsuarioIdAndCelebradoFalse(usuarioId);
+        System.out.println("📦 Encontrados " + list.size() + " registros en LogroUsuario (celebrado=false)");
+
+        List<Logro> logros = list.stream()
+                .map(com.example.demo.models.entity.LogroUsuario::getLogro)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(logros);
+    }
+
+    @Operation(summary = "Marcar logro como celebrado", description = "Marca que el usuario ya vio la animación del logro")
     @PostMapping("/celebrar/{logroId}/usuario/{usuarioId}")
     public ResponseEntity<Void> celebrarLogro(@PathVariable Long logroId, @PathVariable Long usuarioId) {
         com.example.demo.models.entity.LogroUsuario lu = logroUsuarioDao.findByUsuarioIdAndLogroId(usuarioId, logroId);

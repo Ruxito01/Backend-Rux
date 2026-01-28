@@ -40,7 +40,7 @@ public class LogroUsuario implements Serializable {
     private LocalDateTime fechaObtencion;
 
     @Column(name = "celebrado", nullable = false)
-    private boolean celebrado = false;
+    private Boolean celebrado = false;
 
     @PrePersist
     public void prePersist() {

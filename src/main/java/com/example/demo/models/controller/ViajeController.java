@@ -229,9 +229,52 @@ public class ViajeController {
                                                                                 java.math.BigDecimal.valueOf(velocidad)
                                                                                                 .setScale(2, java.math.RoundingMode.HALF_UP));
                                                         }
+
+                                                        // ========== ACUMULAR ESTADÍSTICAS AL PERFIL DEL USUARIO
+                                                        // ==========
+                                                        com.example.demo.models.entity.Usuario usuario = p.getUsuario();
+
+                                                        // Sumar km recorridos al total acumulado del usuario
+                                                        if (p.getKmRecorridos() != null) {
+                                                                java.math.BigDecimal kmActuales = usuario
+                                                                                .getKmTotalesAcumulados();
+                                                                if (kmActuales == null)
+                                                                        kmActuales = java.math.BigDecimal.ZERO;
+                                                                usuario.setKmTotalesAcumulados(
+                                                                                kmActuales.add(p.getKmRecorridos()));
+                                                        }
+
+                                                        // Incrementar contador de viajes completados
+                                                        Integer viajesActuales = usuario.getViajesTotalesCompletados();
+                                                        if (viajesActuales == null)
+                                                                viajesActuales = 0;
+                                                        usuario.setViajesTotalesCompletados(viajesActuales + 1);
+
+                                                        // Sumar tiempo de este viaje al tiempo total del usuario
+                                                        Integer tiempoActual = usuario
+                                                                        .getTiempoTotalMovimientoMinutos();
+                                                        if (tiempoActual == null)
+                                                                tiempoActual = 0;
+                                                        usuario.setTiempoTotalMovimientoMinutos(
+                                                                        tiempoActual + (int) minutosIndividuales);
+
+                                                        // Guardar usuario con estadísticas actualizadas
+                                                        usuarioDao.save(usuario);
+
+                                                        System.out.println("📊 Estadísticas actualizadas para usuario "
+                                                                        + usuario.getId() +
+                                                                        ": viajes="
+                                                                        + usuario.getViajesTotalesCompletados() +
+                                                                        ", km=" + usuario.getKmTotalesAcumulados() +
+                                                                        ", tiempo="
+                                                                        + usuario.getTiempoTotalMovimientoMinutos()
+                                                                        + "min");
                                                 }
                                                 System.out.println("👤 Participante " + p.getUsuario().getId()
                                                                 + " cambiado a 'finaliza'");
+
+                                                // Verificar logros del usuario
+                                                logroVerificadorService.verificarLogros(p.getUsuario());
                                         }
                                 }
                         }

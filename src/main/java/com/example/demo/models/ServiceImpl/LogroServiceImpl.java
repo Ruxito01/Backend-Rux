@@ -44,4 +44,10 @@ public class LogroServiceImpl implements ILogroService {
     public List<Logro> findByUsuarioId(Long usuarioId) {
         return logroDao.findByUsuarioId(usuarioId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Object[]> findAllWithUserCount() {
+        return logroDao.findAllWithUserCount();
+    }
 }

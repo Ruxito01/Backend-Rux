@@ -43,6 +43,9 @@ public class VehiculoController {
         return entity != null ? ResponseEntity.ok(entity) : ResponseEntity.notFound().build();
     }
 
+    @Autowired
+    private com.example.demo.models.service.LogroVerificadorService logroVerificadorService;
+
     @Operation(summary = "Crear nuevo vehículo", description = "Crea un nuevo vehículo en el sistema")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Vehículo creado exitosamente", content = @Content(schema = @Schema(implementation = Vehiculo.class)))
@@ -50,7 +53,10 @@ public class VehiculoController {
     @PostMapping
     public ResponseEntity<Vehiculo> create(
             @Parameter(description = "Datos del vehículo a crear", required = true) @RequestBody @NonNull Vehiculo entity) {
-        return ResponseEntity.ok(service.save(entity));
+        Vehiculo nuevoVehiculo = service.save(entity);
+        // Verificar logros de vehiculos (ej: "Registra tu primer vehiculo")
+        logroVerificadorService.verificarLogros(nuevoVehiculo.getUsuario());
+        return ResponseEntity.ok(nuevoVehiculo);
     }
 
     @Operation(summary = "Actualizar vehículo", description = "Actualiza los datos de un vehículo existente")

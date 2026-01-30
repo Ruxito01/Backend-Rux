@@ -89,6 +89,7 @@ public class UsuarioController {
                 comunidadMap.put("urlImagen", comunidad.getUrlImagen());
                 comunidadMap.put("nivelPrivacidad", comunidad.getNivelPrivacidad());
                 comunidadMap.put("fechaCreacion", comunidad.getFechaCreacion());
+                comunidadMap.put("tipoVehiculoComunidad", comunidad.getTipoVehiculoComunidad());
 
                 // Datos de la membresía (CRUCIAL PARA FILTRAR INACTIVOS)
                 comunidadMap.put("estado", membresia.getEstado());

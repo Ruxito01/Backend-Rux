@@ -91,18 +91,14 @@ public class Usuario implements Serializable {
         @Column(name = "animacion_avatar")
         private String animacionAvatar;
 
-        // Relación muchos a muchos con Logros
-        @ManyToMany(fetch = FetchType.LAZY, cascade = {
-                        CascadeType.PERSIST,
-                        CascadeType.MERGE
-        })
-        @JoinTable(name = "logro_usuario", joinColumns = @JoinColumn(name = "usuario_id"), inverseJoinColumns = @JoinColumn(name = "logro_id"))
-        // Se usa @JsonIgnore para evitar LazyInitializationException
-        // Los logros se obtienen por endpoint: GET /api/usuario/{id}/logros
-        @JsonIgnore
+        // Relación Uno a Muchos con LogroUsuario (Tabla intermedia con atributos extra)
+        // Reemplaza la antigua relación @ManyToMany simple
+        @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+        @JsonIgnore // Ignorar al serializar Usuario para evitar LazyInitializationException y
+                    // ciclos
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
-        private Set<Logro> logros = new HashSet<>();
+        private Set<LogroUsuario> logrosObtenidos = new HashSet<>();
 
         // Relación muchos a muchos con Avatares
         @ManyToMany(fetch = FetchType.LAZY, cascade = {

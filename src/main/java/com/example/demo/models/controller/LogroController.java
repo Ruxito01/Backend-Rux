@@ -31,6 +31,28 @@ public class LogroController {
         return ResponseEntity.ok(service.findAll());
     }
 
+    @Operation(summary = "Obtener logros con estadísticas", description = "Retorna lista de logros incluyendo cantidad de usuarios que lo han desbloqueado")
+    @GetMapping("/stats")
+    public ResponseEntity<List<java.util.Map<String, Object>>> findAllWithStats() {
+        List<Object[]> resultados = service.findAllWithUserCount();
+        List<java.util.Map<String, Object>> respuesta = new java.util.ArrayList<>();
+
+        for (Object[] fila : resultados) {
+            Logro logro = (Logro) fila[0];
+            Long count = (Long) fila[1];
+
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", logro.getId());
+            map.put("nombre", logro.getNombre());
+            map.put("descripcion", logro.getDescripcion());
+            map.put("urlIcono", logro.getUrlIcono());
+            map.put("criterioDesbloqueo", logro.getCriterioDesbloqueo());
+            map.put("cantidadDesbloqueos", count);
+            respuesta.add(map);
+        }
+        return ResponseEntity.ok(respuesta);
+    }
+
     @Operation(summary = "Obtener logro por ID", description = "Retorna un logro específico según su ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Logro encontrado", content = @Content(schema = @Schema(implementation = Logro.class))),
@@ -43,6 +65,9 @@ public class LogroController {
         return entity != null ? ResponseEntity.ok(entity) : ResponseEntity.notFound().build();
     }
 
+    @Autowired
+    private com.example.demo.models.service.LogroVerificadorService logroVerificadorService;
+
     @Operation(summary = "Crear nuevo logro", description = "Crea un nuevo logro en el sistema")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Logro creado exitosamente", content = @Content(schema = @Schema(implementation = Logro.class)))
@@ -50,7 +75,17 @@ public class LogroController {
     @PostMapping
     public ResponseEntity<Logro> create(
             @Parameter(description = "Datos del logro a crear", required = true) @RequestBody @NonNull Logro entity) {
-        return ResponseEntity.ok(service.save(entity));
+        Logro nuevoLogro = service.save(entity);
+
+        // Verificar retroactivamente si usuarios ya cumplen este nuevo logro
+        try {
+            logroVerificadorService.verificarLogroRetroactivo(nuevoLogro);
+        } catch (Exception e) {
+            System.err.println("Error en verificacion retroactiva: " + e.getMessage());
+            // No fallamos la request principal, solo logueamos
+        }
+
+        return ResponseEntity.ok(nuevoLogro);
     }
 
     @Operation(summary = "Actualizar logro", description = "Actualiza los datos de un logro existente")
@@ -66,7 +101,19 @@ public class LogroController {
         if (existing == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(service.save(entity));
+        Logro updatedLogro = service.save(entity);
+
+        // Verificar retroactivamente también al actualizar
+        // (Solo útil si se cambia el criterio, y dado que bloqueamos edición si ya
+        // tiene desbloqueos,
+        // esto servirá para asignar el logro por primera vez si bajamos la dificultad)
+        try {
+            logroVerificadorService.verificarLogroRetroactivo(updatedLogro);
+        } catch (Exception e) {
+            System.err.println("Error en verificacion retroactiva (update): " + e.getMessage());
+        }
+
+        return ResponseEntity.ok(updatedLogro);
     }
 
     @Operation(summary = "Eliminar logro", description = "Elimina un logro del sistema")
@@ -79,5 +126,34 @@ public class LogroController {
             @Parameter(description = "ID del logro a eliminar", required = true, example = "1") @PathVariable @NonNull Long id) {
         service.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @Autowired
+    private com.example.demo.models.dao.ILogroUsuarioDao logroUsuarioDao;
+
+    @Operation(summary = "Marcar logro como celebrado", description = "Marca que el usuario ya vio la animación del logro")
+    @GetMapping("/pendientes-celebracion/usuario/{usuarioId}")
+    public ResponseEntity<List<Logro>> getLogrosPendientesCelebracion(@PathVariable Long usuarioId) {
+        System.out.println("🔍 Buscando logros pendientes para usuario: " + usuarioId);
+        List<com.example.demo.models.entity.LogroUsuario> list = logroUsuarioDao
+                .findByUsuarioIdAndCelebradoFalse(usuarioId);
+        System.out.println("📦 Encontrados " + list.size() + " registros en LogroUsuario (celebrado=false)");
+
+        List<Logro> logros = list.stream()
+                .map(com.example.demo.models.entity.LogroUsuario::getLogro)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(logros);
+    }
+
+    @Operation(summary = "Marcar logro como celebrado", description = "Marca que el usuario ya vio la animación del logro")
+    @PostMapping("/celebrar/{logroId}/usuario/{usuarioId}")
+    public ResponseEntity<Void> celebrarLogro(@PathVariable Long logroId, @PathVariable Long usuarioId) {
+        com.example.demo.models.entity.LogroUsuario lu = logroUsuarioDao.findByUsuarioIdAndLogroId(usuarioId, logroId);
+        if (lu != null) {
+            lu.setCelebrado(true);
+            logroUsuarioDao.save(lu);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }

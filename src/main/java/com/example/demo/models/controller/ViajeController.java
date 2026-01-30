@@ -28,6 +28,12 @@ public class ViajeController {
         @Autowired
         private ViajeNotificationService notificationService;
 
+        @Autowired
+        private com.example.demo.models.service.LogroVerificadorService logroVerificadorService;
+
+        @Autowired
+        private com.example.demo.models.dao.IUsuarioDao usuarioDao;
+
         @Operation(summary = "Obtener todos los viajes", description = "Retorna una lista con todos los viajes programados o en curso en el sistema")
         @ApiResponse(responseCode = "200", description = "Lista de viajes obtenida exitosamente")
         @GetMapping
@@ -309,7 +315,16 @@ public class ViajeController {
                 }
 
                 boolean updated = service.updateEstadoParticipante(viajeId, usuarioId, nuevoEstado, kmRecorridos);
-                return updated ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+
+                if (updated) {
+                        // Si el estado es "finaliza", verificar logros (VIAJES, DISTANCIA)
+                        if ("finaliza".equals(nuevoEstado)) {
+                                usuarioDao.findById(usuarioId)
+                                                .ifPresent(u -> logroVerificadorService.verificarLogros(u));
+                        }
+                        return ResponseEntity.ok().build();
+                }
+                return ResponseEntity.notFound().build();
         }
 
         @Operation(summary = "Obtener viaje activo del usuario", description = "Retorna el viaje donde el usuario es participante, el viaje está 'en_curso' y el participante tiene estado 'ingresa'")

@@ -181,6 +181,103 @@ public class ViajeController {
                 }
 
                 existing.setEstado(nuevoEstado);
+
+                // Si el nuevo estado es 'finalizado', calcular estadísticas del viaje
+                if ("finalizado".equals(nuevoEstado)) {
+                        // Establecer fecha_fin_real si no existe
+                        if (existing.getFechaFinReal() == null) {
+                                existing.setFechaFinReal(java.time.LocalDateTime.now());
+                        }
+
+                        // Calcular tiempo total de movimiento en minutos
+                        if (existing.getFechaInicioReal() != null
+                                        && existing.getTiempoTotalMovimientoMinutos() == null) {
+                                long minutos = java.time.Duration.between(
+                                                existing.getFechaInicioReal(),
+                                                existing.getFechaFinReal()).toMinutes();
+                                existing.setTiempoTotalMovimientoMinutos((int) minutos);
+                        }
+
+                        // CAMBIAR ESTADO DE TODOS LOS PARTICIPANTES QUE AÚN ESTÁN 'INGRESA' A
+                        // 'FINALIZA'
+                        if (existing.getParticipantes() != null) {
+                                java.time.LocalDateTime ahora = java.time.LocalDateTime.now();
+                                for (com.example.demo.models.entity.ParticipanteViaje p : existing.getParticipantes()) {
+                                        if (p.getEstado() == com.example.demo.models.entity.EstadoParticipante.ingresa) {
+                                                p.setEstado(com.example.demo.models.entity.EstadoParticipante.finaliza);
+                                                p.setFechaFinIndividual(ahora);
+
+                                                // Calcular tiempo individual si tiene fecha de inicio
+                                                if (p.getFechaInicioIndividual() != null) {
+                                                        long minutosIndividuales = java.time.Duration.between(
+                                                                        p.getFechaInicioIndividual(), ahora)
+                                                                        .toMinutes();
+                                                        p.setTiempoIndividualMinutos((int) minutosIndividuales);
+
+                                                        // Calcular velocidad individual si tiene km
+                                                        if (p.getKmRecorridos() != null && minutosIndividuales > 0) {
+                                                                double horas = minutosIndividuales / 60.0;
+                                                                double velocidad = p.getKmRecorridos().doubleValue()
+                                                                                / horas;
+                                                                p.setVelocidadIndividual(
+                                                                                java.math.BigDecimal.valueOf(velocidad)
+                                                                                                .setScale(2, java.math.RoundingMode.HALF_UP));
+                                                        }
+                                                }
+                                                System.out.println("👤 Participante " + p.getUsuario().getId()
+                                                                + " cambiado a 'finaliza'");
+                                        }
+                                }
+                        }
+
+                        // Calcular estadísticas basadas en participantes
+                        if (existing.getParticipantes() != null && !existing.getParticipantes().isEmpty()) {
+                                // Calcular promedio de km recorridos
+                                java.math.BigDecimal totalKm = existing.getParticipantes().stream()
+                                                .filter(p -> p.getKmRecorridos() != null)
+                                                .map(p -> p.getKmRecorridos())
+                                                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                                long count = existing.getParticipantes().stream()
+                                                .filter(p -> p.getKmRecorridos() != null)
+                                                .count();
+
+                                if (count > 0 && existing.getDistanciaTotalRealKm() == null) {
+                                        java.math.BigDecimal promedio = totalKm.divide(
+                                                        java.math.BigDecimal.valueOf(count),
+                                                        2, java.math.RoundingMode.HALF_UP);
+                                        existing.setDistanciaTotalRealKm(promedio);
+
+                                        // Calcular velocidad promedio (km/h)
+                                        if (existing.getTiempoTotalMovimientoMinutos() != null
+                                                        && existing.getTiempoTotalMovimientoMinutos() > 0
+                                                        && existing.getVelocidadPromedioGrupo() == null) {
+                                                double horas = existing.getTiempoTotalMovimientoMinutos() / 60.0;
+                                                double velocidad = promedio.doubleValue() / horas;
+                                                existing.setVelocidadPromedioGrupo(
+                                                                java.math.BigDecimal.valueOf(velocidad).setScale(2,
+                                                                                java.math.RoundingMode.HALF_UP));
+                                        }
+                                }
+
+                                // Calcular tiempo promedio grupal
+                                int sumaTiempos = existing.getParticipantes().stream()
+                                                .filter(p -> p.getTiempoIndividualMinutos() != null)
+                                                .mapToInt(p -> p.getTiempoIndividualMinutos())
+                                                .sum();
+                                long countTiempos = existing.getParticipantes().stream()
+                                                .filter(p -> p.getTiempoIndividualMinutos() != null)
+                                                .count();
+                                if (countTiempos > 0 && existing.getTiempoPromedioGrupoMinutos() == null) {
+                                        existing.setTiempoPromedioGrupoMinutos((int) (sumaTiempos / countTiempos));
+                                }
+                        }
+
+                        System.out.println("📊 Estadísticas calculadas para viaje " + id + ": " +
+                                        "distancia=" + existing.getDistanciaTotalRealKm() + " km, " +
+                                        "tiempo=" + existing.getTiempoTotalMovimientoMinutos() + " min, " +
+                                        "velocidad=" + existing.getVelocidadPromedioGrupo() + " km/h");
+                }
+
                 return ResponseEntity.ok(service.save(existing));
         }
 

@@ -24,6 +24,9 @@ public class ViajeServiceImpl implements IViajeService {
     @Autowired
     private com.example.demo.models.dao.IParticipanteViajeDao participanteViajeDao;
 
+    @Autowired
+    private com.example.demo.models.service.LogroVerificadorService logroVerificadorService;
+
     // Caracteres permitidos para el código (alfanumérico)
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int CODE_LENGTH = 8; // Longitud solicitada: 8 caracteres
@@ -164,6 +167,11 @@ public class ViajeServiceImpl implements IViajeService {
 
         // Guardar directamente usando el DAO
         participanteViajeDao.save(participante);
+
+        // Verificar logros del organizador (para INVITAR_AMIGO)
+        if (viaje.getOrganizador() != null && !viaje.getOrganizador().getId().equals(usuarioId)) {
+            logroVerificadorService.verificarLogros(viaje.getOrganizador());
+        }
 
         return true;
     }

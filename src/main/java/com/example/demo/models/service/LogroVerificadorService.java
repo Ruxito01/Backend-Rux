@@ -32,6 +32,9 @@ public class LogroVerificadorService {
     private com.example.demo.models.dao.IRutaDao rutaDao; // Para verificar RUTAS_CREADAS
 
     @Autowired
+    private com.example.demo.models.dao.IParticipanteViajeDao participanteViajeDao; // Para INVITAR_AMIGO
+
+    @Autowired
     private com.example.demo.models.dao.ILogroUsuarioDao logroUsuarioDao;
 
     /**
@@ -131,6 +134,13 @@ public class LogroVerificadorService {
                         return false;
                     long rutasCreadas = rutaDao.countByUsuarioId(usuario.getId());
                     return rutasCreadas >= valorRequerido;
+
+                case "INVITAR_AMIGO":
+                    // El usuario obtiene este logro cuando alguien se une a un viaje que el
+                    // organizo
+                    long participantesExternos = participanteViajeDao
+                            .countParticipantesExternosByOrganizador(usuario.getId());
+                    return participantesExternos >= 1;
 
                 default:
                     return false;

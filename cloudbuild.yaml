@@ -5,12 +5,13 @@ steps:
     args: ['clean', 'package', '-DskipTests']
 
   # 2. Construir la imagen Docker usando el Dockerfile
+  # Se usa $_SERVICE_NAME para diferenciar las imagenes de dev vs prod
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/backend-rux', '.']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}', '.']
 
   # 3. Subir la imagen a Google Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/backend-rux']
+    args: ['push', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}']
 
   # 4. Desplegar la nueva imagen en Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -18,9 +19,9 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'backend-rux'
+      - '${_SERVICE_NAME}'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/backend-rux'
+      - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -30,7 +31,11 @@ steps:
       - '8090'
 
 images:
-  - 'gcr.io/$PROJECT_ID/backend-rux'
-  
+  - 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}'
+
+# Variables de sustitucion (Default = Dev)
+substitutions:
+    _SERVICE_NAME: backend-rux
+
 options:
     logging: CLOUD_LOGGING_ONLY

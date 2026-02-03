@@ -84,37 +84,51 @@ public class LogroVerificadorService {
             return false;
 
         try {
+            // Soportar criterios simples (sin valor) y con valor (TIPO:VALOR)
             String[] partes = criterioRaw.split(":");
-            if (partes.length < 2)
-                return false;
-
             String tipo = partes[0].toUpperCase();
-            double valorRequerido = Double.parseDouble(partes[1]);
+            double valorRequerido = 0;
+
+            if (partes.length >= 2) {
+                valorRequerido = Double.parseDouble(partes[1]);
+            }
 
             switch (tipo) {
+                case "PRIMER_PERFIL":
+                    // El hecho de que estemos verificando un usuario ya implica que existe/se
+                    // registro
+                    return true;
+
+                case "SUBIR_FOTO_PERFIL":
+                    return usuario.getFoto() != null && !usuario.getFoto().isEmpty();
+
                 case "VIAJES":
-                    // Verificar cantidad de viajes completados (estado='finalizado') de forma
-                    // estricta
+                    if (partes.length < 2)
+                        return false;
                     long viajes = viajeDao.countViajesFinalizadosByUser(usuario.getId());
                     return viajes >= valorRequerido;
 
                 case "DISTANCIA":
-                    // Verificar distancia acumulada (estado='finalizado') de forma estricta
+                    if (partes.length < 2)
+                        return false;
                     java.math.BigDecimal distancia = viajeDao.sumDistanciaViajesFinalizadosByUser(usuario.getId());
                     return distancia != null && distancia.doubleValue() >= valorRequerido;
 
                 case "VEHICULOS":
-                    // Verificar cantidad de vehículos registrados
+                    if (partes.length < 2)
+                        return false;
                     long cantidadVehiculos = vehiculoDao.countByUsuarioId(usuario.getId());
                     return cantidadVehiculos >= valorRequerido;
 
                 case "COMUNIDADES":
-                    // Verificar membresías activas en comunidades
+                    if (partes.length < 2)
+                        return false;
                     long cantidadComunidades = miembroComunidadDao.countComunidadesByUsuarioId(usuario.getId());
                     return cantidadComunidades >= valorRequerido;
 
                 case "RUTAS_CREADAS":
-                    // Verificar rutas públicas creadas por el usuario
+                    if (partes.length < 2)
+                        return false;
                     long rutasCreadas = rutaDao.countByUsuarioId(usuario.getId());
                     return rutasCreadas >= valorRequerido;
 
@@ -122,7 +136,6 @@ public class LogroVerificadorService {
                     return false;
             }
         } catch (Exception e) {
-            // Si el criterio está mal formado, ignorar
             System.err.println("Error parseando criterio logro: " + criterioRaw + " - " + e.getMessage());
             return false;
         }
